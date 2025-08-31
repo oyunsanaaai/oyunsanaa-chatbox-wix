@@ -1,19 +1,104 @@
 <!doctype html>
-<html>
+<html lang="mn">
 <head>
-  <meta charset="utf-8">
-  <title>Oyunsanaa Clean Chat</title>
-  <script defer src="oy.js"></script>
-  <style>
-    #oyStream { border:1px solid #ccc; padding:10px; height:200px; overflow:auto; }
-    .user { text-align:right; color:blue; }
-    .bot { text-align:left; color:green; }
-  </style>
-</head>
-<body>
-  <div id="oyStream"></div>
-  <input id="oyInput" placeholder="Сайн уу…" />
-  <button id="btnSend">Send</button>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Оюунсанаа Chat</title>
+  <link rel="stylesheet" href="/oy.css?v=1">
+  <script src="oy.js" defer></script>
+  <body>
+  <!-- Overlay (зөвхөн mobile-д хэрэглэнэ) -->
+  <div id="oyOverlay" class="oy-overlay" hidden></div>
+
+  <!-- FULLSCREEN CHAT APP -->
+  <div id="oyModal" class="oy-modal" hidden role="dialog" aria-modal="true">
+    ...
+    
+    <!-- Header -->
+    <header class="oy-header" id="oyHeader">
+      <button id="btnDrawer" class="oy-iconbtn" aria-label="Меню">
+        <span class="braille">Меню</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>
+        </svg>
+      </button>
+      <div id="chatTitle" class="oy-title">Оюунсанаа — Сонголтоо хийнэ үү</div>
+      <button id="btnClose" class="oy-iconbtn" aria-label="Хаах">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18.3 5.7L12 12 5.7 5.7 4.3 7.1 10.6 13.4 4.3 19.7l1.4 1.4 6.3-6.3 6.3 6.3 1.4-1.4-6.3-6.3 6.3-6.3z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Sidebar / Drawer -->
+    <aside id="oyDrawer" class="oy-drawer" aria-label="Меню">
+      <div class="oy-menu">
+        <div class="oy-card">
+          <div class="kv">Нэр: <b id="accName">Хэрэглэгч</b></div>
+          <div class="kv">Код: <b id="accCode">OY-0000</b></div>
+        </div>
+<select id="modelSelect">
+  <option value="gpt-4o-mini" selected>gpt-4o-mini (түргэн, хямд)</option>
+  <option value="gpt-4o">gpt-4o (чанартай)</option>
+</select>
+        <div id="menuList"></div>
+
+        <div id="itemGuides" class="oy-item" data-menu="guides">
+          <span class="i">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+            </svg>
+          </span>
+          <span class="t"><b>Сэтгэлийн хөтөч (чатууд)</b></span>
+        </div>
+
+        <section id="guidesWrap" class="oy-section" hidden aria-label="Сэтгэлийн хөтөч — ангиллууд">
+          <div class="guides-heading">Насны ангилал</div>
+          <div id="guideCatsAge" class="oy-pills"></div>
+          <div class="guides-heading">Тусгай хэрэгцээт</div>
+          <div id="guideCatsSpecial" class="oy-pills"></div>
+        </section>
+
+        <section id="activeWrap" class="oy-section">
+          <h4>Идэвхтэй чатууд</h4>
+          <div id="activeList"></div>
+        </section>
+      </div>
+
+      <div id="oyPanel" class="oy-panel" hidden>
+        <header>
+          <button id="oyPanelBack" class="oy-back">Буцах</button>
+          <div id="oyPanelTitle" class="oy-panel-title">Панел</div>
+        </header>
+        <div id="oyPanelBody" class="oy-panel-body"></div>
+      </div>
+    </aside>
+
+    <!-- Chat area -->
+    <main class="oy-chat" id="oyChat">
+      <div id="oyStream" class="oy-stream"></div>
+    </main>
+
+    <!-- Composer -->
+    <div class="oy-composer">
+      <div class="oy-row">
+        <label for="oyFile" class="oy-file" aria-label="Файл/зураг нэмэх" title="Файл/зураг нэмэх">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
+              fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </svg>
+        </label>
+        <input id="oyFile" type="file" multiple accept="image/*,.pdf" hidden />
+        <textarea id="oyInput" class="oy-textarea" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
+        <button id="btnSend" class="oy-send" title="Илгээх">Илгээх</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
+
+
+
+
+
 
