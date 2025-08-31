@@ -5,9 +5,61 @@
   const $ = (s, r=document) => r.querySelector(s);
   const OY_API_BASE = 'https://chat.oyunsanaa.com';
 
-  // ... [хамгийн эхний хэсэг өөрчлөгдөөгүй тул алгасав]
+  const el = {
+    overlay: $('#oyOverlay'), 
+    modal: $('#oyModal'),
+    drawer: $('#oyDrawer'), 
+    menu: $('.oy-menu'),
+    menuList: $('#menuList'),
+    itemGuides: $('#itemGuides'), guidesWrap: $('#guidesWrap'),
+    guideCatsAge: $('#guideCatsAge'), guideCatsSpecial: $('#guideCatsSpecial'),
+    activeList: $('#activeList'),
+    title: $('#chatTitle'),
+    chat: $('#oyChat'), stream: $('#oyStream'),
+    input: $('#oyInput'), send: $('#btnSend'),
+    btnDrawer: $('#btnDrawer'), btnClose: $('#btnClose'),
+    accName: $('#accName'), accCode: $('#accCode'),
+    panel: $('#oyPanel'), pBack: $('#oyPanelBack'),
+    pTitle: $('#oyPanelTitle'), pBody: $('#oyPanelBody'),
+    file: $('#oyFile'),
+    modelSelect: $('#modelSelect'),
+  };
 
-  // ==== SEND ====
+  const LSKEY='oy_state_v10'; const msgKey = k=>'oy_msgs_'+k;
+  let state = { account:{name:'Хэрэглэгч', code:'OY-0000'}, current:null, active:{} };
+  try { const s=JSON.parse(localStorage.getItem(LSKEY)||'null'); if(s) state={...state,...s}; } catch(_){}
+  const save = () => localStorage.setItem(LSKEY, JSON.stringify(state));
+
+  const esc = (s) =>
+    String(s).replace(/[&<>"]|'/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  const bubble = (html, who='bot') => {
+    const d = document.createElement('div');
+    d.className = 'oy-bubble ' + (who === 'user' ? 'oy-user' : 'oy-bot');
+    d.innerHTML = html;
+    el.stream.appendChild(d);
+    if (el.chat) el.chat.scrollTop = el.chat.scrollHeight + 999;
+    return d;
+  };
+
+  const meta = (t) => {
+    const m = document.createElement('div');
+    m.className = 'oy-meta';
+    m.textContent = t;
+    el.stream.appendChild(m);
+  };
+
+  function msgKey(key) {
+    return 'oy_msgs_' + key;
+  }
+
+  function pushMsg(key, who, html){
+    const k = msgKey(key);
+    const arr = JSON.parse(localStorage.getItem(k)||'[]');
+    arr.push({t:Date.now(), who, html});
+    localStorage.setItem(k, JSON.stringify(arr));
+  }
+
   async function send(){
     const t = (el.input?.value || '').trim();
     if (!t) { meta('Жишээ: "Сайн байна уу?"'); return; }
@@ -43,5 +95,5 @@
     return (v === 'gpt-4o' || v === 'gpt-4o-mini') ? v : 'gpt-4o-mini';
   }
 
-  // ... [үлдсэн хэсэг өөрчлөгдөөгүй тул хадгалсан]
-})();
+  el.send?.addEventListener('click', send);
+  el.input?.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send();
