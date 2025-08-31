@@ -5,7 +5,8 @@
   const $ = (s, r=document) => r.querySelector(s);
 
   // ✅ Same-origin API — chat.oyunsanaa.com дээр байрлавал хоосон BASE байхад болно
-  const OY_API_BASE = ''; // ж: '' → fetch('/api/oy-chat'), эсвэл 'https://chat.oyunsanaa.com'
+ // API үндсэн зам
+const OY_API_BASE = window.location.origin;
   /* ===== Elements ===== */
   const el = {
     overlay: $('#oyOverlay'), 
