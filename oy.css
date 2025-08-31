@@ -1,0 +1,135 @@
+/* ===== Brand + Typography ===== */
+:root{
+  /* Танай өмнөх хүсэлтээр үндсэн өнгийг #486573 болгов. Хэрвээ ногоон (#7D8769) хэрэгтэй бол доорх мөрийг солино. */
+  --brand:#486573; /* брэндийн үндсэн өнгө */
+  --bg:#f4f6f7; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb;
+  --user:#E8F0E9; --bot:#fff; --shadow:0 10px 30px rgba(0,0,0,.10);
+  --radius:16px; --radius-sm:12px;
+  --font-ui:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --t-base:16px; --line-compact:1.3;
+}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui)}
+
+/* ===== Overlay + Fullscreen Modal ===== */
+#oyOverlay{position:fixed;inset:0;background:rgba(0,0,0,.36);z-index:9999}
+#oyModal{
+  position:fixed; inset:0; width:100vw; height:100dvh; /* iOS safe */
+  display:grid; grid-template-rows:56px 1fr auto;      /* header, main, composer */
+  background:var(--bg); z-index:10000;
+}
+[hidden]{display:none!important}
+
+/* ===== Header ===== */
+.oy-header{
+  display:flex; align-items:center; gap:.5rem;
+  height:56px; padding:0 12px;
+  background:var(--brand); color:#fff;
+}
+.oy-title{flex:1;text-align:center;font:600 16px/1.1 var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oy-iconbtn{background:transparent;border:none;color:#fff;cursor:pointer;width:44px;height:44px;display:grid;place-items:center}
+.oy-iconbtn svg{width:20px;height:20px;fill:currentColor}
+
+/* ===== Layout: Desktop has sidebar, Mobile has drawer ===== */
+.oy-drawer{background:#fff; border-right:1px solid var(--line)}
+.oy-menu{height:100%; overflow:auto; padding:10px}
+.oy-chat{background:var(--bg); overflow:auto}
+.oy-stream{max-width:1024px; margin:0 auto; padding:16px 16px 104px}
+
+/* Desktop grid (>=1024px) */
+@media (min-width:1024px){
+  #oyModal{
+    grid-template-columns:300px 1fr;
+    grid-template-rows:56px 1fr auto;
+    grid-template-areas:
+      "hdr hdr"
+      "nav main"
+      "nav cmp";
+  }
+  .oy-header{grid-area:hdr}
+  .oy-drawer{grid-area:nav; position:relative}
+  .oy-chat{grid-area:main}
+  .oy-composer{grid-area:cmp}
+  #oyOverlay{display:none!important} /* desktop дээр харанхуулахгүй */
+}
+
+/* Mobile drawer (<1024px) */
+@media (max-width:1023px){
+  .oy-drawer{
+    position:fixed; top:56px; left:0; bottom:0; width:min(92vw,360px);
+    transform:translateX(-100%); transition:transform .25s ease; z-index:10001;
+    box-shadow:0 16px 40px rgba(0,0,0,.18);
+  }
+  body.oy-drawer-open .oy-drawer{ transform:none; }
+}
+
+/* ===== Menu items & cards ===== */
+.oy-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;margin:6px 4px}
+.kv{font:500 14px var(--font-ui);margin:4px 0}
+
+.oy-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;border:1px solid var(--line);background:#fff;margin:6px 4px}
+.oy-item:hover{background:#f9f9fb}
+.oy-item .i{width:18px;height:18px;flex:0 0 18px;display:grid;place-items:center;color:#6F8B62}
+.oy-item .i svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.oy-item .t{flex:1;font:400 14px/var(--line-compact) var(--font-ui)}
+.oy-section{margin:10px 6px}
+.oy-section h4{margin:10px 6px 6px;font:700 13px var(--font-ui)}
+.guides-heading{margin:12px 8px 6px;font:700 13px/1.2 var(--font-ui);color:#173125}
+.oy-pills{display:flex;flex-direction:column;gap:8px}
+.oy-pill{--c:#eee;--tc:#111;background:var(--c);color:var(--tc);border-radius:16px;padding:12px 14px;border:1px solid rgba(0,0,0,.06);
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;font:600 13px var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== Bubbles ===== */
+.oy-bubble{max-width:86%;padding:12px 14px;border-radius:20px;margin:8px 0;font:15px/1.5 var(--font-ui);box-shadow:0 12px 28px rgba(0,0,0,.10)}
+.oy-bot{background:var(--bot);border:1px solid var(--line);border-top-left-radius:8px}
+.oy-user{background:var(--user);border:1px solid var(--line);border-top-right-radius:8px;margin-left:auto}
+.oy-meta{color:var(--muted);font:12px var(--font-ui);margin:2px 0 0}
+
+/* ===== Composer (sticky) ===== */
+.oy-composer{
+  position:sticky; bottom:0; z-index:3;
+  background:#fff; border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.oy-row{display:grid;grid-template-columns:28px 1fr 84px;gap:8px;padding:10px;align-items:center}
+.oy-file{width:22px;height:22px;display:grid;place-items:center;border:1px dashed var(--line);border-radius:14px;background:#fff;cursor:pointer;color:var(--brand)}
+.oy-textarea{min-height:44px;max-height:40dvh;resize:none;border:1px solid var(--line);border-radius:16px;padding:12px;font:15px/1.35 var(--font-ui);outline:none;background:#fdfdfd}
+.oy-send{height:42px;border:none;background:var(--brand);color:#fff;border-radius:14px;padding:0 16px;cursor:pointer;font:600 14px var(--font-ui)}
+
+/* ===== Panel ===== */
+.oy-panel{position:absolute;inset:0;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:4}
+.oy-panel header{height:44px;display:flex;align-items:center;gap:10px;padding:0 8px;border-bottom:1px solid var(--line);background:#fafafa}
+.oy-back{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer}
+.oy-panel-title{font:600 14px var(--font-ui)}
+.oy-panel-body{padding:10px;overflow:auto}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:#fff}
+.muted{color:#777;font:12px/1.4 var(--font-ui)}
+
+/* ===== A11y ===== */
+.braille{position:absolute;left:-999em;top:auto;width:1px;height:1px;overflow:hidden}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
