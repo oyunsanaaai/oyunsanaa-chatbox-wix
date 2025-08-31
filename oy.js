@@ -213,11 +213,11 @@ const OY_API_BASE = window.location.origin;
     let hist=[]; try{ hist=JSON.parse(localStorage.getItem(msgKey(state.current))||'[]'); }catch(_){}
 
     try{
-     const r = await fetch(`${OY_API_BASE}/api/oy-chat`, {
+     const r = await fetch('/api/oy-chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    model: el.modelSelect?.value || 'gpt-4o-mini',
+    model: getSelectedModel(),     // ← эндээс
     msg: t,
     chatSlug: state.current || '',
     history: hist
