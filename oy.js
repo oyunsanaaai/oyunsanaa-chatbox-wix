@@ -79,6 +79,26 @@ const OY_API_BASE = window.location.origin;
   const iconSvg = (name)=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||ICONS.user}</svg>`;
 
   /* ===== Data ===== */
+  // --- Model select sanitizer: keep only 4o / 4o-mini and label them clearly
+  function fixModelSelect(){
+    const sel = document.querySelector('#modelSelect');
+    if (!sel) return;
+    const keep = new Map([
+      ['gpt-4o', '4 (gpt-4o)'],
+      ['gpt-4o-mini', '4-mini (gpt-4o-mini)'],
+    ]);
+    // snapshot current value if valid
+    let current = sel.value;
+    if (!keep.has(current)) current = 'gpt-4o-mini';
+    // wipe and rebuild options
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    for (const [val, label] of keep.entries()){
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = label; sel.appendChild(opt);
+    }
+    sel.value = current;
+  }
+
   const AGE = [
     {slug:'age-0-7',  name:'Бага балчир үе (0–7)',           color:'#E1D9C9'},
     {slug:'age-8-12', name:'Адтай бяцхан үе (8–12)',         color:'#AE9372'},
@@ -266,8 +286,8 @@ const OY_API_BASE = window.location.origin;
     }
   }
   function bootOnce(){ if (el.modal.dataset.boot) return; el.modal.dataset.boot='1';
-    // 3.5-г HTML-д санамсаргүй үлдсэн байвал UI-гаас цэвэрлэе
-    document.querySelectorAll('#modelSelect option[value="gpt-3.5-turbo"]').forEach(o=>o.remove());
+    // sanitize model select (remove 3.5 etc.)
+    fixModelSelect();
     renderAndMaybeResume();
   }
 
