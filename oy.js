@@ -3,7 +3,7 @@
   window.__OY_BOOTED__ = true;
 
   const $ = (s, r=document) => r.querySelector(s);
-  const OY_API_BASE = window.location.origin;
+  const OY_API_BASE = 'https://chat.oyunsanaa.com';
 
   // ... [хамгийн эхний хэсэг өөрчлөгдөөгүй тул алгасав]
 
