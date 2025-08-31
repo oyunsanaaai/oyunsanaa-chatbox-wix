@@ -30,6 +30,7 @@ const OY_API_BASE = window.location.origin;
 
   /* ===== Store ===== */
   const LSKEY='oy_state_v10'; const msgKey = k=>'oy_msgs_'+k;
+  const HISTORY_LIMIT = 12; // зөвхөн сүүлийн 12 солилцоог API руу явуулна
   let state = { account:{name:'Хэрэглэгч', code:'OY-0000'}, current:null, active:{} };
   try { const s=JSON.parse(localStorage.getItem(LSKEY)||'null'); if(s) state={...state,...s}; } catch(_){}
   const save = () => localStorage.setItem(LSKEY, JSON.stringify(state));
@@ -237,6 +238,7 @@ const OY_API_BASE = window.location.origin;
     el.input.value=''; el.send.disabled=true;
 
     let hist=[]; try{ hist=JSON.parse(localStorage.getItem(msgKey(state.current))||'[]'); }catch(_){ }
+    if (Array.isArray(hist) && hist.length > HISTORY_LIMIT) { hist = hist.slice(-HISTORY_LIMIT); }
 
     try{
      const r = await fetch('/api/oy-chat', {
@@ -246,7 +248,8 @@ const OY_API_BASE = window.location.origin;
     model: getSelectedModel(),     // ← эндээс
     msg: t,
     chatSlug: state.current || '',
-    history: hist
+    history: hist,
+    max_tokens_hint: 600
   })
 });
       const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
