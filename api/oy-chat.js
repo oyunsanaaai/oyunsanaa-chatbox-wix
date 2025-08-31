@@ -1,6 +1,6 @@
 // /api/oy-chat.js
 export default async function handler(req, res) {
-  // CORS (шаардлагатай бол домэйнээ энэ массивт нэмэж болно)
+  // --- CORS (шаардлагатай бол домэйнээ энэ массивт нэмээрэй)
   const ORIGINS = [
     'https://chat.oyunsanaa.com',
     'https://oyunsanaa-chatbox-wix.vercel.app',
@@ -19,42 +19,66 @@ export default async function handler(req, res) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY is not set' });
 
-    let { model, msg = '', history = [] } = req.body || {};
+    let { model, msg = '', history = [], chatSlug = '' } = req.body || {};
 
-    // ✅ зөвшөөрөгдсөн model-ууд — 3.5 ҮГҮЙ
+    // ✅ Д зөвшөөрөгдсөн моделууд: 3.5 ХААГДСАН
     const MAP = new Map([
       ['gpt-4o', 'gpt-4o'],
       ['gpt-4o-mini', 'gpt-4o-mini'],
     ]);
-    const resolvedModel = MAP.get(model) || 'gpt-4o-mini';
+    const resolvedModel = MAP.get(String(model || '').trim()) || 'gpt-4o-mini';
 
-    // history -> OpenAI messages
+    // --- history -> OpenAI messages (таны localStorage формат: {who, html})
     const messages = [];
-    for (const m of history || []) {
-      const role = m?.who === 'user' ? 'user' : 'assistant';
-      const content = String(m?.html || '').replace(/<[^>]+>/g, '').trim();
-      if (content) messages.push({ role, content });
-    }
-    messages.push({ role: 'user', content: String(msg || '').trim() });
 
-    // OpenAI руу
-    const r = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: resolvedModel, messages, temperature: 0.4 }),
+    // (Заавал биш) Oyunsanaa Chat-ийн систем дуу хоолой
+    messages.push({
+      role: 'system',
+      content:
+        'You are Oyunsanaa Chat. Answer briefly, warmly, in Mongolian by default. Be practical and kind.',
     });
 
-    const data = await r.json();
+    for (const m of history || []) {
+      const role = m?.who === 'user' ? 'user' : 'assistant';
+      // HTML-ийг арилгаж, хоосон мөрийг шүүнэ
+      const content = String(m?.html ?? '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (content) messages.push({ role, content });
+    }
+
+    const userMsg = String(msg || '').trim();
+    if (!userMsg) return res.status(400).json({ error: 'Empty message' });
+    messages.push({ role: 'user', content: userMsg });
+
+    // --- OpenAI Chat Completions
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: resolvedModel,
+        messages,
+        temperature: 0.4,
+      }),
+    });
+
+    const data = await r.json().catch(() => ({}));
     if (!r.ok) {
       console.error('[oy-chat] OpenAI error:', r.status, data);
-      return res.status(r.status).json({ error: data?.error?.message || 'OpenAI API error' });
+      return res
+        .status(r.status)
+        .json({ error: data?.error?.message || 'OpenAI API error' });
     }
 
     const reply = data?.choices?.[0]?.message?.content?.trim() || '';
-return res.status(200).json({ 
-  reply, 
-  model: resolvedModel   // ← энэ мөрийг нэм
-});
+    return res.status(200).json({
+      reply,
+      model: resolvedModel, // ← Консол дээр харагдана
+    });
   } catch (e) {
     console.error('[oy-chat] server error:', e);
     return res.status(500).json({ error: e?.message || 'Server error' });
