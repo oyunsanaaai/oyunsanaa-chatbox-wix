@@ -51,7 +51,10 @@ export default async function handler(req, res) {
     }
 
     const reply = data?.choices?.[0]?.message?.content?.trim() || '';
-    return res.status(200).json({ reply });
+return res.status(200).json({ 
+  reply, 
+  model: resolvedModel   // ← энэ мөрийг нэм
+});
   } catch (e) {
     console.error('[oy-chat] server error:', e);
     return res.status(500).json({ error: e?.message || 'Server error' });
