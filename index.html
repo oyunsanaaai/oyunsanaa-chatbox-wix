@@ -4,16 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Оюунсанаа Chat</title>
-  <link rel="stylesheet" href="/oy.css?v=1">
-  <script src="oy.js" defer></script>
-  <body>
+
+  <!-- Чиний загвар -->
+  <link rel="stylesheet" href="/oy.css?v=1" />
+  <!-- JS-ээ defer-ээр дууд -->
+  <script defer src="/oy.js?v=1"></script>
+</head>
+<body>
   <!-- Overlay (зөвхөн mobile-д хэрэглэнэ) -->
   <div id="oyOverlay" class="oy-overlay" hidden></div>
 
   <!-- FULLSCREEN CHAT APP -->
   <div id="oyModal" class="oy-modal" hidden role="dialog" aria-modal="true">
-    ...
-    
     <!-- Header -->
     <header class="oy-header" id="oyHeader">
       <button id="btnDrawer" class="oy-iconbtn" aria-label="Меню">
@@ -37,11 +39,12 @@
           <div class="kv">Нэр: <b id="accName">Хэрэглэгч</b></div>
           <div class="kv">Код: <b id="accCode">OY-0000</b></div>
         </div>
-<select id="modelSelect">
-  <option value="gpt-4o-mini" selected>gpt-4o-mini (түргэн, хямд)</option>
-  <option value="gpt-4o">gpt-4o (чанартай)</option>
-</select>
-        <div id="menuList"></div>
+
+        <!-- Модель сонголт (3.5 байхгүй) -->
+        <select id="modelSelect" style="width:100%;margin:8px 0">
+          <option value="gpt-4o-mini" selected>4o-mini : Дунд</option>
+          <option value="gpt-4o">4o : Гүн/Нарийн</option>
+        </select>
 
         <div id="itemGuides" class="oy-item" data-menu="guides">
           <span class="i">
@@ -96,9 +99,3 @@
   </div>
 </body>
 </html>
-
-
-
-
-
-
