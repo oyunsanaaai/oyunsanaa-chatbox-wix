@@ -222,13 +222,9 @@ const OY_API_BASE = window.location.origin;
     arr.push({t:Date.now(), who, html}); localStorage.setItem(k, JSON.stringify(arr));
   }
 
-  // === Model helper (added) ===
-  function getSelectedModel(){
-    // Force default to FULL 4o unless user explicitly picks 4o-mini
-    const v = el.modelSelect?.value?.trim();
-    if (v === 'gpt-4o-mini') return 'gpt-4o-mini';
-    return 'gpt-4o';
-  }
+ function getSelectedModel() {
+  return el.modelSelect?.value?.trim() || 'gpt-4o-mini';
+}
 
   // ==== SEND ====
   async function send(){
