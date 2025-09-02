@@ -1,125 +1,162 @@
+// api/oy-chat.js
 export default async function handler(req, res) {
   try {
-    const body = req.body || {};
-    const msg = body.msg || '';
-
+    const body = await readJson(req);
+    const msg = getUserMsg(body);
     if (!msg) {
-      return res.status(400).json({
-        error: 'Empty message',
-        hint: 'Send {"msg":"..."}'
-      });
+      return res.status(400).json({ error: 'Empty message' });
     }
 
-    // ===== Persona + system prompt =====
-    const persona = String(body.persona || '').trim() || 'soft';
+    // 1) persona сонгож system prompt бүрдүүлэх
+    const persona = String(body.persona || 'soft').trim();
 
     const personaPrompts = {
-      soft: `Чи "Оюунсанаа" — зөөлөн, халамжтай, хөгжилтэй. 
-      2–6 өгүүлбэрээр богино хариулт өг. 
-      Хэт урт лекц бүү бич. Амьд ярианы өнгө, сэтгэл тайвшруулсан байг.`,
-      - Эмпати илэрхийл: “ойлгож байна”, “санаа зоволтгүй ээ” гэх мэт.
-      - Онош тавих, эмчилгээ бичихгүй; шаардлагатай бол мэргэжилтэн рүү соёлтой чиглүүл.`,   
-      tough: `Чи "Оюунсанаа" — хатуу чанга, зорилго чиглүүлэгч. 
-      2–4 өгүүлбэр. Шийдэмгий, урам зориг өг.`,
-      wise: `Чи "Оюунсанаа" — ухаалаг, тайван, гүнзгий. 
-      Богино мөрөнд 2–4 өгүүлбэр, ойлгомжтой тайлбар хий.`,
-      - Энгийн жишээгээр тайлбарла.`,
-      parent: `Чи "Оюунсанаа" — ээж/аав шиг дулаан, халамжтай. 
-      2–4 өгүүлбэрээр хайр халамж, урам өг.
-      - Эхэнд нь тайвшруул, хайр мэдрүүл.
-      - Хэт хатуу биш; зөөлөн сануулга ба жижиг даахуйц алхам санал болго.`,  
-      };
+      soft: `Чи "Оюунсанаа" — зөөлөн, халамжтай, хөгжилтэй.
+- Эхний хариулт 2–5 өгүүлбэрт багтана.
+- Лекц, жагсаалт бичихгүй; бодит яриа шиг товч, ойлгомжтой.
+- Эмпати илэрхийлээд, хэрэгтэй бол 1 жижиг алхам санал болго.`,
+      tough: `Чи "Оюунсанаа" — хатуухан, зорилго чиглүүлэгч.
+- 2–4 өгүүлбэрээр шууд голыг нь хэл.
+- "Одоо эхлэх 1 алхам нь …" гэж товч санал болго.`,
+      wise: `Чи "Оюунсанаа" — ухаалаг, тайван, тэнцвэртэй.
+- Богино 2–4 өгүүлбэр.
+- Жишээ, аналогитойгоор ойлгомжтой тайлбарла.`,
+      parent: `Чи "Оюунсанаа" — ээж/аав шиг дулаан, халамжтай.
+- Эхэнд тайвшруулж, хайр мэдрүүл.
+- Хэт урт биш; 2–5 өгүүлбэр; 1 жижиг зөөлөн санал нэм.`,
+    };
 
-    const systemContent = personaPrompts[persona] || personaPrompts.soft;
+    const systemContent =
+      personaPrompts[persona] || personaPrompts.soft;
 
     const messages = [
       { role: 'system', content: systemContent },
-      { role: 'user', content: msg }
+      { role: 'user', content: msg },
     ];
 
-    // ===== OpenAI дуудлага =====
+    // 2) OpenAI руу дуудлага (богино барих тохиргоо)
+    const apiKey = process.env.OPENAI_API_KEY;
+    const model = String(body.model || 'gpt-4o-mini').trim();
+
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: body.model || 'gpt-4o-mini',
+        model,
         messages,
         temperature: 0.6,
-        top_p: 0.8,
-        presence_penalty: 0.3,
-        frequency_penalty: 1.0,
+        top_p: 0.85,
+        presence_penalty: 0.2,
+        frequency_penalty: 0.8, // давтагдлыг багасгана → богиносно
         max_tokens: Math.min(180, Number(body.max_tokens_hint || 160)),
-        stop: ["\n\n", "###"]
-      })
+        stop: ['\n\n', '###'], // урт цуврал тайлбарыг зогсооно
+      }),
     });
 
     if (!r.ok) {
       const text = await r.text().catch(() => '');
-      return res.status(r.status).json({ error: 'upstream', detail: text });
+      return res
+        .status(r.status)
+        .json({ error: 'upstream', detail: text });
     }
 
-    // ===== Хариулт боловсруулах =====
+    // 3) Хариуг цэгцэлж богиносгох
     const data = await r.json();
     let reply = data.choices?.[0]?.message?.content || '';
 
-    reply = reply
-      .replace(/^\s*(#+|[-*]+)\s*/gm, '')  // heading / bullet арилгах
-      .replace(/\n{2,}/g, '\n')            // хоосон мөр цэгцлэх
-      .trim();
+    const isFirstTurn =
+      !Array.isArray(body.history) || body.history.length === 0;
 
-    // Эхний мессеж бол танилцуулга нэм
-    const isFirstTurn = !Array.isArray(body.history) || body.history.length === 0;
-    reply = addIntroOnce(reply, isFirstTurn);
+    reply = cleanMarkdown(reply);
+    reply = clipReply(reply, { maxSentences: 5, maxChars: 420 });
+    reply = addIntroOnce(reply, isFirstTurn, persona);
     reply = addWarmClosing(reply, persona);
 
-    return res.status(200).json({ reply, model: data.model });
-
+    return res
+      .status(200)
+      .json({ reply, model: data.model, persona });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ error: 'server', detail: String(e.message || e) });
+    return res
+      .status(500)
+      .json({ error: 'server', detail: String(e?.message || e) });
   }
 }
 
-// ===== Helper functions =====
-function addIntroOnce(text, isFirst) {
-  if (!text) return '';
-  if (!isFirst) return String(text);
-  const intro = 'Сэтгэлийн туслах Оюунсанаа байна. Таньд юугаар туслах уу?';
-  const t = String(text).trim();
-  if (t.startsWith(intro)) return t;
-  return `${intro} ${t}`;
+/* ---------- Туслах функцууд ---------- */
+
+// Request body унших
+async function readJson(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  const text = await new Response(req.body || null).text();
+  try { return JSON.parse(text || '{}'); } catch { return {}; }
 }
 
-function addWarmClosing(text, persona = 'soft') {
-  const closings = {
-  soft:
-      'Хэрвээ одоо жаахан хэцүү байвал амсхаад аваарай. ' +
-      'Дараагийн хоёр гурван алхмаа хамт тодруулья уу?'
-      'Чи ганцаараа биш шүү. 😊',
-      'Би чамтай хамт байна.',
-      'Амар тайван амьсгалаад, цаашаа хамт алхъя.'
-    tough:
-      'Одоогоор нэг жижиг алхам сонгоод шууд хийе. ' +
-      'Дуусмагц надад хэлээрэй, дараагийнхыг нь үргэлжлүүлье.'
-      'Одоо жижигхэн 1 алхам хийе.',
-      'Хойшлуулах тусам хэцүү болно, одоо эхэлье.',
-      'Чи чадна—одоохондоо жижиг алхам хангалттай.'
-    wise:
-      'Өнөөдрийн мэдрэмж нь маргаашийн ухаарал болж хувирдаг. ' +
-      'Чамд хамгийн үнэ цэнтэй санагдсан нэг санаагаа хэлэх үү?'
-      'Одоогийн мэдрэмжээ анзаарч, нэг өгүүлбэрээр хэлээд үзье.',
-      'Байдалд тайван хандаж, дараагийн жижиг алхмаа сонгоё.',
-      'Тэвчээртэй байхад бүх зүйл тодорно.'
-    parent:
-      'Хоол унд, нойроо мартуузай, миний хамгийн үнэ цэнэтэй эрдэнэ  минь ээ. ' +
-      'Одоо хамгийн их тайтгаруулах зүйл чамд юу вэ?' 
-      'Өөрийгөө бага зэрэг хайрлаарай за.Чи бол онцгой нэгэн шүү 🤗',
-      'Өнөөдөр жаахан амарчлаад, маргааш нь жижиг алхмаа хийнэ ээ.',
-      'Өөрийгөө битгий зэмлээрэй, чи хангалттай хичээж байна.';
-  const t = String(text || '').trim();
-  const needPunct = !/[.!?…]$/.test(t);
-  return `${t}${needPunct ? '.' : ''} ${closings[persona] || closings.soft}`;
+// frontend-ээс ирсэн мэссэж авах
+function getUserMsg(body) {
+  if (typeof body?.msg === 'string') return body.msg.trim();
+  if (Array.isArray(body?.messages)) {
+    const u = body.messages.find(m => m?.role === 'user')?.content;
+    if (typeof u === 'string') return u.trim();
+  }
+  return '';
+}
+
+// Markdown тэмдэглэгээ арилгаж, хоосон мөр багасгах
+function cleanMarkdown(s = '') {
+  return String(s)
+    .replace(/^\s*#{1,6}\s*/gm, '')      // # гарчиг
+    .replace(/^\s*[-*]\s+/gm, '• ')      // bullet-г • болгох
+    .replace(/\n{3,}/g, '\n\n')          // олон хоосон мөр шахах
+    .trim();
+}
+
+// 2–5 өгүүлбэрт багтаах (эсвэл 420 тэмдэгт)
+function clipReply(s, { maxSentences = 5, maxChars = 420 } = {}) {
+  let t = s.trim();
+  if (t.length <= maxChars) {
+    const sent = splitSentences(t);
+    if (sent.length <= maxSentences) return t;
+  }
+  const sent = splitSentences(t).slice(0, maxSentences);
+  t = sent.join(' ');
+  if (t.length > maxChars) t = t.slice(0, maxChars).replace(/\s+\S*$/, '') + '…';
+  return t;
+}
+
+function splitSentences(s) {
+  // . ! ? … болон шинэ мөрөөр таслана
+  return s
+    .split(/(?<=[\.!?…])\s+|\n+/)
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+// Эхний удаад л зөөлөн эхлэл нэмэх
+function addIntroOnce(s, isFirst, persona) {
+  if (!isFirst) return s;
+  const headByPersona = {
+    soft: 'Би ойлгож байна. ',
+    tough: 'Ойлголоо. ',
+    wise: 'Сайн байна, ойлгож авлаа. ',
+    parent: 'Миний хайр хүн минь, зүгээр дээ. ',
+  };
+  return (headByPersona[persona] || 'Ойлголоо. ') + s;
+}
+
+// Дулаан богино төгсгөл (emoji 0–1)
+function addWarmClosing(s, persona) {
+  const end =
+    persona === 'tough'
+      ? ' Одоо хамгийн жижиг 1 алхмыг сонгоё?'
+      : persona === 'parent'
+      ? ' Хоолоо идэж, ус уугаарай шүү. 😊'
+      : persona === 'wise'
+      ? ' Хэрэв бэлэн бол дараагийн жижиг хэсгийг тодруулъя.'
+      : ' Хүсвэл цааш ярилцъя. 💬';
+  // Аль хэдийн асуултаар төгссөн бол нэмэхгүй
+  return /[?!]$/.test(s) ? s : s + end;
 }
