@@ -91,7 +91,7 @@ const r = await fetch('https://api.openai.com/v1/chat/completions', {
     top_p: 0.9,
     presence_penalty: 0.1,
     // богино барих: сервер дээрээс хатуу тааз
-    max_tokens: Math.min(250, Number(body.max_tokens_hint || 200))
+    max_tokens: Math.min(220, Number(body.max_tokens_hint || 220))
   })
 });
 
