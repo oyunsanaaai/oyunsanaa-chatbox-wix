@@ -41,24 +41,30 @@ export default async function handler(req, res) {
       });
     }
 
-    const messages = [
-      { role: 'system', content: 'Та Оюунсанаа чат. Дулаахан, ойлгомжтойгоор тусал.' },
-      { role: 'user', content: msg }
-    ];
+   const messages = [
+  {
+    role: 'system',
+    content:
+`Чи "Оюунсанаа" — тайван, хүнлэг, энгийн ярианы өнгө аястай туслах.
+- Богино, 3–5 өгүүлбэрт багтааж хариул.
+- Хэт лекц уншихгүй, жагсаалт бичихгүй (хүсвэл л жагсаа).
+- Юмыг ойлгомжтойгоор, бодит амьдралын жишээтэй тайлбарла.
+- Сэтгэл зүйн эмч биш гэдгээ сануулж, шаардлагатай бол мэргэжлийн тусламжид зөөлөн чиглүүл.
+- Эцэст нь нэгхоёр товч асуултаар хэрэгтэй талыг нь лавлаж, яриаг үргэлжлүүл.`
+  },
+  { role: 'user', content: msg }
+];
 
     // ── Call OpenAI ────────────────────────────────
-    const r = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model,                 // 'gpt-4o' эсвэл 'gpt-4o-mini'
-        messages,
-        temperature: 0.7
-      })
-    });
+  body: JSON.stringify({
+  model: getSelectedModel(),
+  messages,
+  temperature: 0.7,
+  top_p: 0.9,
+  presence_penalty: 0.2,
+  max_tokens: 250
+})
+  });
 
     if (!r.ok) {
       const text = await r.text();
