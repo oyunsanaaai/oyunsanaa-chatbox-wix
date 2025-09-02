@@ -25,3 +25,27 @@ export default async function handler(req, res) {
   // дээрх headers-ийг эхэнд нь л тавьсан.
   ...
 }
+const body = req.body || {};
+const msg = String(body.msg || (body.messages?.[0]?.content) || '').trim();
+
+if (!msg) {
+  return res.status(400).json({ error: 'Empty message' });
+}
+const r = await fetch('https://api.openai.com/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+  },
+  body: JSON.stringify({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: 'Та Оюунсанаа чат. Дулаахан, ойлгомжтойгоор хариул.' },
+      { role: 'user', content: msg }
+    ]
+  })
+});
+
+const data = await r.json();
+const reply = data.choices?.[0]?.message?.content || 'Хариулт олдсонгүй.';
+return res.status(200).json({ reply });
