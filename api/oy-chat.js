@@ -99,11 +99,6 @@ if (!r.ok) {
   const text = await r.text();
   return res.status(r.status).json({ error: 'upstream', detail: text });
 }
-
-const data = await r.json();
-const reply = data.choices?.[0]?.message?.content || 'Хариулт олдсонгүй.';
-return res.status(200).json({ reply, model: data.model });
-
     const data = await r.json();
     const reply = data.choices?.[0]?.message?.content || 'Хариулт олдсонгүй.';
     return res.status(200).json({ reply, model: data.model });
@@ -112,3 +107,6 @@ return res.status(200).json({ reply, model: data.model });
     return res.status(500).json({ error: 'server', detail: String(e?.message || e) });
   }
 }
+let reply = data.choices?.[0]?.message?.content || '';
+// Markdown / жагсаалтын тэмдэглэгээг цэвэрлэж, хоосон мөрийг шахна
+reply = reply.replace(/^\s*([#>*\-•]+)\s*/gm, '').replace(/\n{2,}/g, '\n').trim();
