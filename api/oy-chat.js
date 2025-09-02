@@ -41,35 +41,46 @@ export default async function handler(req, res) {
       });
     }
 
-   const messages = [
+  // ---- Messages (илүү хүнлэг prompt) ----
+const messages = [
   {
     role: 'system',
-    content:
-`Чи "Оюунсанаа" — тайван, хүнлэг, энгийн ярианы өнгө аястай туслах.
+    content: `Чи "Оюунсанаа" — тайван, хүнлэг, ойлгомжтой туслах.
 - Богино, 3–5 өгүүлбэрт багтааж хариул.
-- Хэт лекц уншихгүй, жагсаалт бичихгүй (хүсвэл л жагсаа).
-- Юмыг ойлгомжтойгоор, бодит амьдралын жишээтэй тайлбарла.
-- Сэтгэл зүйн эмч биш гэдгээ сануулж, шаардлагатай бол мэргэжлийн тусламжид зөөлөн чиглүүл.
-- Эцэст нь нэгхоёр товч асуултаар хэрэгтэй талыг нь лавлаж, яриаг үргэлжлүүл.`
+- Хэт урт лекц, эсвэл урт жагсаалт битгий бич.
+- Жишээ эсвэл алхамчилсан, бодитой тайлбар оруул.
+- Эцэст нь 1 богино асуултаар яриаг үргэлжлүүл.`
   },
   { role: 'user', content: msg }
 ];
 
-    // ── Call OpenAI ────────────────────────────────
+// ---- Call OpenAI ----
+const r = await fetch('https://api.openai.com/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`
+  },
   body: JSON.stringify({
-  model: getSelectedModel(),
-  messages,
-  temperature: 0.7,
-  top_p: 0.9,
-  presence_penalty: 0.2,
-  max_tokens: 250
-})
-  });
+    // frontend (oy.js) -с ирсэн утга: 'gpt-4o' эсвэл 'gpt-4o-mini'
+    model,
+    messages,
+    temperature: 0.7,
+    top_p: 0.9,
+    presence_penalty: 0.2,
+    // Хязгаарлалтыг хэтрүүлэхгүй зөөлөн зөвлөмж
+    max_tokens: Math.min(600, Number(body.max_tokens_hint) || 250)
+  })
+});
 
-    if (!r.ok) {
-      const text = await r.text();
-      return res.status(r.status).json({ error: 'upstream', detail: text });
-    }
+if (!r.ok) {
+  const text = await r.text();
+  return res.status(r.status).json({ error: 'upstream', detail: text });
+}
+
+const data = await r.json();
+const reply = data.choices?.[0]?.message?.content || 'Хариулт олдсонгүй.';
+return res.status(200).json({ reply, model: data.model });
 
     const data = await r.json();
     const reply = data.choices?.[0]?.message?.content || 'Хариулт олдсонгүй.';
