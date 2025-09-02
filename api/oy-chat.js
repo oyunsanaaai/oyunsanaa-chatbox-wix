@@ -23,6 +23,25 @@ export default async function handler(req, res) {
         .filter(m => m.content.length);
     } else {
       const msg = String(body.msg || body.message || '').trim();
+      // --- Body parse (robust) ---
+let raw = req.body;
+try {
+  // Vercel / fetch-ээс шалтгаад body нь string байх үе бий
+  if (typeof raw === 'string') raw = JSON.parse(raw);
+} catch (_) { raw = {}; }
+
+const body = raw || {};
+// 2 төрлийн форматыг аль алиныг дэмжинэ
+const msg =
+  (typeof body.msg === 'string' && body.msg.trim()) ||
+  (Array.isArray(body.messages) && body.messages[0]?.content?.trim()) ||
+  '';
+if (!msg) {
+  return res.status(400).json({
+    error: 'Empty message',
+    hint: 'Send {"msg":"..."} or {"messages":[{"role":"user","content":"..."}]}'
+  });
+}
       if (!msg) return res.status(400).json({ error: 'Empty message' });
       messages = [
         { role: 'system', content: 'Та Оюунсанаа чат. Дулаахан, ойлгомжтой тусал.' },
