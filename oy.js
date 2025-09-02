@@ -25,7 +25,7 @@ const OY_API_BASE = window.location.origin;
     panel: $('#oyPanel'), pBack: $('#oyPanelBack'),
     pTitle: $('#oyPanelTitle'), pBody: $('#oyPanelBody'),
     file: $('#oyFile'),
-    modelSelect: $('#modelSelect'),
+    modelSelect: $('#modelSelect'),    
   };
 
   /* ===== Store ===== */
@@ -225,7 +225,9 @@ const OY_API_BASE = window.location.origin;
  function getSelectedModel() {
   return el.modelSelect?.value?.trim() || 'gpt-4o-mini';
 }
-
+function getSelectedPersona(){
+  return el.personaSelect?.value?.trim() || 'soft';
+}  
   // ==== SEND ====
   async function send(){
     const t = (el.input?.value || '').trim();
@@ -243,12 +245,13 @@ const OY_API_BASE = window.location.origin;
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    model: getSelectedModel(),     // ← эндээс
-    msg: t,
-    chatSlug: state.current || '',
-    history: hist,
-    max_tokens_hint: 600
-  })
+  model: getSelectedModel(),
+  persona: getSelectedPersona(),   // ← ШИНЭ
+  msg: t,
+  chatSlug: state.current || '',
+  history: hist,
+  max_tokens_hint: 600
+})
 });
       const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
       if (error) throw new Error(error);
