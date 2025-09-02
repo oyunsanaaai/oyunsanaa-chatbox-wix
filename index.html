@@ -13,10 +13,17 @@
     #oyStream .bot{background:#f2f3f5;padding:8px 10px;border-radius:10px;margin:6px 0}
   </style>
 <!-- Загвар сонгохын доор нэг select нэм -->
-<select id="personaSelect" style="width:100%;margin:8px 0">
+<!-- Загвар сонгох -->
+<select id="modelSelect" style="width:100%; margin:8px 0">
+  <option value="gpt-4o-mini" selected>4o-mini : Дунд</option>
+  <option value="gpt-4o">4o : Гүн/Нарийн</option>
+</select>
+
+<!-- Persona (ярианы өнгө) сонгох -->
+<select id="personaSelect" style="width:100%; margin:8px 0">
   <option value="soft" selected>Зөөлөн</option>
   <option value="firm">Хатуухан</option>
-  <option value="wise">Ухаалаг</option>
+  <option value="wise">Хаанслаг</option>
   <option value="parent">Ээж/аав шиг</option>
   <option value="buddy">Найз шиг</option>
 </select>
