@@ -223,7 +223,7 @@ const OY_API_BASE = window.location.origin;
   }
 
  function getSelectedModel() {
-  return el.modelSelect?.value?.trim() || 'gpt-4o-mini';
+  return el.modelSelect?.value?.trim() || 'gpt-4o';
 }
 
   // ==== SEND ====
