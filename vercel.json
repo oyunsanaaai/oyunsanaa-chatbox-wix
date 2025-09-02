@@ -1,5 +1,1 @@
-{
-  "routes": [
-    { "src": "/api/proxy", "dest": "/api/oy-chat.js" }
-  ]
-}
+
