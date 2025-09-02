@@ -1,112 +1,125 @@
-// /api/oy-chat.js
 export default async function handler(req, res) {
-  // ── CORS ─────────────────────────────────────────
-  const ALLOW = [
-    /^https?:\/\/chat\.oyunsanaa\.com$/,
-    /^https?:\/\/oyunsanaa\-chatbox\-wix\.vercel\.app$/,
-    /^http:\/\/localhost:3000$/
-  ];
-  const origin = req.headers.origin || '';
-  if (ALLOW.some(re => re.test(origin))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  }
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST' });
-
-  // ── API key ──────────────────────────────────────
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY is not set' });
-
   try {
-    // ── Body robust parse (fetch/edge sometimes sends string) ──
-    let raw = req.body;
-    if (typeof raw === 'string') {
-      try { raw = JSON.parse(raw); } catch { raw = {}; }
-    }
-    const body = raw || {};
+    const body = req.body || {};
+    const msg = body.msg || '';
 
-    // ── Inputs ─────────────────────────────────────
-    const model = String(body.model || '').trim() || 'gpt-4o-mini';
-   const msg =
-  (typeof body.msg === 'string' && body.msg.trim()) ||
-  (Array.isArray(body.messages) && String(body.messages[0]?.content || '').trim()) ||
-  '';
     if (!msg) {
       return res.status(400).json({
         error: 'Empty message',
-        hint: 'Send {"msg":"..."} OR {"messages":[{"role":"user","content":"..."}]}'
+        hint: 'Send {"msg":"..."}'
       });
     }
 
-  // ---- Messages (илүү хүнлэг prompt) ----
-// === persona + system prompt + messages  (ОРЛУУЛАХ ХЭСЭГ) ===
+    // ===== Persona + system prompt =====
+    const persona = String(body.persona || '').trim() || 'soft';
 
-// 1) Frontend-ээс ирсэн persona (өгөгдөөгүй бол 'soft')
-const persona = String(body.persona || '').trim() || 'soft';
+    const personaPrompts = {
+      soft: `Чи "Оюунсанаа" — зөөлөн, халамжтай, хөгжилтэй. 
+      2–6 өгүүлбэрээр богино хариулт өг. 
+      Хэт урт лекц бүү бич. Амьд ярианы өнгө, сэтгэл тайвшруулсан байг.`,
+      - Эмпати илэрхийл: “ойлгож байна”, “санаа зоволтгүй ээ” гэх мэт.
+      - Онош тавих, эмчилгээ бичихгүй; шаардлагатай бол мэргэжилтэн рүү соёлтой чиглүүл.`,   
+      tough: `Чи "Оюунсанаа" — хатуу чанга, зорилго чиглүүлэгч. 
+      2–4 өгүүлбэр. Шийдэмгий, урам зориг өг.`,
+      wise: `Чи "Оюунсанаа" — ухаалаг, тайван, гүнзгий. 
+      Богино мөрөнд 2–4 өгүүлбэр, ойлгомжтой тайлбар хий.`,
+      - Энгийн жишээгээр тайлбарла.`,
+      parent: `Чи "Оюунсанаа" — ээж/аав шиг дулаан, халамжтай. 
+      2–4 өгүүлбэрээр хайр халамж, урам өг.
+      - Эхэнд нь тайвшруул, хайр мэдрүүл.
+      - Хэт хатуу биш; зөөлөн сануулга ба жижиг даахуйц алхам санал болго.`,  
+      };
 
-// 2) Persona бүрийн системийн загвар (богино, амьд яриа)
-const personaPrompts = {
-  soft: `Чи “Оюунсанаа” — дулаан, халамжтай, хөгжилтэй.
-- Хариулт 2–4 өгүүлбэр. Жагсаалт, гарчиг, тест санал БҮҮ тавь.
-- Эмпати илэрхийл: “Ойлголоо”, “Хэцүү сонсогдож байна” г.м.
-- Зөвлөмж бол товч, 1–2 алхам л санал болго.
-- Эцэст нь 1 богино асуулт байж БОЛНО. Emoji 0–1 :)`,
+    const systemContent = personaPrompts[persona] || personaPrompts.soft;
 
-  tough: `Чи “Оюунсанаа” — хатуухан, зорилго чиглүүлэгч.
-- 2–4 өгүүлбэр. Тодорхой нэг алхам хэл.
-- Илүүц лекц, жагсаалт БҮҮ бич. Сүүлд 1 асуулт.`,
+    const messages = [
+      { role: 'system', content: systemContent },
+      { role: 'user', content: msg }
+    ];
 
-  wise: `Чи “Оюунсанаа” — ухаалаг, тунгаамжтай.
-- Богино 2–4 өгүүлбэр, энгийн жишээтэй.
-- Сонсож байгаагаа батал, дараагийн жижиг алхмыг санал болго.`,
+    // ===== OpenAI дуудлага =====
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: body.model || 'gpt-4o-mini',
+        messages,
+        temperature: 0.6,
+        top_p: 0.8,
+        presence_penalty: 0.3,
+        frequency_penalty: 1.0,
+        max_tokens: Math.min(180, Number(body.max_tokens_hint || 160)),
+        stop: ["\n\n", "###"]
+      })
+    });
 
-  parent: `Чи “Оюунсанаа” — ээж/аав шиг дулаан.
-- Тайвшруулж, дэмж. “Амарчлаадаа, миний хүн” гэх мэт.
-- Хэт олон заавар биш, 1–2 жижиг сануулга + 1 асуулт.`
-};
+    if (!r.ok) {
+      const text = await r.text().catch(() => '');
+      return res.status(r.status).json({ error: 'upstream', detail: text });
+    }
 
-// 3) Сонгогдсон системийн мессеж
-const systemContent = personaPrompts[persona] || personaPrompts.soft;
-
-// 4) Chat messages
-const messages = [
-  { role: 'system', content: systemContent },
-  { role: 'user',   content: msg }
-];
-
-// —— OpenAI руу дуудлага (богино барих тохиргоо) ——
-const r = await fetch('https://api.openai.com/v1/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${apiKey}`
-  },
-  body: JSON.stringify({
-    model,
-    messages,
-    temperature: 0.7,
-    top_p: 0.9,
-    presence_penalty: 0.1,
-    // богино барих: сервер дээрээс хатуу тааз
-    max_tokens: Math.min(220, Number(body.max_tokens_hint || 220))
-  })
-});
-
-if (!r.ok) {
-  const text = await r.text();
-  return res.status(r.status).json({ error: 'upstream', detail: text });
-}
+    // ===== Хариулт боловсруулах =====
     const data = await r.json();
-    const reply = data.choices?.[0]?.message?.content || 'Хариулт олдсонгүй.';
+    let reply = data.choices?.[0]?.message?.content || '';
+
+    reply = reply
+      .replace(/^\s*(#+|[-*]+)\s*/gm, '')  // heading / bullet арилгах
+      .replace(/\n{2,}/g, '\n')            // хоосон мөр цэгцлэх
+      .trim();
+
+    // Эхний мессеж бол танилцуулга нэм
+    const isFirstTurn = !Array.isArray(body.history) || body.history.length === 0;
+    reply = addIntroOnce(reply, isFirstTurn);
+    reply = addWarmClosing(reply, persona);
+
     return res.status(200).json({ reply, model: data.model });
+
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ error: 'server', detail: String(e?.message || e) });
+    return res.status(500).json({ error: 'server', detail: String(e.message || e) });
   }
 }
-let reply = data.choices?.[0]?.message?.content || '';
-// Markdown / жагсаалтын тэмдэглэгээг цэвэрлэж, хоосон мөрийг шахна
-reply = reply.replace(/^\s*([#>*\-•]+)\s*/gm, '').replace(/\n{2,}/g, '\n').trim();
+
+// ===== Helper functions =====
+function addIntroOnce(text, isFirst) {
+  if (!text) return '';
+  if (!isFirst) return String(text);
+  const intro = 'Сэтгэлийн туслах Оюунсанаа байна. Таньд юугаар туслах уу?';
+  const t = String(text).trim();
+  if (t.startsWith(intro)) return t;
+  return `${intro} ${t}`;
+}
+
+function addWarmClosing(text, persona = 'soft') {
+  const closings = {
+  soft:
+      'Хэрвээ одоо жаахан хэцүү байвал амсхаад аваарай. ' +
+      'Дараагийн хоёр гурван алхмаа хамт тодруулья уу?'
+      'Чи ганцаараа биш шүү. 😊',
+      'Би чамтай хамт байна.',
+      'Амар тайван амьсгалаад, цаашаа хамт алхъя.'
+    tough:
+      'Одоогоор нэг жижиг алхам сонгоод шууд хийе. ' +
+      'Дуусмагц надад хэлээрэй, дараагийнхыг нь үргэлжлүүлье.'
+      'Одоо жижигхэн 1 алхам хийе.',
+      'Хойшлуулах тусам хэцүү болно, одоо эхэлье.',
+      'Чи чадна—одоохондоо жижиг алхам хангалттай.'
+    wise:
+      'Өнөөдрийн мэдрэмж нь маргаашийн ухаарал болж хувирдаг. ' +
+      'Чамд хамгийн үнэ цэнтэй санагдсан нэг санаагаа хэлэх үү?'
+      'Одоогийн мэдрэмжээ анзаарч, нэг өгүүлбэрээр хэлээд үзье.',
+      'Байдалд тайван хандаж, дараагийн жижиг алхмаа сонгоё.',
+      'Тэвчээртэй байхад бүх зүйл тодорно.'
+    parent:
+      'Хоол унд, нойроо мартуузай, миний хамгийн үнэ цэнэтэй эрдэнэ  минь ээ. ' +
+      'Одоо хамгийн их тайтгаруулах зүйл чамд юу вэ?' 
+      'Өөрийгөө бага зэрэг хайрлаарай за.Чи бол онцгой нэгэн шүү 🤗',
+      'Өнөөдөр жаахан амарчлаад, маргааш нь жижиг алхмаа хийнэ ээ.',
+      'Өөрийгөө битгий зэмлээрэй, чи хангалттай хичээж байна.';
+  const t = String(text || '').trim();
+  const needPunct = !/[.!?…]$/.test(t);
+  return `${t}${needPunct ? '.' : ''} ${closings[persona] || closings.soft}`;
+}
