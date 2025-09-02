@@ -30,11 +30,10 @@ export default async function handler(req, res) {
 
     // ── Inputs ─────────────────────────────────────
     const model = String(body.model || '').trim() || 'gpt-4o-mini';
-    const msg =
-      (typeof body.msg === 'string' && body.msg.trim()) ||
-      (Array.isArray(body.messages) && String(body.messages[0]?.content || '').trim()) ||
-      '';
-
+   const msg =
+  (typeof body.msg === 'string' && body.msg.trim()) ||
+  (Array.isArray(body.messages) && String(body.messages[0]?.content || '').trim()) ||
+  '';
     if (!msg) {
       return res.status(400).json({
         error: 'Empty message',
