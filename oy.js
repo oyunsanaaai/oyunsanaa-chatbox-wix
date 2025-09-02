@@ -241,17 +241,21 @@ function getSelectedPersona(){
     if (Array.isArray(hist) && hist.length > HISTORY_LIMIT) { hist = hist.slice(-HISTORY_LIMIT); }
 
     try{
-     const r = await fetch('/api/oy-chat', {
+     // илгээхээс өмнө богино/уртыг бүдүүлгээр таамаглаж тааз тогтооно
+const shortMsg = t.length < 45;
+const maxHint  = shortMsg ? 180 : 260;
+
+const r = await fetch('/api/oy-chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-  model: getSelectedModel(),
-  persona: getSelectedPersona(),   // ← ШИНЭ
-  msg: t,
-  chatSlug: state.current || '',
-  history: hist,
-  max_tokens_hint: 600
-})
+    model: getSelectedModel(),
+    persona: getSelectedPersona(),   // ← persona явж байгаа нь ЧУХАЛ
+    msg: t,
+    chatSlug: state.current || '',
+    history: hist,
+    max_tokens_hint: maxHint         // ← 600-г үүнтэй солино
+  })
 });
       const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
       if (error) throw new Error(error);
