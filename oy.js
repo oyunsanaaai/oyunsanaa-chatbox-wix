@@ -25,7 +25,8 @@ const OY_API_BASE = window.location.origin;
     panel: $('#oyPanel'), pBack: $('#oyPanelBack'),
     pTitle: $('#oyPanelTitle'), pBody: $('#oyPanelBody'),
     file: $('#oyFile'),
-    modelSelect: $('#modelSelect'),    
+    modelSelect: $('#modelSelect'), 
+    personaSelect: document.getElementById('personaSelect'),
   };
 
   /* ===== Store ===== */
