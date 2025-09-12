@@ -46,7 +46,34 @@ const OY_API_BASE = window.location.origin;
     const L = (0.299*r + 0.587*g + 0.114*b) / 255;
     return L > 0.7 ? '#111' : '#fff';
   };
+function autoScroll(){ if(el.chat) el.chat.scrollTop = el.chat.scrollHeight + 999; }
 
+function showTyping(){
+  const d = document.createElement('div');
+  d.className = 'oy-typing';
+  d.textContent = 'Оюунсанаа бичиж байна';
+  el.stream.appendChild(d);
+  autoScroll();
+  return d;
+}
+
+// Зураг/файл сонгоход preview хийх (vision анализ хийхгүй, зөвхөн үзүүлнэ)
+el.file?.addEventListener('change', e=>{
+  const files = Array.from(e.target.files||[]);
+  if(!files.length) return;
+  files.forEach(f=>{
+    if(!f.type.startsWith('image/')){
+      bubble('📎 '+esc(f.name)+' (зураг биш тул зөвхөн мессежээр илгээнэ)', 'user');
+      pushMsg(state.current,'user',esc(f.name));
+      return;
+    }
+    const url = URL.createObjectURL(f);
+    const html = `<div class="oy-imgwrap"><img src="${url}" alt="зураг" /></div>`;
+    bubble(html,'user'); pushMsg(state.current,'user',html);
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  });
+  e.target.value=''; // дахин сонгох боломж
+});
   const esc = (s) =>
     String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
 
@@ -231,42 +258,50 @@ function getSelectedPersona(){
 }  
   // ==== SEND ====
   async function send(){
-    const t = (el.input?.value || '').trim();
-    if (!t) { meta('Жишээ: "Сайн байна уу?"'); return; }
-    if (!state.current) { bubble('Эхлээд Сэтгэлийн хөтөчөөс чат сонгоорой. 🌿','bot'); el.input.value=''; return; }
+  const t = (el.input?.value || '').trim();
+  if(!t){ meta('Жишээ: "Сайн байна уу?"'); return; }
+  if(!state.current){ bubble('Эхлээд Сэтгэлийн хөтөчөөс чат сонгоорой. 🌿','bot'); el.input.value=''; return; }
 
-    bubble(esc(t),'user'); pushMsg(state.current,'user',esc(t));
-    el.input.value=''; el.send.disabled=true;
+  bubble(esc(t),'user'); pushMsg(state.current,'user',esc(t));
+  el.input.value=''; el.send.disabled = true;
 
-    let hist=[]; try{ hist=JSON.parse(localStorage.getItem(msgKey(state.current))||'[]'); }catch(_){ }
-    if (Array.isArray(hist) && hist.length > HISTORY_LIMIT) { hist = hist.slice(-HISTORY_LIMIT); }
+  let hist=[]; 
+  try{ hist = JSON.parse(localStorage.getItem(msgKey(state.current))||'[]'); }catch(_){}
+  if(hist.length > HISTORY_LIMIT) hist = hist.slice(-HISTORY_LIMIT);
 
-    try{
-     // илгээхээс өмнө богино/уртыг бүдүүлгээр таамаглаж тааз тогтооно
-const shortMsg = t.length < 45;
-const maxHint  = shortMsg ? 180 : 260;
+  const typingEl = showTyping(); // бичиж байна …
 
-const r = await fetch('/api/oy-chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    model: getSelectedModel(),
-    persona: getSelectedPersona(),   // ← persona явж байгаа нь ЧУХАЛ
-    msg: t,
-    chatSlug: state.current || '',
-    history: hist,
-    max_tokens_hint: maxHint         // ← 600-г үүнтэй солино
-  })
-});
-      const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
-      if (error) throw new Error(error);
-      const safe = esc(reply || 'Одоохондоо хариу олдсонгүй.');
-      bubble(safe,'bot'); pushMsg(state.current,'bot',safe); save();
-    }catch(e){
-      console.error(e); bubble('⚠️ Холболтын алдаа эсвэл API тохиргоо дутуу байна.','bot');
-    }finally{ el.send.disabled=false; }
+  try{
+    // Урт асуулт → 4o, богино → 4o-mini (UI-д харагдахгүй)
+    const chosenModel = t.length > 220 ? 'gpt-4o' : 'gpt-4o-mini';
+
+    const r = await fetch('/api/oy-chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: chosenModel,
+        persona: 'soft',
+        msg: t,
+        chatSlug: state.current || '',
+        history: hist,
+        max_tokens_hint: t.length < 45 ? 180 : 260
+      })
+    });
+
+    const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
+    typingEl.remove();
+
+    if(error) throw new Error(error);
+    const safe = esc(reply || 'Одоохондоо хариу олдсонгүй.');
+    bubble(safe,'bot'); pushMsg(state.current,'bot',safe); save();
+  }catch(e){
+    typingEl.remove();
+    console.error(e);
+    bubble('⚠️ Холболтын алдаа эсвэл API тохиргоо дутуу байна.','bot');
+  }finally{
+    el.send.disabled=false; autoScroll();
   }
-
+}
   /* ===== Modal / Drawer ===== */
   const mqDesktop=window.matchMedia('(min-width:1024px)');
   const isDesktop=()=>mqDesktop.matches;
@@ -323,3 +358,11 @@ const r = await fetch('/api/oy-chat', {
   window.OY_OPEN = forceOpen; window.addEventListener('message', (ev)=>{ const t=ev?.data?.type||ev?.data; if(t==='OY_OPEN') forceOpen(); });
   setTimeout(()=>{ if(el.modal?.hidden) forceOpen(); }, 500);
 })();
+
+
+
+
+
+
+
+
