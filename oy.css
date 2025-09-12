@@ -107,25 +107,33 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui)}
 
 /* ===== A11y ===== */
 .braille{position:absolute;left:-999em;top:auto;width:1px;height:1px;overflow:hidden}
+/* === Chat bubble – мөр эвдэлт, багц бичвэр === */
+.oy-bubble{
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;   /* \n мөр хадгална */
+}
 
+/* === Typing индикатор === */
+.oy-typing{
+  font: 14px var(--font-ui);
+  color: var(--muted);
+  margin: 6px 0;
+}
+.oy-typing::after{
+  content:'...';
+  animation:dots 1s steps(3,end) infinite;
+}
+@keyframes dots{
+  0%,20%{color:transparent}
+  40%{color:var(--muted)}
+  60%{color:transparent}
+  80%,100%{color:var(--muted)}
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* === Зургийн харагдац === */
+.oy-imgwrap{max-width:70%; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff}
+.oy-imgwrap img{display:block; width:100%; height:auto}
 
 
 
