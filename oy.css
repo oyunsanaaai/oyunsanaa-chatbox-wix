@@ -130,7 +130,6 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui)}
   60%{color:transparent}
   80%,100%{color:var(--muted)}
 }
-
 /* === Зургийн харагдац === */
 .oy-imgwrap{max-width:70%; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff}
 .oy-imgwrap img{display:block; width:100%; height:auto}
