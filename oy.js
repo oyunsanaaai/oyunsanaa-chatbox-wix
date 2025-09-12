@@ -359,7 +359,7 @@ function getSelectedPersona(){
   setTimeout(()=>{ if(el.modal?.hidden) forceOpen(); }, 500);
 })();
 
-console.log
+
 
 
 
