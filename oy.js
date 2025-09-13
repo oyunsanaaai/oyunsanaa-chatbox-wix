@@ -134,23 +134,18 @@
     e.target.value='';
   });
 
-  // Илгээх
-  async function send(){
-    const t = (el.input.value||'').trim(); if(!t) return;
-    bubble(t,'user'); pushMsg('user', t); el.input.value=''; showTyping(); el.send.disabled=true;
+const modelToUse = t.length > 220 ? 'gpt-4o' : 'gpt-4o-mini';
 
-    try{
-      const history = loadMsgs().slice(-12);
-      const r = await fetch('/api/oy-chat', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-          persona:'soft',
-          msg:t,
-          chatSlug:'one-chat',
-          history
-        })
-      });
+const r = await fetch('/api/oy-chat', {
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body: JSON.stringify({
+    model: modelToUse,   // энд автоматаар сонгогдоно
+    persona:'soft',
+    msg:t,
+    history:hist
+  })
+});
       const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
       hideTyping(); el.send.disabled=false;
       if (error) throw new Error(error);
