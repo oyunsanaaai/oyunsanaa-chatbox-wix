@@ -1,138 +1,112 @@
-/* ===== Brand + Typography ===== */
 :root{
-  /* Танай өмнөх хүсэлтээр үндсэн өнгийг #486573 болгов. Хэрвээ ногоон (#7D8769) хэрэгтэй бол доорх мөрийг солино. */
-  --brand:#486573; /* брэндийн үндсэн өнгө */
-  --bg:#f4f6f7; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb;
-  --user:#E8F0E9; --bot:#fff; --shadow:0 10px 30px rgba(0,0,0,.10);
-  --radius:16px; --radius-sm:12px;
-  --font-ui:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  --t-base:16px; --line-compact:1.3;
+  --brand:#486573;
+  --bg1:#0e1630;
+  --bg2:#301a40;
+  --glass:rgba(255,255,255,.12);
+  --glass-strong:rgba(255,255,255,.18);
+  --line:rgba(255,255,255,.25);
+  --text:#ffffff;
+  --user-bg:#155E1A;
+  --bot-bg:#C2C4B9;
 }
-html{font-size:16px}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui)}
 
-/* ===== Overlay + Fullscreen Modal ===== */
-#oyOverlay{position:fixed;inset:0;background:rgba(0,0,0,.36);z-index:9999}
-#oyModal{
-  position:fixed; inset:0; width:100vw; height:100dvh; /* iOS safe */
-  display:grid; grid-template-rows:56px 1fr auto;      /* header, main, composer */
-  background:var(--bg); z-index:10000;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--text);
+  font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
 }
-[hidden]{display:none!important}
 
-/* ===== Header ===== */
+/* HEADER */
 .oy-header{
-  display:flex; align-items:center; gap:.5rem;
-  height:56px; padding:0 12px;
-  background:var(--brand); color:#fff;
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px;
+  background:linear-gradient(0deg,transparent,rgba(0,0,0,.35));
+  backdrop-filter:saturate(140%) blur(6px);
+  border-bottom:1px solid var(--line);
 }
-.oy-title{flex:1;text-align:center;font:600 16px/1.1 var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.oy-iconbtn{background:transparent;border:none;color:#fff;cursor:pointer;width:44px;height:44px;display:grid;place-items:center}
-.oy-iconbtn svg{width:20px;height:20px;fill:currentColor}
-
-/* ===== Layout: Desktop has sidebar, Mobile has drawer ===== */
-.oy-drawer{background:#fff; border-right:1px solid var(--line)}
-.oy-menu{height:100%; overflow:auto; padding:10px}
-.oy-chat{background:var(--bg); overflow:auto}
-.oy-stream{max-width:1024px; margin:0 auto; padding:16px 16px 104px}
-
-/* Desktop grid (>=1024px) */
-@media (min-width:1024px){
-  #oyModal{
-    grid-template-columns:300px 1fr;
-    grid-template-rows:56px 1fr auto;
-    grid-template-areas:
-      "hdr hdr"
-      "nav main"
-      "nav cmp";
-  }
-  .oy-header{grid-area:hdr}
-  .oy-drawer{grid-area:nav; position:relative}
-  .oy-chat{grid-area:main}
-  .oy-composer{grid-area:cmp}
-  #oyOverlay{display:none!important} /* desktop дээр харанхуулахгүй */
+.oy-iconbtn{
+  width:38px;height:38px;border-radius:10px;border:1px solid var(--line);
+  background:var(--glass); color:#fff; display:grid; place-items:center; cursor:pointer;
 }
+.oy-iconbtn svg{width:22px;height:22px;fill:currentColor}
+.oy-head-title{display:flex;align-items:center;gap:10px;margin-inline:auto}
+.oy-logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center;font-weight:800}
+.oy-title{font-weight:700}
+.oy-status{font-size:12px;color:#ffffffcc}
+.oy-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2aff86;margin-right:6px}
+.oy-themes{display:flex;gap:8px;margin-left:auto}
+.oy-swatch{width:22px;height:22px;border-radius:6px;border:1px solid var(--line);cursor:pointer;position:relative;overflow:hidden}
+.oy-swatch i{position:absolute;inset:0;opacity:.9}
 
-/* Mobile drawer (<1024px) */
-@media (max-width:1023px){
+/* LAYOUT */
+.oy-shell{display:grid;grid-template-columns:280px 1fr; gap:14px; padding:14px; height:calc(100vh - 64px);}
+@media (max-width:960px){ .oy-shell{grid-template-columns:1fr} }
+
+.oy-drawer{position:relative}
+@media (max-width:960px){
   .oy-drawer{
-    position:fixed; top:56px; left:0; bottom:0; width:min(92vw,360px);
-    transform:translateX(-100%); transition:transform .25s ease; z-index:10001;
-    box-shadow:0 16px 40px rgba(0,0,0,.18);
+    position:fixed; top:64px; left:0; width:280px; height:calc(100vh - 64px);
+    transform:translateX(-105%); transition:.25s; z-index:30;
   }
-  body.oy-drawer-open .oy-drawer{ transform:none; }
+  body.oy-drawer-open .oy-drawer{ transform:translateX(0); }
+  .oy-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:25; }
 }
-
-/* ===== Menu items & cards ===== */
-.oy-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;margin:6px 4px}
-.kv{font:500 14px var(--font-ui);margin:4px 0}
-
-.oy-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;border:1px solid var(--line);background:#fff;margin:6px 4px}
-.oy-item:hover{background:#f9f9fb}
-.oy-item .i{width:18px;height:18px;flex:0 0 18px;display:grid;place-items:center;color:#6F8B62}
-.oy-item .i svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.oy-item .t{flex:1;font:400 14px/var(--line-compact) var(--font-ui)}
-.oy-section{margin:10px 6px}
-.oy-section h4{margin:10px 6px 6px;font:700 13px var(--font-ui)}
-.guides-heading{margin:12px 8px 6px;font:700 13px/1.2 var(--font-ui);color:#173125}
-.oy-pills{display:flex;flex-direction:column;gap:8px}
-.oy-pill{--c:#eee;--tc:#111;background:var(--c);color:var(--tc);border-radius:16px;padding:12px 14px;border:1px solid rgba(0,0,0,.06);
-  cursor:pointer;display:flex;justify-content:space-between;align-items:center;font:600 13px var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* ===== Bubbles ===== */
-.oy-bubble{max-width:86%;padding:12px 14px;border-radius:20px;margin:8px 0;font:15px/1.5 var(--font-ui);box-shadow:0 12px 28px rgba(0,0,0,.10)}
-.oy-bot{background:var(--bot);border:1px solid var(--line);border-top-left-radius:8px}
-.oy-user{background:var(--user);border:1px solid var(--line);border-top-right-radius:8px;margin-left:auto}
-.oy-meta{color:var(--muted);font:12px var(--font-ui);margin:2px 0 0}
-
-/* ===== Composer (sticky) ===== */
-.oy-composer{
-  position:sticky; bottom:0; z-index:3;
-  background:#fff; border-top:1px solid var(--line);
-  padding-bottom:env(safe-area-inset-bottom);
+.oy-side{
+  height:100%;
+  background:var(--glass);
+  border:1px solid var(--line);
+  backdrop-filter:blur(10px) saturate(130%);
+  border-radius:16px;
+  padding:12px;
+  overflow:auto;
 }
-.oy-row{display:grid;grid-template-columns:28px 1fr 84px;gap:8px;padding:10px;align-items:center}
-.oy-file{width:22px;height:22px;display:grid;place-items:center;border:1px dashed var(--line);border-radius:14px;background:#fff;cursor:pointer;color:var(--brand)}
-.oy-textarea{min-height:44px;max-height:40dvh;resize:none;border:1px solid var(--line);border-radius:16px;padding:12px;font:15px/1.35 var(--font-ui);outline:none;background:#fdfdfd}
-.oy-send{height:42px;border:none;background:var(--brand);color:#fff;border-radius:14px;padding:0 16px;cursor:pointer;font:600 14px var(--font-ui)}
+.oy-side-title{font-weight:700;opacity:.9;margin:6px 2px 10px}
+.oy-item{
+  width:100%; text-align:left; padding:10px 12px; margin:4px 0;
+  border-radius:10px; border:1px solid var(--line); background:transparent; color:#fff; cursor:pointer; display:block;
+}
+.oy-item:hover{background:var(--glass-strong)}
+.oy-pane{margin-top:8px; padding:10px; border:1px dashed var(--line); border-radius:12px}
+.oy-note{font-size:12px;opacity:.9}
+.oy-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.oy-list li{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--glass)}
+.oy-mini{font-size:12px;color:#fff;border:1px solid var(--line);padding:6px 10px;border-radius:999px;text-decoration:none;background:transparent}
+.oy-link-card{display:block;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--glass);color:#fff;text-decoration:none;margin:6px 0}
+.reg-row{display:flex;align-items:center;gap:8px}
 
-/* ===== Panel ===== */
-.oy-panel{position:absolute;inset:0;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:4}
-.oy-panel header{height:44px;display:flex;align-items:center;gap:10px;padding:0 8px;border-bottom:1px solid var(--line);background:#fafafa}
-.oy-back{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer}
-.oy-panel-title{font:600 14px var(--font-ui)}
-.oy-panel-body{padding:10px;overflow:auto}
-.card{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:#fff}
-.muted{color:#777;font:12px/1.4 var(--font-ui)}
+/* CHAT */
+.oy-main{display:flex; flex-direction:column; min-height:0; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px) saturate(130%); border-radius:16px}
+.oy-stream{flex:1; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:6px}
+.oy-bubble{padding:8px 12px; border-radius:16px; max-width:76%; word-wrap:break-word; white-space:pre-wrap}
+.oy-user{ align-self:flex-end; background:var(--user-bg); color:#fff }
+.oy-bot{ align-self:flex-start; background:var(--bot-bg); color:#111 }
+.oy-meta{ align-self:center; opacity:.85; font-size:12px; margin:4px 0 }
 
-/* ===== A11y ===== */
-.braille{position:absolute;left:-999em;top:auto;width:1px;height:1px;overflow:hidden}
-/* === Chat bubble – мөр эвдэлт, багц бичвэр === */
-.oy-bubble{
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;   /* \n мөр хадгална */
-}
+/* COMPOSER */
+.oy-composer{display:flex; align-items:center; gap:8px; border-top:1px solid var(--line); padding:10px; background:linear-gradient(0deg,rgba(0,0,0,.15),transparent)}
+.oy-file{width:34px;height:34px;border-radius:10px;border:1px solid var(--line); background:var(--glass); display:grid; place-items:center; cursor:pointer; color:#fff}
+.oy-file svg{width:18px;height:18px}
+.oy-input-wrap{position:relative;flex:1}
+#oyInput{width:100%; min-height:40px; max-height:160px; resize:none; padding:10px 44px 10px 12px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.14); color:#fff; outline:none}
+.oy-typing{position:absolute; right:10px; top:50%; transform:translateY(-50%); display:flex; gap:3px}
+.oy-typing span{width:6px;height:6px;border-radius:50%;background:#fff;opacity:.7;animation:oyDot 1.2s infinite}
+.oy-typing span:nth-child(2){animation-delay:.2s}
+.oy-typing span:nth-child(3){animation-delay:.4s}
+@keyframes oyDot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}
+.oy-send{width:40px;height:40px;border:none;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer}
 
-/* === Typing индикатор === */
-.oy-typing{
-  font: 14px var(--font-ui);
-  color: var(--muted);
-  margin: 6px 0;
-}
-.oy-typing::after{
-  content:'...';
-  animation:dots 1s steps(3,end) infinite;
-}
-@keyframes dots{
-  0%,20%{color:transparent}
-  40%{color:var(--muted)}
-  60%{color:transparent}
-  80%,100%{color:var(--muted)}
-}
-/* === Зургийн харагдац === */
-.oy-imgwrap{max-width:70%; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff}
-.oy-imgwrap img{display:block; width:100%; height:auto}
+.oy-imgwrap img{max-width:220px;border-radius:12px;display:block}
+
+/* Толгойн 2 товчийг (хуучны) хаалттай байлгах хамгаалалт */
+.oy-head-links{display:none!important}
+
+
+
+
+
 
 
 
