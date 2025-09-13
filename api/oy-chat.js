@@ -1,45 +1,48 @@
 // api/oy-chat.js
 export default async function handler(req, res) {
   try {
+    // --- CORS (Wix/өөр домэйнд хэрэгтэй бол) ---
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') return res.status(204).end();
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'method_not_allowed' });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'missing_key', hint: 'OPENAI_API_KEY is not set' });
+    }
+
     const body = await readJson(req);
     const msg = getUserMsg(body);
-    if (!msg) return res.status(400).json({ error: 'Empty message' });
+    if (!msg) return res.status(400).json({ error: 'empty_message' });
 
-    // ✦ 0) Инвариант дүрэм — үргэлж Оюунсанаа гэж өөрийгөө нэрлэ
-    const identityRules = `
-Та 'Оюунсанаа' нэртэй ухаалаг туслагч.
-Ямар ч нөхцөлд өөрийгөө AI биш, өөр нэртэй гэж бүү хэл.
-Хэрэглэгчтэй ярилцахдаа “Би Оюунсанаа байна” гэдгээ тогтвортой баримтал.`;
-
-    // 1) persona
+    // persona
     const persona = String(body.persona || 'soft').trim();
     const personaPrompts = {
-      soft: `Чи "Оюунсанаа" — зөөлөн, халамжтай, хөгжилтэй.
-- Эхний хариулт 2–5 өгүүлбэр.
-- Лекц/урт жагсаалт бүү бич.
-- Эмпати мэдрүүлээд 1 жижиг алхам санал болго.`,
-      tough: `Чи "Оюунсанаа" — хатуухан, зорилго чиглүүлэгч.
-- 2–4 өгүүлбэрээр голыг нь хэл.
-- "Одоо эхлэх 1 алхам нь …" гэж санал болго.`,
-      wise: `Чи "Оюунсанаа" — ухаалаг, тайван.
-- 2–4 өгүүлбэр, энгийн жишээтэй тайлбарла.`,
-      parent: `Чи "Оюунсанаа" — ээж/аав шиг дулаан.
-- Эхэнд тайвшруулж, 2–5 өгүүлбэр, зөөлөн нэг санал нэм.`,
+      soft: `Чи "Оюунсанаа" — ...`,
+      tough: `Чи "Оюунсанаа" — ...`,
+      wise:  `Чи "Оюунсанаа" — ...`,
+      parent:`Чи "Оюунсанаа" — ...`,
     };
-    const systemContent = `${identityRules}\n\n${personaPrompts[persona] || personaPrompts.soft}`;
+    const systemContent = personaPrompts[persona] || personaPrompts.soft;
 
     const messages = [
       { role: 'system', content: systemContent },
       { role: 'user', content: msg },
     ];
 
-    // 2) OpenAI дуудлага
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = String(body.model || 'gpt-4o-mini').trim();
+    const model = (body.model || 'gpt-4o-mini').trim();
 
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
         model,
         messages,
@@ -52,41 +55,42 @@ export default async function handler(req, res) {
       }),
     });
 
+    const txt = await r.text(); // аль ч тохиолдолд уншчихъя
     if (!r.ok) {
-      const text = await r.text().catch(() => '');
-      return res.status(r.status).json({ error: 'upstream', detail: text });
+      // OpenAI-аас ирсэн алдааг шууд харуулна
+      return res.status(r.status).json({ error: 'upstream', detail: safeJson(txt) });
     }
 
-    // 3) Хариуг цэгцлэх + Оюунсанаа гэдгийг баталгаажуулах
-    const data = await r.json();
-    let reply = data.choices?.[0]?.message?.content || '';
+    const data = safeJson(txt);
+    let reply = data?.choices?.[0]?.message?.content || '';
+
     const isFirstTurn = !Array.isArray(body.history) || body.history.length === 0;
+    reply = addWarmClosing(clipReply(cleanMarkdown(reply), { maxSentences: 5, maxChars: 420 }), persona);
+    if (isFirstTurn) reply = addIntroOnce(reply, true, persona);
 
-    reply = cleanMarkdown(reply);
-    reply = enforceIdentity(reply);               // << нэмэгдсэн
-    reply = clipReply(reply, { maxSentences: 5, maxChars: 420 });
-    reply = addIntroOnce(reply, isFirstTurn, persona);
-    reply = addWarmClosing(reply, persona);
-
-    return res.status(200).json({ reply, model: data.model, persona });
+    return res.status(200).json({ reply, model: data?.model || model, persona });
   } catch (e) {
-    console.error(e);
+    console.error('oy-chat fatal:', e);
     return res.status(500).json({ error: 'server', detail: String(e?.message || e) });
   }
 }
 
-/* === Туслах функцууд === */
-
-// … readJson(), getUserMsg(), cleanMarkdown(), clipReply(), splitSentences(), addIntroOnce(), addWarmClosing() хэвээр …
-
-// ✦ Буруу танилцуулбал автоматаар засах
-function enforceIdentity(s = '') {
-  const bad = /(би\s+оюунсанаа\s+биш|би\s+AI\s+биш|би\s+chatbot|миний\s+нэр\s+бусад)/i;
-  if (bad.test(s)) {
-    // Буруу хэсгийг авч, зөв танилцуулгаар эхлүүлнэ
-    s = s.replace(bad, 'Би Оюунсанаа').trim();
-  }
-  // Эхэндээ өөрийгөө танилцуулсан эсэхийг шалгаад нэмнэ
-  const startsOk = /^би\s+оюунсанаа/i.test(s);
-  return startsOk ? s : `Би Оюунсанаа. ${s}`;
+function safeJson(t){ try { return JSON.parse(t); } catch { return { raw:t }; } }
+async function readJson(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  try { const text = await new Response(req.body || null).text(); return JSON.parse(text||'{}'); }
+  catch { return {}; }
 }
+function getUserMsg(body) {
+  if (typeof body?.msg === 'string') return body.msg.trim();
+  if (Array.isArray(body?.messages)) {
+    const u = body.messages.find(m => m?.role === 'user')?.content;
+    if (typeof u === 'string') return u.trim();
+  }
+  return '';
+}
+function cleanMarkdown(s=''){ return s.replace(/^\s*#{1,6}\s*/gm,'').replace(/^\s*[-*]\s+/gm,'• ').replace(/\n{3,}/g,'\n\n').trim(); }
+function splitSentences(s){ return s.split(/(?<=[\.!?…])\s+|\n+/).map(x=>x.trim()).filter(Boolean); }
+function clipReply(s,{maxSentences=5,maxChars=420}={}){ let t=s.trim(); const S=splitSentences(t); t=S.slice(0,maxSentences).join(' '); if(t.length>maxChars) t=t.slice(0,maxChars).replace(/\s+\S*$/,'')+'…'; return t; }
+function addIntroOnce(s,isFirst,persona){ if(!isFirst) return s; const m={soft:'Би ойлгож байна. ',tough:'Ойлголоо. ',wise:'Сайн байна, ойлгож авлаа. ',parent:'Миний хайр хүн минь, зүгээр дээ. '}; return (m[persona]||'Ойлголоо. ')+s; }
+function addWarmClosing(s,persona){ const end= persona==='tough'?' Одоо хамгийн жижиг 1 алхмыг сонгоё?': persona==='parent'?' Хоолоо идэж, ус уугаарай шүү. 😊': persona==='wise'?' Хэрэв бэлэн бол дараагийн жижиг хэсгийг тодруулъя.':' Хүсвэл цааш ярилцъя. 💬'; return /[?!]$/.test(s)?s:s+end; }
