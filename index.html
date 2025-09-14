@@ -40,10 +40,6 @@
         <button class="oy-item" data-menu="register">Бүртгэл</button>
         <section class="oy-pane" data-pane="register" hidden>
           <div class="oy-note" style="margin-bottom:8px">
-<button type="button" class="oy-item" data-menu="register">Бүртгэл</button>
-<button type="button" class="oy-item" data-menu="guides">Сэтгэлийн хөтөч</button>
-<button type="button" class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
-
             Доороос насны ангиллаа сонгоод “Бүртгүүлэх” дарна уу.
           </div>
           <form id="ageForm" class="oy-list">
@@ -61,8 +57,38 @@
             <a id="btnRenew" class="oy-mini" href="#" hidden>Сунгах</a>
           </div>
         </section>
+
+        <!-- 2) Миний хөтөлбөр (линк, хүрэхгүй) -->
+        <a class="oy-item" href="https://YOUR-WIX-SITE.com/my-program" target="_blank" rel="noopener">Миний хөтөлбөр</a>
+
+        <!-- 3) Сэтгэлийн хөтөч (танилцуулга яг дороо гарна) -->
+        <button class="oy-item" data-menu="guides">Сэтгэлийн хөтөч</button>
+        <section class="oy-pane" data-pane="guides" hidden>
+          <div class="oy-note">
+            Нас, нөхцөлд тань тохирсон чиглүүлэх, сорил, богино дасгалын ТАНИЛЦУУЛГА энд байрлана.
+          </div>
+          <a class="oy-link-card" href="https://YOUR-WIX-SITE.com/guides" target="_blank" rel="noopener">→ Дэлгэрэнгүй танилцуулга</a>
+        </section>
+
+        <!-- 4) Сэтгэлийн боловсрол (багц + нэмэлт) -->
+        <button class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
+        <section class="oy-pane" data-pane="edu" hidden>
+          <h4>Багц хөтөлбөр</h4>
+          <ul class="oy-list">
+            <li><span>Гэр бүл ба хайр</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/family-love">Орох</a></li>
+            <li><span>Өөртөө итгэх итгэл</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/confidence">Орох</a></li>
+            <li><span>Карьер ба зорилго</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/career">Орох</a></li>
+          </ul>
+
+          <h4 style="margin-top:12px">Нэмэлт хөтөлбөр</h4>
+          <ul class="oy-list">
+            <li><span>Ганцаардлаас гарах 14 хоног</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/loneliness14">Орох</a></li>
+            <li><span>Сэтгэл түгших тайвшруулах</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/anxiety">Орох</a></li>
+          </ul>
+        </section>
       </div>
     </aside>
+
     <!-- CHAT -->
     <main class="oy-main">
       <div id="oyStream" class="oy-stream"></div>
@@ -87,46 +113,8 @@
       </div>
     </main>
   </div>
-  <script>
-/* --- MENU FALLBACK (oy.js уншихгүй байсан ч) --- */
-(function(){
-  // pane солих туслах
-  function openPane(key){
-    document.querySelectorAll('.oy-pane').forEach(p=>{
-      p.hidden = (p.getAttribute('data-pane') !== key);
-    });
-    // мобайл drawer байж магадгүй тул хаана
-    document.body.classList.remove('oy-drawer-open');
-    var ov=document.getElementById('oyOverlay'); if(ov){ ov.hidden=true; ov.style.pointerEvents='none'; }
-  }
-
-  // ① Click delegation — товчлуур дээр listener холбоно
-  document.addEventListener('click', function(e){
-    var btn = e.target.closest('.oy-item[data-menu]');
-    if(!btn) return;
-    e.preventDefault();
-    openPane(btn.getAttribute('data-menu'));
-  }, false);
-
-  // ② DOM ачаалсны дараа хайчсан тохиолдолд дахин холбох (ойролцоогоор 1 сек retry)
-  document.addEventListener('DOMContentLoaded', function(){
-    // анх аль нэгийг default-оор нээх (хүссэн key-гээ тавь: 'guides' эсвэл 'register' гэх мэт)
-    var DEF = document.querySelector('.oy-pane[data-pane]')?.getAttribute('data-pane');
-    if(DEF) openPane(DEF);
-  });
-
-  // ③ oy.js дараа нь ачаалдсан ч энэ fallback саад болохгүй
-})();
-</script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
