@@ -1,4 +1,4 @@
-:root {
+:root{
   --brand:#486573;
   --bg1:#0e1630;
   --bg2:#301a40;
@@ -9,6 +9,7 @@
   --user-bg:#155E1A;
   --bot-bg:#C2C4B9;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -101,6 +102,12 @@ body{
 
 /* Толгойн 2 товчийг (хуучны) хаалттай байлгах хамгаалалт */
 .oy-head-links{display:none!important}
+
+
+
+
+
+
 
 
 
