@@ -113,39 +113,10 @@
       </div>
     </main>
   </div>
-  <script>
-/* --- MENU FALLBACK (oy.js уншихгүй байсан ч) --- */
-(function(){
-  // pane солих туслах
-  function openPane(key){
-    document.querySelectorAll('.oy-pane').forEach(p=>{
-      p.hidden = (p.getAttribute('data-pane') !== key);
-    });
-    // мобайл drawer байж магадгүй тул хаана
-    document.body.classList.remove('oy-drawer-open');
-    var ov=document.getElementById('oyOverlay'); if(ov){ ov.hidden=true; ov.style.pointerEvents='none'; }
-  }
-
-  // ① Click delegation — товчлуур дээр listener холбоно
-  document.addEventListener('click', function(e){
-    var btn = e.target.closest('.oy-item[data-menu]');
-    if(!btn) return;
-    e.preventDefault();
-    openPane(btn.getAttribute('data-menu'));
-  }, false);
-
-  // ② DOM ачаалсны дараа хайчсан тохиолдолд дахин холбох (ойролцоогоор 1 сек retry)
-  document.addEventListener('DOMContentLoaded', function(){
-    // анх аль нэгийг default-оор нээх (хүссэн key-гээ тавь: 'guides' эсвэл 'register' гэх мэт)
-    var DEF = document.querySelector('.oy-pane[data-pane]')?.getAttribute('data-pane');
-    if(DEF) openPane(DEF);
-  });
-
-  // ③ oy.js дараа нь ачаалдсан ч энэ fallback саад болохгүй
-})();
-</script>
 </body>
 </html>
+
+
 
 
 
