@@ -169,60 +169,186 @@
   renderThemePicker();
   redraw();
 })();
-// --- Мобайл keyboard дээр доош нь гулгуулж өгөх ---
-(function () {
-  const input = document.getElementById('oyInput');
-  const stream = document.getElementById('oyStream');
+console.log("oy.js loaded ✅");
 
-  function scrollToBottom(smooth = true) {
-    if (!stream) return;
-    stream.scrollTo({
-      top: stream.scrollHeight + 999,
-      behavior: smooth ? 'smooth' : 'auto'
+(() => {
+  /* -------- Туслах -------- */
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  /* -------- Элементүүд -------- */
+  const el = {
+    stream: $('#oyStream'),
+    input:  $('#oyInput'),
+    send:   $('#btnSend'),
+    file:   $('#oyFile'),
+    typing: $('#typing'),
+    themePicker: $('#themePicker'),
+  };
+
+  /* -------- Сэдэв (theme) -------- */
+  const THEMES = [
+    { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
+    { name:'Calm Green',   brand:'#155E1A', bg1:'#0f2027', bg2:'#203a43', user:'#C2C4B9', bot:'#EEF3F4' },
+    { name:'Warm Neutral', brand:'#BC9B5D', bg1:'#2b1d11', bg2:'#3d2a18', user:'#F1E3D5', bot:'#FAF7F2' },
+    { name:'Soft Gray',    brand:'#666660', bg1:'#141414', bg2:'#2a2a2a', user:'#C2C4B9', bot:'#EDEDED' },
+    { name:'Teal Mist',    brand:'#2E6F6C', bg1:'#0d2627', bg2:'#14383a', user:'#B6D0CD', bot:'#EAF2F1' },
+  ];
+  const THEME_KEY = 'oy_theme_idx_v1';
+  function applyTheme(t){
+    const r = document.documentElement.style;
+    r.setProperty('--brand', t.brand);
+    r.setProperty('--bg1', t.bg1);
+    r.setProperty('--bg2', t.bg2);
+    r.setProperty('--user-bg', t.user);
+    r.setProperty('--bot-bg', t.bot);
+  }
+  (function renderThemePicker(){
+    if (!el.themePicker) return;
+    el.themePicker.innerHTML = '';
+    THEMES.forEach((t,i)=>{
+      const b = document.createElement('button');
+      b.className = 'oy-swatch';
+      b.title = t.name;
+      b.innerHTML = `<i style="background:linear-gradient(135deg,${t.bg1},${t.bg2})"></i>`;
+      b.onclick = ()=>{ localStorage.setItem(THEME_KEY, String(i)); applyTheme(t); };
+      el.themePicker.appendChild(b);
     });
+    const idx = +localStorage.getItem(THEME_KEY) || 0;
+    applyTheme(THEMES[idx] || THEMES[0]);
+  })();
+
+  /* -------- Чат санах ой (simple) -------- */
+  const MSGKEY = 'oy_simple_msgs';
+  const esc = s => String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
+  const scrollBottom = (smooth=false)=> el.stream?.scrollTo({ top: el.stream.scrollHeight+999, behavior: smooth?'smooth':'auto' });
+  function bubble(html, who='bot', isHTML=false){
+    const d = document.createElement('div');
+    d.className = 'oy-bubble ' + (who==='user' ? 'oy-user' : 'oy-bot');
+    d.innerHTML = isHTML ? html : esc(html);
+    el.stream.appendChild(d); scrollBottom();
+  }
+  function loadMsgs(){ try{ return JSON.parse(localStorage.getItem(MSGKEY)||'[]'); }catch{ return []; } }
+  function pushMsg(who, html, isHTML=false){
+    const arr = loadMsgs(); arr.push({t:Date.now(), who, html, isHTML});
+    localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
   }
 
-  // ачааллахад хамгийн сүүлийг харагдуул
-  scrollToBottom(false);
+  /* -------- Мобайл keyboard тусламж -------- */
+  (function mobileHelp(){
+    const input = el.input, stream = el.stream;
+    const ro = new ResizeObserver(()=> setTimeout(()=> scrollBottom(false), 100));
+    ro.observe(document.documentElement);
+    input?.addEventListener('focus', ()=> setTimeout(()=> { scrollBottom(true); try{ window.scrollTo(0, document.body.scrollHeight);}catch{} }, 150));
+  })();
 
-  // input дээр фокус авахад доош нь тат
-  input?.addEventListener('focus', () => {
-    setTimeout(() => scrollToBottom(true), 150);
+  /* -------- Зураг/файл (сонголттой) -------- */
+  el.file?.addEventListener('change', e=>{
+    const files = Array.from(e.target.files||[]);
+    if(!files.length) return;
+    files.forEach(f=>{
+      if(!f.type.startsWith('image/')){ bubble('📎 '+f.name,'user'); pushMsg('user', f.name); return; }
+      const url = URL.createObjectURL(f);
+      bubble(`<div class="oy-imgwrap"><img src="${url}" alt=""></div>`, 'user', true);
+      pushMsg('user', `<img src="${url}">`, true);
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    });
+    e.target.value='';
   });
 
-  // viewport өөрчлөгдөх (keyboard нээгдэх/хаагдах) үед доош тат
-  const ro = new ResizeObserver(() => setTimeout(() => scrollToBottom(false), 100));
-  ro.observe(document.documentElement);
+  /* -------- Илгээх -------- */
+  async function send(){
+    const t = (el.input?.value || '').trim();
+    if(!t) return;
 
-  // iOS-д заримдаа window-руу татах нь найдвартай байдаг
-  input?.addEventListener('focus', () => {
-    setTimeout(() => {
-      try { window.scrollTo(0, document.body.scrollHeight); } catch {}
-    }, 200);
+    bubble(t, 'user'); pushMsg('user', t);
+    el.input.value=''; el.send.disabled = true; el.typing && (el.typing.hidden=false);
+
+    // Энд туршилтаар API-г идэвхгүй байлгаж болно (reply fake)
+    // Жинхэнэ API хэрэглэх бол доорх fetch-ийг нээ.
+    try{
+      // const API_BASE = 'https://ТАНЫ-ДОМЭЙН-эсвэл-WIX'; // Wix HTTP Functions ашиглавал таны домэйн
+      // const r = await fetch(`${API_BASE}/_functions/oyChat`, {
+      //   method:'POST',
+      //   headers:{ 'Content-Type':'application/json' },
+      //   body: JSON.stringify({ model:'gpt-4o-mini', msg: t, history: loadMsgs().slice(-12) })
+      // });
+      // const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
+      // if (error) throw new Error(error);
+      // bubble(reply || '...', 'bot'); pushMsg('bot', reply || '...');
+
+      // ← Одоогоор туршилтын offline хариу:
+      await new Promise(r=>setTimeout(r,400));
+      bubble('ОК, таны мессежийг хүлээж авлаа. 🤝 (API-г дараа холбоно)', 'bot'); pushMsg('bot','ОК, таны мессежийг хүлээж авлаа. 🤝');
+    }catch(e){
+      bubble('⚠️ API алдаа: '+(e?.message||e), 'bot');
+    }finally{
+      el.typing && (el.typing.hidden=true); el.send.disabled = false;
+    }
+  }
+  el.send?.addEventListener('click', send);
+  el.input?.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+
+  /* -------- Меню: найдвартай toggle -------- */
+  function closeAllPanes() {
+    $$('.oy-pane').forEach(p => p.setAttribute('hidden',''));
+    $$('.oy-item[data-menu]').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-expanded','false'); });
+    document.body.classList.remove('oy-drawer-open');
+    const ov = $('#oyOverlay'); if (ov){ ov.hidden = true; ov.style.pointerEvents = 'none'; }
+  }
+  function togglePane(key) {
+    const pane = document.querySelector(`.oy-pane[data-pane="${key}"]`);
+    const btn  = document.querySelector(`.oy-item[data-menu="${key}"]`);
+    if (!pane) return;
+    const isOpen = !pane.hasAttribute('hidden');
+    if (isOpen) {
+      pane.setAttribute('hidden','');
+      btn?.classList.remove('active'); btn?.setAttribute('aria-expanded','false');
+    } else {
+      // Олон панель зэрэг нээмээр байвал дараах мөрийг комментлоорой:
+      closeAllPanes();
+      pane.removeAttribute('hidden');
+      btn?.classList.add('active'); btn?.setAttribute('aria-expanded','true');
+    }
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.oy-item[data-menu]');
+    if (!btn) return;
+    e.preventDefault();
+    const key = btn.getAttribute('data-menu');
+    if (!key) return;
+    togglePane(key);
+  }, false);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllPanes(); });
+  closeAllPanes(); // ачааллахад цэвэрлэ
+
+  /* -------- “Бүртгүүлэх” → Wix Signup руу -------- */
+  const WIX_SIGNUP_URL = 'https://www.oyunsanaa.com/signup'; // <<< ЭНД ЖИНХЭНЭ URL-аа тавиарай
+  $('#btnRegister')?.addEventListener('click', () => {
+    const form = $('#ageForm');
+    const chosen = form ? new FormData(form).get('age') : null;
+    if (!chosen) { alert('Насны ангиллаа сонгоорой.'); return; }
+    localStorage.setItem('oy_age', chosen);
+    window.location.href = `${WIX_SIGNUP_URL}?age=${encodeURIComponent(chosen)}`;
   });
+
+  /* -------- URL-оос age ирвэл хадгал -------- */
+  (function captureAgeFromURL(){
+    const urlAge = new URLSearchParams(location.search).get('age');
+    if (urlAge) localStorage.setItem('oy_age', urlAge);
+  })();
+
+  /* -------- Ачааллахад мессежүүд -------- */
+  (function redraw(){
+    const arr = loadMsgs();
+    if (!arr.length){
+      bubble('Сайн уу! Энэ бол Оюунсанаатай ганц чат. Туршаад үзье. 🌿','bot');
+    } else {
+      arr.forEach(m=> bubble(m.html, m.who, m.isHTML));
+      scrollBottom(false);
+    }
+  })();
 })();
-// 1. Composer өндөр хэмжиж padding тохируулах
-const composer=document.getElementById('composer');
-const setH=()=>{document.documentElement.style.setProperty('--composer-h',(composer.getBoundingClientRect().height||80)+'px')};
-new ResizeObserver(setH).observe(composer);window.addEventListener('load',setH);
-
-// 2. Drawer unmount болохоос хамгаалж state хадгалах
-let drawerOpen=false;
-function toggleDrawer(open){drawerOpen=open;document.body.classList.toggle('drawer-open',open)}
-// route солигдох үед drawerOpen=true байвал дахин toggleDrawer(true) хийнэ
-
-// 4. Typing indicator timeout
-let typingTimer;
-function showTyping(){
-  clearTimeout(typingTimer);
-  document.getElementById('typing').style.display='block';
-  typingTimer=setTimeout(()=>{document.getElementById('typing').style.display='none'},6000);
-}
-function hideTyping(){
-  clearTimeout(typingTimer);
-  document.getElementById('typing').style.display='none';
-}
-
 
 
 
