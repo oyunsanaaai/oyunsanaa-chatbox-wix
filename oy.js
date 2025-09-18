@@ -201,7 +201,27 @@
     }, 200);
   });
 })();
+// 1. Composer өндөр хэмжиж padding тохируулах
+const composer=document.getElementById('composer');
+const setH=()=>{document.documentElement.style.setProperty('--composer-h',(composer.getBoundingClientRect().height||80)+'px')};
+new ResizeObserver(setH).observe(composer);window.addEventListener('load',setH);
 
+// 2. Drawer unmount болохоос хамгаалж state хадгалах
+let drawerOpen=false;
+function toggleDrawer(open){drawerOpen=open;document.body.classList.toggle('drawer-open',open)}
+// route солигдох үед drawerOpen=true байвал дахин toggleDrawer(true) хийнэ
+
+// 4. Typing indicator timeout
+let typingTimer;
+function showTyping(){
+  clearTimeout(typingTimer);
+  document.getElementById('typing').style.display='block';
+  typingTimer=setTimeout(()=>{document.getElementById('typing').style.display='none'},6000);
+}
+function hideTyping(){
+  clearTimeout(typingTimer);
+  document.getElementById('typing').style.display='none';
+}
 
 
 
