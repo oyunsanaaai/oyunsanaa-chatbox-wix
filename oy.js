@@ -169,7 +169,12 @@
   renderThemePicker();
   redraw();
 })();
-
+// oy.js дотор, $w.onReady-тэй адил ачаалсны дараа:
+const input = document.getElementById('oyInput');
+const stream = document.getElementById('oyStream');
+input?.addEventListener('focus', () => {
+  setTimeout(()=> stream?.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' }), 150);
+});
 
 
 
