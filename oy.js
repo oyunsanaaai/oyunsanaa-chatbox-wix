@@ -169,13 +169,38 @@
   renderThemePicker();
   redraw();
 })();
-// oy.js дотор, $w.onReady-тэй адил ачаалсны дараа:
-const input = document.getElementById('oyInput');
-const stream = document.getElementById('oyStream');
-input?.addEventListener('focus', () => {
-  setTimeout(()=> stream?.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' }), 150);
-});
+// --- Мобайл keyboard дээр доош нь гулгуулж өгөх ---
+(function () {
+  const input = document.getElementById('oyInput');
+  const stream = document.getElementById('oyStream');
 
+  function scrollToBottom(smooth = true) {
+    if (!stream) return;
+    stream.scrollTo({
+      top: stream.scrollHeight + 999,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  }
+
+  // ачааллахад хамгийн сүүлийг харагдуул
+  scrollToBottom(false);
+
+  // input дээр фокус авахад доош нь тат
+  input?.addEventListener('focus', () => {
+    setTimeout(() => scrollToBottom(true), 150);
+  });
+
+  // viewport өөрчлөгдөх (keyboard нээгдэх/хаагдах) үед доош тат
+  const ro = new ResizeObserver(() => setTimeout(() => scrollToBottom(false), 100));
+  ro.observe(document.documentElement);
+
+  // iOS-д заримдаа window-руу татах нь найдвартай байдаг
+  input?.addEventListener('focus', () => {
+    setTimeout(() => {
+      try { window.scrollTo(0, document.body.scrollHeight); } catch {}
+    }, 200);
+  });
+})();
 
 
 
