@@ -108,26 +108,22 @@ const stream = document.getElementById('oyStream');
 input?.addEventListener('focus', () => {
   setTimeout(()=> stream?.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' }), 150);
 });
-/* --- Суурь өндөр ба скролл --- */
+/* Бүтэн дэлгэцийн өндөр */
 html, body { height: 100%; margin: 0; }
 .oy-main {
-  /* мобайл address bar-тэй найдвартай */
   min-height: 100svh;
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
 }
-
-/* Мессежийн урсгал — үлдсэн өндрийг дүүргээд дотор нь скролл */
+/* Урсгал (чат мессеж) */
 .oy-stream {
   flex: 1 1 auto;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 12px 12px 88px; /* доод composer-т даруулахгүй */
+  padding: 12px 12px 88px; /* composer-т даруулахгүй */
 }
-
-/* Доорх бичих хэсэг — доор наалдсан */
+/* Доорх бичих хэсэг */
 .oy-composer {
   position: sticky; bottom: 0;
   display: flex; align-items: center; gap: 8px;
@@ -135,53 +131,13 @@ html, body { height: 100%; margin: 0; }
   background: var(--bg2, #141414);
   border-top: 1px solid rgba(255,255,255,.08);
 }
-
-/* iOS “zoom” шалтгааныг хаах (16px-аас бага бол авто-zoom хийдэг) */
-#oyInput {
-  width: 100%; max-height: 35svh; resize: none;
-  line-height: 1.35; font-size: 16px;
-  background: transparent; color: #fff; border: 0; outline: 0;
-}
-
-/* Товчны tap target-ууд */
+/* iOS zoom-оос сэргийлэх */
+#oyInput { width:100%; max-height:35svh; resize:none; line-height:1.35; font-size:16px; background:transparent; color:#fff; border:0; outline:0; }
+/* Товчны tap target */
 .oy-send, .oy-mini, .oy-item { min-height: 40px; }
-
-/* Хэрэв хоёр давхар scrollbar гарч байвал outer контейнерийг скроллгүй болго */
-@media (max-width: 900px) {
-  body { overflow: hidden; }
-  .oy-main { overflow: hidden; }
-}
-
-/* iOS Safari-д sticky гацвал энэ fallback-ийг идэвхжүүлж болно:
-@supports (-webkit-touch-callout: none) {
-  .oy-composer { position: fixed; left: 0; right: 0; bottom: 0; }
-  .oy-stream { padding-bottom: 120px; } 
-}
-*/
-/* 1. Доод бичих хэсэг */
-#app{display:flex;flex-direction:column;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
-#messages{flex:1;overflow:auto;padding:12px 12px calc(env(safe-area-inset-bottom) + var(--composer-h,80px))}
-#composer{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;
-  background:rgba(255,255,255,.06);backdrop-filter:saturate(140%) blur(6px);
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
-#composer input{flex:1;border:none;border-radius:24px;padding:14px 16px;font-size:16px}
-
-/* 3. Дээд гарчиг чүүлэгдэхгүй */
-.header-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  max-width:calc(100% - 120px)}
-.header-badge,.header-colors{display:none}
-
-
-
-
-
-
-
-
-
-
-
-
+/* Панель нуух/идэвхжүүлэх */
+.oy-pane[hidden]{ display:none !important; }
+.oy-item.active{ outline:2px solid var(--brand, #4aa); outline-offset:1px; }
 
 
 
