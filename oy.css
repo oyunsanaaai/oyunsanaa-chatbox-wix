@@ -158,7 +158,18 @@ html, body { height: 100%; margin: 0; }
   .oy-stream { padding-bottom: 120px; } 
 }
 */
+/* 1. Доод бичих хэсэг */
+#app{display:flex;flex-direction:column;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+#messages{flex:1;overflow:auto;padding:12px 12px calc(env(safe-area-inset-bottom) + var(--composer-h,80px))}
+#composer{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;
+  background:rgba(255,255,255,.06);backdrop-filter:saturate(140%) blur(6px);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+#composer input{flex:1;border:none;border-radius:24px;padding:14px 16px;font-size:16px}
 
+/* 3. Дээд гарчиг чүүлэгдэхгүй */
+.header-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:calc(100% - 120px)}
+.header-badge,.header-colors{display:none}
 
 
 
