@@ -349,7 +349,40 @@ console.log("oy.js loaded ✅");
     }
   })();
 })();
+/* === Drawer + overlay удирдлага, мобайл tap-н засвар === */
+const drawer   = document.getElementById('oyDrawer');
+const overlay  = document.getElementById('oyOverlay');
+const btnDrw   = document.getElementById('btnDrawer');
 
+function openDrawer(isOpen){
+  if(!drawer || !overlay) return;
+  drawer.classList.toggle('open', !!isOpen);
+  overlay.classList.toggle('show', !!isOpen);
+  document.body.classList.toggle('oy-drawer-open', !!isOpen);
+}
+
+// 3 зураас
+btnDrw && btnDrw.addEventListener('click', () => {
+  openDrawer(!drawer.classList.contains('open'));
+});
+
+// overlay-г дарвал хаагдана
+overlay && overlay.addEventListener('click', () => openDrawer(false));
+
+// Мобайл tap (pointerdown) + click хоёуланг нь сонсоно
+['pointerdown','click'].forEach(ev=>{
+  document.addEventListener(ev, (e)=>{
+    const btn = e.target.closest('.oy-item[data-menu]');
+    if(!btn) return;
+    e.preventDefault(); // iOS ghost scroll/300ms-ыг таслана
+
+    const key = btn.getAttribute('data-menu');
+    document.querySelectorAll('.oy-pane').forEach(p=>{
+      p.hidden = (p.dataset.pane !== key);
+    });
+    openDrawer(false); // цэсийг дармагц хаа
+  }, {passive:false});
+});
 
 
 
