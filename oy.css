@@ -102,74 +102,30 @@ body{
 
 /* Толгойн 2 товчийг (хуучны) хаалттай байлгах хамгаалалт */
 .oy-head-links{display:none!important}
-// oy.js дотор, $w.onReady-тэй адил ачаалсны дараа:
-const input = document.getElementById('oyInput');
-const stream = document.getElementById('oyStream');
-input?.addEventListener('focus', () => {
-  setTimeout(()=> stream?.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' }), 150);
-});
-/* Бүтэн дэлгэцийн өндөр */
-html, body { height: 100%; margin: 0; }
-.oy-main {
-  min-height: 100svh;
-  min-height: 100dvh;
-  display: flex; flex-direction: column;
-}
-/* Урсгал (чат мессеж) */
-.oy-stream {
-  flex: 1 1 auto;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 12px 12px 88px; /* composer-т даруулахгүй */
-}
-/* Доорх бичих хэсэг */
-.oy-composer {
-  position: sticky; bottom: 0;
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
-  background: var(--bg2, #141414);
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-/* iOS zoom-оос сэргийлэх */
-#oyInput { width:100%; max-height:35svh; resize:none; line-height:1.35; font-size:16px; background:transparent; color:#fff; border:0; outline:0; }
-/* Товчны tap target */
-.oy-send, .oy-mini, .oy-item { min-height: 40px; }
-/* Панель нуух/идэвхжүүлэх */
-.oy-pane[hidden]{ display:none !important; }
-.oy-item.active{ outline:2px solid var(--brand, #4aa); outline-offset:1px; }
 
-/* === Mobile drawer/overlay fix === */
-.oy-drawer{
-  position: fixed; inset: 0 auto 0 0;
-  width: 320px; max-width: 90vw;
-  transform: translateX(-100%); transition: transform .25s ease;
-  z-index: 1000; /* хамгийн дээр гарга */
-  background: var(--bg2, #1e1e28); overflow:auto;
-}
-.oy-drawer.open{ transform: translateX(0); }
 
-.oy-overlay{
-  position: fixed; inset: 0; background: rgba(0,0,0,.38);
-  opacity: 0; pointer-events: none; transition: opacity .2s;
-  z-index: 999;  /* drawer-ын ард, бусдаас дээгүүр */
-  backdrop-filter: saturate(140%) blur(1px);
-}
-.oy-overlay.show{ opacity: 1; pointer-events: auto; }
 
-.oy-item{
-  display:block; padding:12px 16px; line-height:1.2;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation; cursor: pointer;
-}
-.oy-item:active{ opacity:.6; }
 
-/* Хөлний бичих хэсэг iOS дээр таглахгүйн тулд */
-.oy-composer{
-  position: sticky; bottom: 0;
-  padding-bottom: env(safe-area-inset-bottom);
-}
 
-/* Ямар нэг давхарга санамсаргүйгээр даруулгыг хаахгүйн тулд */
-button, a { touch-action: manipulation; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
