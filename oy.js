@@ -143,34 +143,34 @@ async function send(){
   el.input.value=''; 
   showTyping();
 
-  try {
-    const history = loadMsgs().slice(-12);
+try {
+  const history = loadMsgs().slice(-12);
 
-    // Чиний API энд байна
-const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    model: el.modelSelect?.value || 'gpt-4o-mini',
-    persona: 'soft',
-    msg: t,                 // хэрэглэгчийн бичсэн урт текст шууд явна
-    history: loadMsgs().slice(-12) // эсвэл чамд байгаа history
-  })
-});
-const { ok, reply, error } = await r.json();
-if (!ok) throw new Error(error);
-bubble(reply || '…', 'bot');
-  } catch(e){
-    hideTyping();
-    el.send.disabled=false;
-    bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
-    console.error(e);
-  }
-}
-  el.send?.addEventListener('click', send);
-  el.input?.addEventListener('keydown', e=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: el.modelSelect?.value || 'gpt-4o-mini',
+      persona: 'soft',
+      msg: t,
+      history
+    })
   });
+
+  const { ok, reply, error } = await r.json();
+  if (!ok) throw new Error(error);
+
+  bubble(reply || '…', 'bot');
+  pushMsg(state.current, 'bot', reply || '…'); // байгаа бол хадгал
+
+} catch (e) {
+  bubble('⚠️ Холболтын алдаа эсвэл API тохиргоо дутуу байна.', 'bot');
+  console.error(e);
+
+} finally {
+  hideTyping();
+  el.send.disabled = false;
+}
 
   /* ---------- BOOT ---------- */
   renderThemePicker();
