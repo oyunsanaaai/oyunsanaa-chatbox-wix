@@ -139,26 +139,41 @@
     bubble(t,'user'); pushMsg('user', t); el.input.value=''; showTyping(); el.send.disabled=true;
 
     try{
-      const history = loadMsgs().slice(-12);
-      const r = await fetch('/api/oy-chat', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-          persona:'soft',
-          msg:t,
-          chatSlug:'one-chat',
-          history
-        })
-      });
-      const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
-      hideTyping(); el.send.disabled=false;
-      if (error) throw new Error(error);
-      bubble(reply||'...','bot'); pushMsg('bot', reply||'...');
-    }catch(e){
-      hideTyping(); el.send.disabled=false;
-      bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
-    }
-  }
+      try {
+  const history = loadMsgs().slice(-12);
+
+  // ⬇️ ЧИНИЙ АЖИЛЛАЖ БАЙГАА API-гийн БҮРЭН URL
+  const API = 'https://api-hugjuulelt-bice.vercel.app/api/oyunsanaa';
+
+  const r = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: (t.length > 220 ? 'gpt-4o' : 'gpt-4o-mini'),
+      persona: 'soft',
+      msg: t,
+      chatSlug: 'one-chat',
+      history
+    })
+  });
+
+  const { reply, error } = await r.json();
+  if (!r.ok || error) throw new Error(error || `HTTP ${r.status}`);
+
+  hideTyping();
+  el.send.disabled = false;
+
+  bubble(reply || '...','bot');
+  pushMsg('bot', reply || '...');
+  save();
+
+} catch (e) {
+  hideTyping();
+  el.send.disabled = false;
+  bubble('⚠️ API холболтын алдаа. Дараа дахин оролдоод үзээрэй.','bot');
+  console.error(e);
+}
+
   el.send?.addEventListener('click', send);
   el.input?.addEventListener('keydown', e=>{
     if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
