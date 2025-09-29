@@ -147,17 +147,16 @@ async function send(){
     const history = loadMsgs().slice(-12);
 
     // Чиний API энд байна
-    const r = await fetch('https://api-hugjuulelt-bice.vercel.app/api/oyunsanaa', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({
-        model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-        persona:'soft',
-        msg:t,
-        chatSlug:'one-chat',
-        history
-      })
-    });
+  const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'gpt-4o-mini',
+    msg: t,
+    history
+  })
+});
+
 
     const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
 
