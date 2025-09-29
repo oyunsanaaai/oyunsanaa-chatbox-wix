@@ -139,53 +139,26 @@
     bubble(t,'user'); pushMsg('user', t); el.input.value=''; showTyping(); el.send.disabled=true;
 
     try{
-      try {
-  const history = loadMsgs().slice(-12);
-
- async function send(){
-  const t = (el.input.value || '').trim();
-  if (!t) return;
-
-  bubble(t,'user'); 
-  pushMsg('user', t); 
-  el.input.value=''; 
-  showTyping();
-
-  try {
-    const history = loadMsgs().slice(-12);
-
-    // Чиний API энд байна
-    const r = await fetch('https://api-hugjuulelt-bice.vercel.app/api/oyunsanaa', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({
-        model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-        persona:'soft',
-        msg:t,
-        chatSlug:'one-chat',
-        history
-      })
-    });
-
-    const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
-
-    hideTyping();
-    el.send.disabled=false;
-
-    if (error) throw new Error(error);
-
-    bubble(reply||'...','bot'); 
-    pushMsg('bot', reply||'...');
-
-  } catch(e){
-    hideTyping();
-    el.send.disabled=false;
-    bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
-    console.error(e);
+      const history = loadMsgs().slice(-12);
+      const r = await fetch('/api/oy-chat', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
+          persona:'soft',
+          msg:t,
+          chatSlug:'one-chat',
+          history
+        })
+      });
+      const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
+      hideTyping(); el.send.disabled=false;
+      if (error) throw new Error(error);
+      bubble(reply||'...','bot'); pushMsg('bot', reply||'...');
+    }catch(e){
+      hideTyping(); el.send.disabled=false;
+      bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
+    }
   }
-}
-
-
   el.send?.addEventListener('click', send);
   el.input?.addEventListener('keydown', e=>{
     if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
