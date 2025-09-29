@@ -134,45 +134,61 @@
   });
 
   // Илгээх
-async function send() {
+// === 1) ЭНЭ МӨРӨӨ ЗӨВ URL-ААР ТАВЬ ===
+const API_URL = 'https://api-hugjuulelt-bice.vercel.app/api/oyunsanaa';
+
+async function send(e) {
+  e?.preventDefault?.();
+
   const t = (el.input?.value || '').trim();
   if (!t) return;
-  bubble(t, 'user'); pushMsg('user', t);
-  el.input.value = ''; showTyping();
+
+  bubble(t, 'user');
+  pushMsg('user', t);
+  el.input.value = '';
+  showTyping();
+  el.send.disabled = true;
 
   try {
-    const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
+    const r = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        persona: 'soft',
         msg: t,
-        history: loadMsgs().slice(-12),
-      }),
+        history: (loadMsgs?.() || []).slice(-12)
+      })
     });
 
-    // JSON биш HTML/404 ирвэл энд унахгүйн тулд шалгана
+    // JSON биш ирэхэд унагалгүй алдааг зөв харуулах
     const ct = r.headers.get('content-type') || '';
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    if (!ct.includes('application/json')) throw new Error('Invalid JSON');
+    if (!ct.includes('application/json')) throw new Error('Invalid JSON response');
 
-    const { ok, reply, error } = await r.json();
-    if (!ok) throw new Error(error || 'API error');
+    const data = await r.json();
+    if (data?.ok === false) throw new Error(data.error || 'API error');
 
-    hideTyping();
-    el.send.disabled = false;
-    bubble(reply || '…', 'bot');
-    pushMsg('bot', reply || '…');
-  } catch (e) {
-    hideTyping();
-    el.send.disabled = false;
-    bubble('⚠️ Холболтын алдаа эсвэл API тохиргоо дутуу байна.', 'bot');
-    console.error(e);
+    const reply = data?.reply || '…';
+    bubble(reply, 'bot');
+    pushMsg('bot', reply);
+    save?.();
+  } catch (err) {
+    console.error(err);
+    bubble('⚠️ Илгээхэд алдаа. API URL буруу эсвэл сервер доголдож байна.', 'bot');
+  } finally {
+    hideTyping?.();
+    el.send.disabled = false;          // ЯМАР Ч ТОХИОЛДОЛД товчийг сэргээнэ
+    el.input?.focus?.();
   }
 }
 
-
+// Enter ба товчийн эвент
+document.querySelector('form')?.addEventListener('submit', send);
+el.send?.addEventListener('click', send);
+el.input?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e); }
+});
+  
 } finally {
   hideTyping();
   el.send.disabled = false;
