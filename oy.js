@@ -134,38 +134,44 @@
   });
 
   // Илгээх
-async function send(){
-  const t = (el.input.value || '').trim();
+async function send() {
+  const t = (el.input?.value || '').trim();
   if (!t) return;
+  bubble(t, 'user'); pushMsg('user', t);
+  el.input.value = ''; showTyping();
 
-  bubble(t,'user'); 
-  pushMsg('user', t); 
-  el.input.value=''; 
-  showTyping();
+  try {
+    const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        persona: 'soft',
+        msg: t,
+        history: loadMsgs().slice(-12),
+      }),
+    });
 
-try {
-  const history = loadMsgs().slice(-12);
+    // JSON биш HTML/404 ирвэл энд унахгүйн тулд шалгана
+    const ct = r.headers.get('content-type') || '';
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!ct.includes('application/json')) throw new Error('Invalid JSON');
 
-  const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: el.modelSelect?.value || 'gpt-4o-mini',
-      persona: 'soft',
-      msg: t,
-      history
-    })
-  });
+    const { ok, reply, error } = await r.json();
+    if (!ok) throw new Error(error || 'API error');
 
-  const { ok, reply, error } = await r.json();
-  if (!ok) throw new Error(error);
+    hideTyping();
+    el.send.disabled = false;
+    bubble(reply || '…', 'bot');
+    pushMsg('bot', reply || '…');
+  } catch (e) {
+    hideTyping();
+    el.send.disabled = false;
+    bubble('⚠️ Холболтын алдаа эсвэл API тохиргоо дутуу байна.', 'bot');
+    console.error(e);
+  }
+}
 
-  bubble(reply || '…', 'bot');
-  pushMsg(state.current, 'bot', reply || '…'); // байгаа бол хадгал
-
-} catch (e) {
-  bubble('⚠️ Холболтын алдаа эсвэл API тохиргоо дутуу байна.', 'bot');
-  console.error(e);
 
 } finally {
   hideTyping();
