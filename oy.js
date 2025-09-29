@@ -134,103 +134,54 @@
   });
 
   // Илгээх
-// === 1) ЭНЭ МӨРӨӨ ЗӨВ URL-ААР ТАВЬ ===
-const API_URL = 'https://api-hugjuulelt-bice.vercel.app/api/oyunsanaa';
-
-async function send(e) {
-  e?.preventDefault?.();
-
-  const t = (el.input?.value || '').trim();
+async function send(){
+  const t = (el.input.value || '').trim();
   if (!t) return;
 
-  bubble(t, 'user');
-  pushMsg('user', t);
-  el.input.value = '';
+  bubble(t,'user'); 
+  pushMsg('user', t); 
+  el.input.value=''; 
   showTyping();
-  el.send.disabled = true;
 
   try {
-    const r = await fetch(API_URL, {
+    const history = loadMsgs().slice(-12);
+
+    // Чиний API энд байна
+    const r = await fetch('https://api-hugjuulelt-bice.vercel.app/api/oyunsanaa', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type':'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        msg: t,
-        history: (loadMsgs?.() || []).slice(-12)
+        model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
+        persona:'soft',
+        msg:t,
+        chatSlug:'one-chat',
+        history
       })
     });
 
-    // JSON биш ирэхэд унагалгүй алдааг зөв харуулах
-    const ct = r.headers.get('content-type') || '';
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    if (!ct.includes('application/json')) throw new Error('Invalid JSON response');
+    const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
 
-    const data = await r.json();
-    if (data?.ok === false) throw new Error(data.error || 'API error');
+    hideTyping();
+    el.send.disabled=false;
 
-    const reply = data?.reply || '…';
-    bubble(reply, 'bot');
-    pushMsg('bot', reply);
-    save?.();
-  } catch (err) {
-    console.error(err);
-    bubble('⚠️ Илгээхэд алдаа. API URL буруу эсвэл сервер доголдож байна.', 'bot');
-  } finally {
-    hideTyping?.();
-    el.send.disabled = false;          // ЯМАР Ч ТОХИОЛДОЛД товчийг сэргээнэ
-    el.input?.focus?.();
+    if (error) throw new Error(error);
+
+    bubble(reply||'...','bot'); 
+    pushMsg('bot', reply||'...');
+
+  } catch(e){
+    hideTyping();
+    el.send.disabled=false;
+    bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
+    console.error(e);
   }
 }
-
-// Enter ба товчийн эвент
-document.querySelector('form')?.addEventListener('submit', send);
-el.send?.addEventListener('click', send);
-el.input?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e); }
-});
-  
-} finally {
-  hideTyping();
-  el.send.disabled = false;
-}
+  el.send?.addEventListener('click', send);
+  el.input?.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  });
 
   /* ---------- BOOT ---------- */
   renderThemePicker();
   redraw();
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
