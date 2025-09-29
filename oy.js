@@ -147,27 +147,19 @@ async function send(){
     const history = loadMsgs().slice(-12);
 
     // Чиний API энд байна
-  const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
+const r = await fetch('https://chat.oyunsanaa.com/api/oyunsanaa', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    model: 'gpt-4o-mini',
-    msg: t,
-    history
+    model: el.modelSelect?.value || 'gpt-4o-mini',
+    persona: 'soft',
+    msg: t,                 // хэрэглэгчийн бичсэн урт текст шууд явна
+    history: loadMsgs().slice(-12) // эсвэл чамд байгаа history
   })
 });
-
-
-    const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
-
-    hideTyping();
-    el.send.disabled=false;
-
-    if (error) throw new Error(error);
-
-    bubble(reply||'...','bot'); 
-    pushMsg('bot', reply||'...');
-
+const { ok, reply, error } = await r.json();
+if (!ok) throw new Error(error);
+bubble(reply || '…', 'bot');
   } catch(e){
     hideTyping();
     el.send.disabled=false;
