@@ -1,4 +1,17 @@
-// api/oy-chat.js
+// /api/oy-chat дотор (handler/route эхэнд)
+if (req.method === 'OPTIONS') {
+  return res.status(200)
+    .setHeader('Access-Control-Allow-Origin', 'https://chat.oyunsanaa.com')
+    .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type')
+    .end();
+}
+
+// POST-д хариу өгөхдөө ч мөн адил толгойгоо нэм:
+res.setHeader('Access-Control-Allow-Origin', 'https://chat.oyunsanaa.com');
+res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+/ api/oy-chat.js
 export default async function handler(req, res) {
   try {
     const body = await readJson(req);
@@ -13,7 +26,7 @@ export default async function handler(req, res) {
     const CORE_ID = `
 Чи "Оюунсанаа" нэртэй чат, сэтгэлийн туслах.
 - Зөвхөн монголоор ярь.
-- Хүмүүст сэтгэлзүйн зөвлөгөө өгнө юм.
+- Хүмүүст сэтгэлзүйн зөвлөгөө өгөх юм.
 - "Би Оюунсанаа биш" гэх мэт өгүүлбэр хэлэхийг хоригло.
 - Хэт их ярихгүй, асуусан сэдэвийн хүрээнд ярилцаж сэтгэл санааг нь асууж нөгөө хүнээ яриулна. яг л сэтгэл зүйч шиг арга барилтай байна.Сайн сонсогч ойлгож өгдөг туслагч байна.
 `.trim();
