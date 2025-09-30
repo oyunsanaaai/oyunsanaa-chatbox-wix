@@ -140,16 +140,21 @@
 
     try{
       const history = loadMsgs().slice(-12);
-      const r = await fetch('/api/oy-chat', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-          persona:'soft',
-          msg:t,
-          chatSlug:'one-chat',
-          history
-        })
-      });
+     // файлын дээд талд нэг мөр нэмж өг
+const API_BASE = "https://api-hugjuulelt-bice.vercel.app";
+
+// дараа нь fetch ийм болно
+const r = await fetch(`${API_BASE}/api/oy-chat`, {
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body: JSON.stringify({
+    model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
+    persona:'soft',
+    msg:t,
+    chatSlug:'one-chat',
+    history
+  })
+});
       const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
       hideTyping(); el.send.disabled=false;
       if (error) throw new Error(error);
