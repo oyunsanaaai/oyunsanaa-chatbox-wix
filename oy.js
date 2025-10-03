@@ -173,3 +173,32 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
+/* ===== iOS keyboard / viewport fix ===== */
+(function(){
+  const app      = document.getElementById('app');
+  const stream   = document.getElementById('oyStream');
+  const inputBar = document.getElementById('inputBar');
+  const ta       = document.getElementById('oyInput');
+
+  function fit(){
+    if (!window.visualViewport || !app || !inputBar || !stream) return;
+
+    const vv = visualViewport;
+    // keyboard-ийн өндрийг тооцоолж, inputBar-ыг дээр нь суулгах
+    const offset = Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
+
+    inputBar.style.transform      = offset ? `translateY(-${offset}px)` : '';
+    stream.style.paddingBottom    = (offset ? offset + 90 : 90) + 'px'; // доод ирмэг дарагдахгүй
+  }
+
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', fit);
+    visualViewport.addEventListener('scroll', fit);
+    fit();
+  }
+
+  // Инпут дээр ороход автоматаар доод мессеж рүү гулсуулна
+  ta && ta.addEventListener('focus', ()=>{
+    setTimeout(()=>{ stream.scrollTop = stream.scrollHeight; }, 50);
+  });
+})();
