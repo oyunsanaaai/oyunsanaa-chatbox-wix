@@ -261,3 +261,47 @@ if (isIOS()) {
     stream.classList.remove('ios-fix');
   });
 }
+/* ===== iOS keyboard fix ===== */
+(function () {
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  if (!isIOS) return;
+
+  const stream = document.getElementById('oyStream');
+  const input  = document.getElementById('oyInput');
+  const bar    = document.getElementById('inputBar');
+
+  // visualViewport байгаа бол илүү цэвэр
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const onResize = () => {
+      const down = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      // keyboard гарахад доод padding нэмнэ
+      stream.style.paddingBottom = (120 + down) + 'px';
+      // input бар keyboard-аас дээш тогтмол байрлалд
+      bar.style.transform = `translateY(${-down}px)`;
+    };
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    window.addEventListener('orientationchange', onResize);
+    onResize();
+
+    input.addEventListener('focus', () => {
+      setTimeout(() => stream.scrollTo({ top: 1e9, behavior: 'smooth' }), 200);
+    });
+    input.addEventListener('blur', () => {
+      stream.style.paddingBottom = '120px';
+      bar.style.transform = 'translateY(0)';
+    });
+    return;
+  }
+
+  // Fallback: visualViewport байхгүй үед энгийн padding
+  input.addEventListener('focus', () => {
+    stream.classList.add('ios-fix-padding');
+    setTimeout(() => stream.scrollTo({ top: 1e9, behavior: 'smooth' }), 200);
+  });
+  input.addEventListener('blur', () => {
+    stream.classList.remove('ios-fix-padding');
+  });
+})();
