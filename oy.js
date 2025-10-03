@@ -224,84 +224,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-// === iOS keyboard / visualViewport fix ===
+/* ===== iOS keyboard / visualViewport: ONE TRUE BLOCK ===== */
 (() => {
-  const vv = window.visualViewport;
-  const root = document.documentElement;
-  function applyKb(){
-    // viewport-оос keyboard-ийн эзэлж буй өндөр (px)
-    const kb = vv ? Math.max(0, Math.round(window.innerHeight - vv.height)) : 0;
-    root.style.setProperty('--kb', kb + 'px');
-  }
-  if (vv){
-    applyKb();
-    vv.addEventListener('resize', applyKb);
-    vv.addEventListener('scroll', applyKb);
-  }
-})();
-// iOS keyboard fix
-function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
-
-if (isIOS()) {
-  const stream = document.getElementById('oyStream');
-  const input = document.getElementById('oyInput');
-
-  input.addEventListener('focus', () => {
-    // keyboard гарч ирэхэд доош гулсах
-    setTimeout(() => {
-      stream.classList.add('ios-fix');
-      stream.scrollTo({ top: 1e9, behavior: 'smooth' });
-    }, 300);
-  });
-
-  input.addEventListener('blur', () => {
-    // keyboard хаагдах үед буцааж хэвийн болгоно
-    stream.classList.remove('ios-fix');
-  });
-}
-/* ===== iOS keyboard fix ===== */
-(function () {
   const ua = navigator.userAgent || '';
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
-  if (!isIOS) return;
+  const IS_IOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in document);
+  if (!IS_IOS) return;
 
+  const vv     = window.visualViewport;
+  const root   = document.documentElement;
   const stream = document.getElementById('oyStream');
   const input  = document.getElementById('oyInput');
-  const bar    = document.getElementById('inputBar');
 
-  // visualViewport байгаа бол илүү цэвэр
-  if (window.visualViewport) {
-    const vv = window.visualViewport;
-    const onResize = () => {
-      const down = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      // keyboard гарахад доод padding нэмнэ
-      stream.style.paddingBottom = (120 + down) + 'px';
-      // input бар keyboard-аас дээш тогтмол байрлалд
-      bar.style.transform = `translateY(${-down}px)`;
-    };
-    vv.addEventListener('resize', onResize);
-    vv.addEventListener('scroll', onResize);
-    window.addEventListener('orientationchange', onResize);
-    onResize();
-
-    input.addEventListener('focus', () => {
-      setTimeout(() => stream.scrollTo({ top: 1e9, behavior: 'smooth' }), 200);
-    });
-    input.addEventListener('blur', () => {
-      stream.style.paddingBottom = '120px';
-      bar.style.transform = 'translateY(0)';
-    });
-    return;
+  function applyKb(){
+    if (!vv) return;
+    // keyboard өндөр ≈ window.innerHeight - vv.height
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height));
+    root.style.setProperty('--kb', kb + 'px');
   }
 
-  // Fallback: visualViewport байхгүй үед энгийн padding
-  input.addEventListener('focus', () => {
-    stream.classList.add('ios-fix-padding');
-    setTimeout(() => stream.scrollTo({ top: 1e9, behavior: 'smooth' }), 200);
-  });
-  input.addEventListener('blur', () => {
-    stream.classList.remove('ios-fix-padding');
+  vv?.addEventListener('resize', applyKb);
+  vv?.addEventListener('scroll',  applyKb);
+  window.addEventListener('orientationchange', () => setTimeout(applyKb, 200));
+  applyKb();
+
+  // фокус авахад доош нь наана (инпут харагдаж байх)
+  input?.addEventListener('focus', () => {
+    setTimeout(() => stream?.scrollTo({top: 1e9, behavior: 'smooth'}), 50);
   });
 })();
