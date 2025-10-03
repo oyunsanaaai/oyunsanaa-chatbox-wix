@@ -129,19 +129,25 @@ body{
   }
 
   /* Доод бар тогтмол байрлалд */
- #inputBar {
+/* Доод composer барыг үргэлж харагдуулна */
+#inputBar{
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0; right: 0; bottom: 0;
   z-index: 100;
   background: rgba(0,0,0,0.25);
   padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  transform: translateZ(0);
+  transform: translateZ(0); /* iOS repaint fix */
 }
 
-.ios-fix {
-  padding-bottom: 300px; /* JS-ээр keyboard өндөртэй тохирно */
+/* iOS keyboard үед түр зуур доод зай авч өгөх */
+.ios-fix-padding { padding-bottom: 300px; }  /* JS энэ утгыг динамикаар сольж болно */
+
+/* Чат мессежийн урсгал */
+#oyStream{
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px;
 }
 
   /* Composer доторх layout */
