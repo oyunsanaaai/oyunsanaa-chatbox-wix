@@ -11,10 +11,7 @@
 
 <div class="app" id="app">
   <div class="main-scroll" id="mainScroll">
-    <!-- Чатны мессежүүд энд дүүрнэ -->
-  </div>
-</div>
-
+   
   <!-- HEADER -->
   <header class="oy-header">
     <!-- 3 зураас -->
@@ -47,14 +44,10 @@
             Доороос насны ангиллаа сонгоод “Бүртгүүлэх” дарна уу.
           </div>
           <form id="ageForm" class="oy-list">
-            <label class="reg-row"><input type="radio" name="age" value="Бага балчир үе (0–7)"> Бага балчир үе (0–7)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Адтай бяцхан үе (8–12)"> Адтай бяцхан үе (8–12)</label>
             <label class="reg-row"><input type="radio" name="age" value="Сэргэлэн өсвөр үе (13–18)"> Сэргэлэн өсвөр үе (13–18)</label>
             <label class="reg-row"><input type="radio" name="age" value="Эхлэл, мөрөөдлийн үе (19–25)"> Эхлэл,мөрөөдлийн үе (19–29)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Эрх чөлөөт, эрч хүчтэй үе (26–40)"> Эрч хүчтэй үе (30–40)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Туршлага, бүтээлийн үе (41–55)"> Туршлага, бүтээлт үе (41–55)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Ухаан, нөлөөллийн үе (56–70)"> Ухаан, нөлөөллийн үе (56–70)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Өвлөж, үлдээх үе (70+)"> Өвлөж, үлдээх үе (70+)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Туршлага, бүтээлийн үе (41–55)"> Туршлага, бүтээлт үе (30–55)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Ухаан, нөлөөллийн үе (56–70)"> Ухаан, нөлөөллийн үе (56+)</label>
           </form>
           <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
             <button id="btnRegister" class="oy-mini">🗝️ Бүртгүүлэх</button>
@@ -93,15 +86,14 @@
       </div>
     </aside>
 
-    <!-- CHAT -->
-    <main class="oy-main">
-      <div id="oyStream" class="oy-stream"></div>
+   <main class="oy-main">
+        <div id="oyStream" class="oy-stream"></div>
+      </main>
+    </div><!-- end #mainScroll -->
 
-       <!-- 2) ДООД COMPOSER – бичих мөрийг энд аваач -->
     <div class="input-bar" id="inputBar">
       <div class="oy-composer">
         <label for="oyFile" class="oy-file" title="Файл">
-          <!-- ... svg ... -->
           <input id="oyFile" type="file" accept="image/*,audio/*" hidden>
         </label>
 
@@ -110,14 +102,14 @@
           <div id="typing" class="oy-typing" hidden><span></span><span></span><span></span></div>
         </div>
 
-        <button id="btnSend" class="oy-send" title="Илгээх"></button>
+        <button id="btnSend" class="oy-send" title="Илгээх">Илгээх</button>
       </div>
     </div>
-  </div>
-<script src="oy.js"></script>
+  </div><!-- end #app -->
+
+  <script src="oy.js"></script>
 </body>
-</html>
- 
+</html> 
 
 
 
