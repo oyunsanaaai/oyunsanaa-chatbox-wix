@@ -166,3 +166,11 @@ body{
     border-radius:16px;
   }
 }
+/* iOS zoom-оос сэргийлэхийн тулд textarea-гийн үсгийн хэмжээ ≥16px байх ёстой */
+#oyInput { font-size: 16px; }
+
+/* Доод мөр keyboard дээр “түлхэгдэх” үед өргөж харагдахаар суурь padding */
+.oy-stream { padding-bottom: 120px; }
+
+/* Keyboard гарч ирэхэд хэт сунжрахгүйн тулд */
+#inputBar { max-width: 900px; margin: 0 auto; }
