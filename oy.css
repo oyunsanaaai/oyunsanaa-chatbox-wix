@@ -113,27 +113,42 @@ body{
   body { overflow:hidden; background:#0b1022; }
 :root{ --kb: 0px; }                 /* JS энд keyboard-ийн өндрийг онооно */
 
-/* зөвхөн дотоод урсгалыг скроллох */
-html,body{ height:100%; margin:0; overflow:hidden; }
+/* БҮХЭЛ ДЭЛГЭЦИЙН ФЛЕКС БАГАНА */
+html,body{height:100%;margin:0}
+.app{
+  min-height:100dvh;          /* iOS 17+ найдвартай viewport */
+  display:flex; flex-direction:column;
+}
+
+/* ЗӨВХӨН МЕССЕЖИЙН БҮС СКРОЛЛОНО */
 #oyStream{
   flex:1 1 auto;
   overflow:auto;
   -webkit-overflow-scrolling:touch;
   padding:12px;
-  padding-bottom:calc(120px + var(--kb));   /* keyboard-тай хамт нэмэгдэнэ */
 }
 
-/* ДООД БАР — ганцхан ийм дүрэм үлдээнэ */
+/* ДООД БАРЫГ position:static БОЛГОНО — ҮСРЭЛТ ҮГҮЙ */
 #inputBar{
-  position: sticky;                  /* iOS-т найдвартай */
-  bottom:0; left:0; right:0;
+  position:static;
   width:100%;
-  z-index:10;
+  padding:10px 12px;
   background:rgba(0,0,0,.25);
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-  transform:translateY(calc(-1 * var(--kb))); /* vv.height-ээр зөөлөн өргөнө */
-  transform:translate3d(0, calc(-1 * var(--kb)), 0); /* repaint fix */
+  /* нүүрэн дээр багтдаг хэмжээнд нь төвлөрүүлнэ */
+  max-width:900px;
+  margin:0 auto;
+  transform:none;
 }
 
-/* iOS zoom бүү хийлгэх */
-#oyInput{ font-size:16px; line-height:1.35; width:100%; }
+.oy-composer{display:flex;align-items:center;gap:10px}
+.oy-input-wrap{flex:1 1 auto}
+#oyInput{
+  width:100%;
+  font-size:16px;      /* iOS zoom-г дарна */
+  line-height:1.35;
+  resize:none;
+}
+.oy-send{flex:0 0 56px;width:56px;height:56px;border-radius:16px}
+
+/* Keyboard дээр дарвал доороос дарагдахгүй padding */
+.oy-stream-bottom-pad{height:0}
