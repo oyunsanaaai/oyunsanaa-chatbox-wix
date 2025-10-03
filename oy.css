@@ -109,28 +109,22 @@ body{
 /@media (max-width:600px){
   /* Гарчгийг төвд барьж, товчийг header-ээс салгаж байрлуулна (нуухгүй) */
   
-/* ===== FINAL MOBILE CHAT LAYOUT ===== */
-*{ box-sizing: border-box; }
-
-html,body{ height:100%; margin:0; overflow:hidden; background:#0b1022; }
+/* === Mobile focus/keyboard fix (final) === */
+html,body{height:100%;margin:0;overflow:hidden;background:#0b1022;}
 
 .app{
-  min-height:100svh;
-  display:flex; flex-direction:column;
+  height:100dvh; min-height:100dvh; display:flex; flex-direction:column;
 }
-@supports(min-height:100dvh){ .app{ min-height:100dvh; } }
+@supports not (height:100dvh){ .app{height:100vh; min-height:100vh;} }
 
 #mainScroll{
   flex:1 1 auto;
-  overflow:auto; overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-  /* доод input bar-ын өндрийг JS-аас өгнө */
+  overflow:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
   padding:12px;
-  padding-bottom:calc(var(--bar-h, 96px) + 12px);
+  padding-bottom:calc(var(--bar-h,90px) + env(safe-area-inset-bottom));
+  overscroll-behavior:contain;
 }
 
-/* Доод бичих мөрийг дэлгэцийн доод талд бэхэлнэ */
 #inputBar{
   position:fixed; left:0; right:0; bottom:0;
   padding:10px 12px;
@@ -139,29 +133,11 @@ html,body{ height:100%; margin:0; overflow:hidden; background:#0b1022; }
   z-index:100;
 }
 
-.oy-composer{
-  display:flex; align-items:center; gap:10px;
-  width:100%; margin:0 auto; max-width:none;
-}
-.oy-file{ flex:0 0 44px; }
-.oy-input-wrap{ flex:1 1 auto; min-width:0; }  /* textarea голдоо тэлнэ */
-#oyInput{ width:100%; display:block; resize:none; font-size:16px; } /* Safari zoom stop */
-.oy-send{ flex:0 0 auto; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.oy-composer{display:flex;align-items:center;gap:10px;width:100%;margin:0;}
+.oy-file{flex:0 0 44px;}
+.oy-input-wrap{flex:1 1 auto;min-width:0;}
+#oyInput{width:100%;display:block;resize:none;font-size:16px;} /* Safari zoom OFF */
+.oy-send{flex:0 0 auto;}
 
 
 
