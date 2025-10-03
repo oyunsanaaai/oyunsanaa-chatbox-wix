@@ -89,24 +89,20 @@
    <main class="oy-main">
         <div id="oyStream" class="oy-stream"></div>
       </main>
-    </div><!-- end #mainScroll -->
+   <div class="input-bar" id="inputBar">
+  <div class="oy-composer">
+    <label for="oyFile" class="oy-file" title="Файл">
+      <input id="oyFile" type="file" accept="image/*,audio/*" hidden>
+    </label>
 
-    <div class="input-bar" id="inputBar">
-      <div class="oy-composer">
-        <label for="oyFile" class="oy-file" title="Файл">
-          <input id="oyFile" type="file" accept="image/*,audio/*" hidden>
-        </label>
-
-        <div class="oy-input-wrap">
-          <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
-          <div id="typing" class="oy-typing" hidden><span></span><span></span><span></span></div>
-        </div>
-
-        <button id="btnSend" class="oy-send" title="Илгээх">Илгээх</button>
-      </div>
+    <div class="oy-input-wrap">
+      <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
+      <div id="typing" class="oy-typing" hidden><span></span><span></span><span></span></div>
     </div>
-  </div><!-- end #app -->
 
+    <button id="btnSend" class="oy-send" title="Илгээх">Илгээх</button>
+  </div>
+</div>
   <script src="oy.js"></script>
 </body>
 </html> 
