@@ -158,7 +158,25 @@ body { overflow:hidden; background:#0b1022; }  /* гаднах scrollbar үгү�
   margin: 0;
   box-sizing: border-box;
 }
+/* 1) Safari-гийн zoom-ийг зогсоох (≥16px) */
+#oyInput,
+.oy-input-wrap textarea,
+input, textarea {
+  font-size:16px;         /* хамгийн чухал нь энэ */
+}
 
+/* 2) Гулгалтын үсрэлтийг багасгах */
+#mainScroll{
+  overscroll-behavior: contain;   /* дотооддоо л гулга */
+  scroll-behavior: smooth;
+}
+
+/* 3) Композер байрлал тогтвортой */
+.input-bar{
+  position:fixed; left:0; right:0; bottom:0;
+  z-index:100;
+}
+.oy-input-wrap{ flex:1 1 auto; min-width:0; }  /* хажуу тийш тэлэхгүй */
 
 
 
