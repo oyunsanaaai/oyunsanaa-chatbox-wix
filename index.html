@@ -2,23 +2,14 @@
 <html lang="mn">
 <head>
   <meta charset="utf-8"/>
- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Оюунсанаа — чат</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Оюунсанаа · чат</title>
   <link rel="stylesheet" href="oy.css"/>
-  <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0b1022">
-
-<!-- iOS (Home Screen) -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="/icons/192.png">
+  <script defer src="oy.js"></script>
 </head>
- <body>
+<body>
   <div id="oyOverlay" class="oy-overlay" hidden></div>
 
-<div class="app" id="app">
-  <div class="main-scroll" id="mainScroll">
-   
   <!-- HEADER -->
   <header class="oy-header">
     <!-- 3 зураас -->
@@ -51,10 +42,14 @@
             Доороос насны ангиллаа сонгоод “Бүртгүүлэх” дарна уу.
           </div>
           <form id="ageForm" class="oy-list">
+            <label class="reg-row"><input type="radio" name="age" value="Бага балчир үе (0–7)"> Бага балчир үе (0–7)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Адтай бяцхан үе (8–12)"> Адтай бяцхан үе (8–12)</label>
             <label class="reg-row"><input type="radio" name="age" value="Сэргэлэн өсвөр үе (13–18)"> Сэргэлэн өсвөр үе (13–18)</label>
             <label class="reg-row"><input type="radio" name="age" value="Эхлэл, мөрөөдлийн үе (19–25)"> Эхлэл,мөрөөдлийн үе (19–29)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Туршлага, бүтээлийн үе (41–55)"> Туршлага, бүтээлт үе (30–55)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Ухаан, нөлөөллийн үе (56–70)"> Ухаан, нөлөөллийн үе (56+)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Эрх чөлөөт, эрч хүчтэй үе (26–40)"> Эрч хүчтэй үе (30–40)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Туршлага, бүтээлийн үе (41–55)"> Туршлага, бүтээлт үе (41–55)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Ухаан, нөлөөллийн үе (56–70)"> Ухаан, нөлөөллийн үе (56–70)</label>
+            <label class="reg-row"><input type="radio" name="age" value="Өвлөж, үлдээх үе (70+)"> Өвлөж, үлдээх үе (70+)</label>
           </form>
           <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
             <button id="btnRegister" class="oy-mini">🗝️ Бүртгүүлэх</button>
@@ -93,79 +88,32 @@
       </div>
     </aside>
 
-   <main class="oy-main">
-        <div id="oyStream" class="oy-stream"></div>
-      </main>
-   <div class="input-bar" id="inputBar">
-  <div class="oy-composer">
-    <label for="oyFile" class="oy-file" title="Файл">
-      <input id="oyFile" type="file" accept="image/*,audio/*" hidden>
-    </label>
+    <!-- CHAT -->
+    <main class="oy-main">
+      <div id="oyStream" class="oy-stream"></div>
 
-    <div class="oy-input-wrap">
-      <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
-      <div id="typing" class="oy-typing" hidden><span></span><span></span><span></span></div>
-    </div>
+      <div class="oy-composer">
+        <label for="oyFile" class="oy-file" title="Зураг/файл нэмэх">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </label>
+        <input id="oyFile" type="file" accept="image/*" multiple hidden/>
 
-    <button id="btnSend" class="oy-send" title="Илгээх">Илгээх</button>
+        <div class="oy-input-wrap">
+          <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
+          <div id="typing" class="oy-typing" hidden>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <button id="btnSend" class="oy-send" title="Илгээх">➤</button>
+      </div>
+    </main>
   </div>
-</div>
-  <script src="oy.js"></script>
-    <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(()=>{});
-}
-</script>
 </body>
-</html> 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</html>
 
 
 
