@@ -173,39 +173,3 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
-/* === Mobile viewport + keyboard final layout === */
-(function(){
-  const app = document.getElementById('app');
-  const scroller = document.getElementById('mainScroll');
-  const bar = document.getElementById('inputBar');
-
-  function layout(){
-    const vh = (window.visualViewport?.height) || window.innerHeight;
-    if (app) app.style.height = Math.round(vh) + 'px';
-
-    const barH = bar ? bar.offsetHeight : 90;
-    document.documentElement.style.setProperty('--bar-h', barH + 'px');
-
-    if (scroller){
-      scroller.style.maxHeight = Math.round(vh) + 'px';
-      scroller.style.paddingBottom = (barH + 12) + 'px';
-    }
-  }
-
-  // iOS address-bar/keyboard өөрчлөлт бүрт дахин тооцоолно
-  if (window.visualViewport){
-    visualViewport.addEventListener('resize', layout);
-    visualViewport.addEventListener('scroll', layout);
-  }
-  window.addEventListener('resize', layout);
-  window.addEventListener('orientationchange', layout);
-  document.addEventListener('DOMContentLoaded', layout);
-  setTimeout(layout, 0);
-
-  // Фокус авахад хамгийн сүүлийн мессеж харагдуулна
-  const ta = document.getElementById('oyInput');
-  ta?.addEventListener('focus', ()=>{
-    layout();
-    setTimeout(()=> scroller?.scrollTo({top: scroller.scrollHeight}), 50);
-  });
-})();
