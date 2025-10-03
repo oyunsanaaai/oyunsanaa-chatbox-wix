@@ -109,79 +109,44 @@ body{
 /@media (max-width:600px){
   /* Гарчгийг төвд барьж, товчийг header-ээс салгаж байрлуулна (нуухгүй) */
   
-/* ---- MOBILE FULL-SCREEN CHAT LAYOUT ---- */
-html, body { height:100%; margin:0; }
-body { overflow:hidden; background:#0b1022; }  /* гаднах scrollbar үгүй, фон */
+/* ===== FINAL MOBILE CHAT LAYOUT ===== */
+*{ box-sizing: border-box; }
+
+html,body{ height:100%; margin:0; overflow:hidden; background:#0b1022; }
 
 .app{
-  width:100%;
-  min-height:100svh;              /* iOS-д найдвартай viewport өндөр */
-  display:flex;
-  flex-direction:column;
+  min-height:100svh;
+  display:flex; flex-direction:column;
 }
-@supports (min-height:100dvh){
-  .app{ min-height:100dvh; }      /* шинэ browser-уудад бүр зөв */
-}
+@supports(min-height:100dvh){ .app{ min-height:100dvh; } }
 
-/* Зөвхөн мессежийн хэсэг скроллдоно */
-.main-scroll{
-  flex:1 1 auto;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:12px;
-}
-/* Доод бичих мөрийг тогтвортой байрлуулж, өргөнийг 100% болгоно */
-.input-bar {
-  position: sticky;  /* fixed ашиглаагүй бол ингэж үлдээнэ */
-  bottom: 0; left: 0; right: 0;
-  padding: 10px 12px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.25);
-  z-index: 10;
-}
-
-.oy-composer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;        /* 👉 урд тал руу “царцайх”-ыг зогсооно */
-  max-width: 900px;   /* хүсвэл 680–900px болгож болно */
-  margin: 0 auto;     /* дунд төвлөрүүлнэ */
-}
-
-.oy-input-wrap { flex: 1; }
-
-/* Санамсаргүй зөөвөрлөсөн байж болзошгүй стилийг цэвэрлэнэ */
-.oy-composer, .oy-input-wrap, .oy-file, .oy-send {
-  position: static;
-  transform: none;
-  margin: 0;
-  box-sizing: border-box;
-}
-/* 1) Safari-гийн zoom-ийг зогсоох (≥16px) */
-#oyInput,
-.oy-input-wrap textarea,
-input, textarea {
-  font-size:16px;         /* хамгийн чухал нь энэ */
-}
-
-/* 2) Гулгалтын үсрэлтийг багасгах */
 #mainScroll{
-  overscroll-behavior: contain;   /* дотооддоо л гулга */
-  scroll-behavior: smooth;
+  flex:1 1 auto;
+  overflow:auto; overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  /* доод input bar-ын өндрийг JS-аас өгнө */
+  padding:12px;
+  padding-bottom:calc(var(--bar-h, 96px) + 12px);
 }
 
-/* 3) Композер байрлал тогтвортой */
-.input-bar{
+/* Доод бичих мөрийг дэлгэцийн доод талд бэхэлнэ */
+#inputBar{
   position:fixed; left:0; right:0; bottom:0;
+  padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  background:rgba(0,0,0,.30); backdrop-filter:blur(6px);
   z-index:100;
 }
-.oy-input-wrap{ flex:1 1 auto; min-width:0; }  /* хажуу тийш тэлэхгүй */
 
-
-
-
-
+.oy-composer{
+  display:flex; align-items:center; gap:10px;
+  width:100%; margin:0 auto; max-width:none;
+}
+.oy-file{ flex:0 0 44px; }
+.oy-input-wrap{ flex:1 1 auto; min-width:0; }  /* textarea голдоо тэлнэ */
+#oyInput{ width:100%; display:block; resize:none; font-size:16px; } /* Safari zoom stop */
+.oy-send{ flex:0 0 auto; }
 
 
 
