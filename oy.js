@@ -174,62 +174,53 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   redraw();
 })();
 /* ===== iOS keyboard / viewport fix ===== */
-(function(){
-  const app      = document.getElementById('app');
-  const stream   = document.getElementById('oyStream');
-  const inputBar = document.getElementById('inputBar');
-  const ta       = document.getElementById('oyInput');
+// ===== SEND HANDLERS (final) =====
+document.addEventListener('DOMContentLoaded', () => {
+  const ta  = document.getElementById('oyInput');
+  const btn = document.getElementById('btnSend');
 
-  function fit(){
-    if (!window.visualViewport || !app || !inputBar || !stream) return;
+  async function handleSend(){
+    if (!ta) return;
+    const text = ta.value.trim();
+    if (!text) return;
 
-    const vv = visualViewport;
-    // keyboard-ийн өндрийг тооцоолж, inputBar-ыг дээр нь суулгах
-    const offset = Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
+    // UI: disable while sending
+    btn && (btn.disabled = true);
 
-    inputBar.style.transform      = offset ? `translateY(-${offset}px)` : '';
-    stream.style.paddingBottom    = (offset ? offset + 90 : 90) + 'px'; // доод ирмэг дарагдахгүй
+    try {
+      // ↓↓↓ ЭНД ТАНЫ ОДООХ API URL-ыг тавина ↓↓↓
+      const API_URL = '/api/chat'; // <-- өөрийнхөө одоо ашиглаж байсан URL-аа энд тавь
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ message: text })
+      });
+
+      // илгээсний дараа талбарыг цэвэрлээд доош наана
+      ta.value = '';
+      requestAnimationFrame(() => {
+        document.getElementById('oyStream')?.scrollTo({top: 1e9, behavior: 'smooth'});
+      });
+
+      // Хэрвээ та streaming хэрэглэдэг бол энд өөр код яваа байж болно.
+      if (!res.ok) {
+        console.error('Send failed', await res.text());
+      }
+    } catch (e) {
+      console.error('Network error', e);
+    } finally {
+      btn && (btn.disabled = false);
+    }
   }
 
-  if (window.visualViewport) {
-    visualViewport.addEventListener('resize', fit);
-    visualViewport.addEventListener('scroll', fit);
-    fit();
-  }
+  // Click
+  btn?.addEventListener('click', handleSend);
 
-  // Инпут дээр ороход автоматаар доод мессеж рүү гулсуулна
-  ta && ta.addEventListener('focus', ()=>{
-    setTimeout(()=>{ stream.scrollTop = stream.scrollHeight; }, 50);
+  // Enter (Shift+Enter = шинэ мөр)
+  ta?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   });
-})();
-<script>
-  (function () {
-    const bar = document.getElementById('inputBar');
-    const stream = document.getElementById('oyStream');
-    const input = document.getElementById('oyInput');
-
-    function applyVV() {
-      if (!window.visualViewport) return;
-      const vv = window.visualViewport;
-      // Гарсан keyboard-ийн ойролцоо өндөр
-      const kb = Math.max(0, window.innerHeight - vv.height);
-      // Доод мөрийг түр дээш “өргөнө”
-      bar.style.transform = `translateY(-${kb}px)`;
-      // Мессежүүд keyboard-ийн араар орохгүй байх padding
-      stream.style.paddingBottom = (bar.offsetHeight + kb + 16) + 'px';
-    }
-
-    if (window.visualViewport) {
-      visualViewport.addEventListener('resize', applyVV);
-      visualViewport.addEventListener('scroll', applyVV);
-    }
-
-    // Фокус авахад доод тал руу тэшүүлээд байрлалыг дахин тооцоолно
-    ['focus', 'input'].forEach(ev => {
-      input.addEventListener(ev, () => setTimeout(applyVV, 0));
-    });
-
-    window.addEventListener('orientationchange', () => setTimeout(applyVV, 250));
-    applyVV();
-  })();
-</script>
+});
