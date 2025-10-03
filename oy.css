@@ -130,22 +130,35 @@ body { overflow:hidden; background:#0b1022; }  /* гаднах scrollbar үгү�
   -webkit-overflow-scrolling:touch;
   padding:12px;
 }
-
-/* Доод талын бичих мөр iPhone home bar-ыг тооцно */
-.input-bar{
-  position:sticky;        /* эсвэл fixed; bottom:0; left:0; right:0; */
-  bottom:0;
-  padding:10px 12px;
-  padding-bottom:calc(10px + env(safe-area-inset-bottom));
-  background:rgba(0,0,0,.25);
-  backdrop-filter:blur(6px);
-  z-index:10;
+/* Доод бичих мөрийг тогтвортой байрлуулж, өргөнийг 100% болгоно */
+.input-bar {
+  position: sticky;  /* fixed ашиглаагүй бол ингэж үлдээнэ */
+  bottom: 0; left: 0; right: 0;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.25);
+  z-index: 10;
 }
 
-/* Хэрвээ хаа нэгтээ max-width тавьсан бол мобайлд авч хаяна */
-@media (max-width:480px){
-  .app{ max-width:unset; }
+.oy-composer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;        /* 👉 урд тал руу “царцайх”-ыг зогсооно */
+  max-width: 900px;   /* хүсвэл 680–900px болгож болно */
+  margin: 0 auto;     /* дунд төвлөрүүлнэ */
 }
+
+.oy-input-wrap { flex: 1; }
+
+/* Санамсаргүй зөөвөрлөсөн байж болзошгүй стилийг цэвэрлэнэ */
+.oy-composer, .oy-input-wrap, .oy-file, .oy-send {
+  position: static;
+  transform: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 
 
 
