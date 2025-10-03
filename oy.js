@@ -173,36 +173,34 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
-/* ===== Viewport & keyboard fix ===== */
-function fitViewport(){
+/* ===== FINAL VIEWPORT/KBD FIX ===== */
+function applyLayout(){
   const app = document.getElementById('app');
   const scroller = document.getElementById('mainScroll');
   const bar = document.getElementById('inputBar');
 
-  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const vh = (window.visualViewport?.height) || window.innerHeight;
   if (app) app.style.minHeight = vh + 'px';
 
-  const barH = bar ? bar.offsetHeight : 80;
+  const barH = bar ? bar.offsetHeight : 96;
+  document.documentElement.style.setProperty('--bar-h', barH + 'px');
+
   if (scroller){
     scroller.style.maxHeight = vh + 'px';
-    scroller.style.paddingBottom = (barH + 12) + 'px'; // мессеж нуугдахгүй
   }
 }
 
 if (window.visualViewport){
-  window.visualViewport.addEventListener('resize', fitViewport);
-  window.visualViewport.addEventListener('scroll', fitViewport);
+  visualViewport.addEventListener('resize', applyLayout);
+  visualViewport.addEventListener('scroll', applyLayout);
 }
-window.addEventListener('resize', fitViewport);
-fitViewport();
+window.addEventListener('resize', applyLayout);
+window.addEventListener('orientationchange', applyLayout);
+applyLayout();
 
-/* textarea дээр фокус өгөхөд хамгийн доод мессеж рүү автоматаар очно */
-const tx = document.getElementById('oyInput');
-if (tx){
-  tx.addEventListener('focus', ()=>{
-    setTimeout(()=>{
-      document.getElementById('mainScroll')
-        ?.scrollTo({ top: 1e9, behavior: 'smooth' });
-    }, 50);
-  });
-}
+/* Фокус өгмөгц хамгийн доод мессеж рүү ойртуулна (үсрэлт багасгана) */
+document.getElementById('oyInput')?.addEventListener('focus', ()=>{
+  setTimeout(()=>{
+    document.getElementById('mainScroll')?.scrollTo({ top: 1e9, behavior: 'smooth' });
+  }, 80);
+});
