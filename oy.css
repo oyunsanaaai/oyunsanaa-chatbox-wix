@@ -174,3 +174,34 @@ body{
 
 /* Keyboard гарч ирэхэд хэт сунжрахгүйн тулд */
 #inputBar { max-width: 900px; margin: 0 auto; }
+/* iOS viewport + keyboard-тэй зохицуулах */
+:root{
+  --kb: 0px;        /* JS-аас keyboard өндөр орж ирнэ */
+}
+
+html, body { height: 100%; margin:0; }
+.app{ min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
+
+#oyStream{
+  flex:1 1 auto;
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 12px;
+  /* keyboard гарч ирэхэд доороо илүү padding авна */
+  padding-bottom: calc(120px + var(--kb,0px));
+}
+
+/* Доод composer тогтмол байрлах ба keyboard-тэй хамт дээшилнэ */
+#inputBar{
+  position: sticky; bottom: 0; left:0; right:0;
+  width: 100%;
+  z-index: 10;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.25);
+  transform: translateY(calc(-1 * var(--kb,0px))); /* ← шилжилт */
+  transform: translate3d(0, calc(-1 * var(--kb,0px)), 0);
+}
+
+/* iOS zoom бүү хийг */
+#oyInput{ font-size:16px; line-height:1.35; }
