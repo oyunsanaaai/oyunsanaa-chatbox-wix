@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Оюунсанаа · чат</title>
   <link rel="stylesheet" href="oy.css"/>
+  <link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b1022">
+<!-- iOS дэмжлэг -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icons/192.png">
   <script defer src="oy.js"></script>
 </head>
 <body>
@@ -108,6 +114,11 @@
       </div>
     </main>
   </div>
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
 </body>
 </html>
 
