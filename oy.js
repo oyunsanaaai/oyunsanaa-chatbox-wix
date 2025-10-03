@@ -239,3 +239,25 @@ document.addEventListener('DOMContentLoaded', () => {
     vv.addEventListener('scroll', applyKb);
   }
 })();
+// iOS keyboard fix
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+if (isIOS()) {
+  const stream = document.getElementById('oyStream');
+  const input = document.getElementById('oyInput');
+
+  input.addEventListener('focus', () => {
+    // keyboard гарч ирэхэд доош гулсах
+    setTimeout(() => {
+      stream.classList.add('ios-fix');
+      stream.scrollTo({ top: 1e9, behavior: 'smooth' });
+    }, 300);
+  });
+
+  input.addEventListener('blur', () => {
+    // keyboard хаагдах үед буцааж хэвийн болгоно
+    stream.classList.remove('ios-fix');
+  });
+}
