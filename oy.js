@@ -202,3 +202,34 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
     setTimeout(()=>{ stream.scrollTop = stream.scrollHeight; }, 50);
   });
 })();
+<script>
+  (function () {
+    const bar = document.getElementById('inputBar');
+    const stream = document.getElementById('oyStream');
+    const input = document.getElementById('oyInput');
+
+    function applyVV() {
+      if (!window.visualViewport) return;
+      const vv = window.visualViewport;
+      // Гарсан keyboard-ийн ойролцоо өндөр
+      const kb = Math.max(0, window.innerHeight - vv.height);
+      // Доод мөрийг түр дээш “өргөнө”
+      bar.style.transform = `translateY(-${kb}px)`;
+      // Мессежүүд keyboard-ийн араар орохгүй байх padding
+      stream.style.paddingBottom = (bar.offsetHeight + kb + 16) + 'px';
+    }
+
+    if (window.visualViewport) {
+      visualViewport.addEventListener('resize', applyVV);
+      visualViewport.addEventListener('scroll', applyVV);
+    }
+
+    // Фокус авахад доод тал руу тэшүүлээд байрлалыг дахин тооцоолно
+    ['focus', 'input'].forEach(ev => {
+      input.addEventListener(ev, () => setTimeout(applyVV, 0));
+    });
+
+    window.addEventListener('orientationchange', () => setTimeout(applyVV, 250));
+    applyVV();
+  })();
+</script>
