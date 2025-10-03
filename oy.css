@@ -109,7 +109,43 @@ body{
 /@media (max-width:600px){
   /* Гарчгийг төвд барьж, товчийг header-ээс салгаж байрлуулна (нуухгүй) */
   
+/* ---- MOBILE FULL-SCREEN CHAT LAYOUT ---- */
+html, body { height:100%; margin:0; }
+body { overflow:hidden; background:#0b1022; }  /* гаднах scrollbar үгүй, фон */
 
+.app{
+  width:100%;
+  min-height:100svh;              /* iOS-д найдвартай viewport өндөр */
+  display:flex;
+  flex-direction:column;
+}
+@supports (min-height:100dvh){
+  .app{ min-height:100dvh; }      /* шинэ browser-уудад бүр зөв */
+}
+
+/* Зөвхөн мессежийн хэсэг скроллдоно */
+.main-scroll{
+  flex:1 1 auto;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:12px;
+}
+
+/* Доод талын бичих мөр iPhone home bar-ыг тооцно */
+.input-bar{
+  position:sticky;        /* эсвэл fixed; bottom:0; left:0; right:0; */
+  bottom:0;
+  padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  background:rgba(0,0,0,.25);
+  backdrop-filter:blur(6px);
+  z-index:10;
+}
+
+/* Хэрвээ хаа нэгтээ max-width тавьсан бол мобайлд авч хаяна */
+@media (max-width:480px){
+  .app{ max-width:unset; }
+}
 
 
 
