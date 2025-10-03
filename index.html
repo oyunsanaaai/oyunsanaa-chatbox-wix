@@ -2,22 +2,18 @@
 <html lang="mn">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Оюунсанаа · чат</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Оюунсанаа — чат</title>
   <link rel="stylesheet" href="oy.css"/>
-  <script defer src="oy.js"></script>
 </head>
-<body>
+ <body>
   <div id="oyOverlay" class="oy-overlay" hidden></div>
-  <div class="app" id="app">
-    <div class="main-scroll" id="mainScroll">
-      <!-- Таны мессежүүд энд -->
-    </div>
-    <div class="input-bar" id="inputBar">
-      <input type="text" placeholder="Мессеж…" />
-      <button>Илгээх</button>
-    </div>
+
+<div class="app" id="app">
+  <div class="main-scroll" id="mainScroll">
+    <!-- Чатны мессежүүд энд дүүрнэ -->
   </div>
+</div>
 
   <!-- HEADER -->
   <header class="oy-header">
@@ -101,30 +97,27 @@
     <main class="oy-main">
       <div id="oyStream" class="oy-stream"></div>
 
+       <!-- 2) ДООД COMPOSER – бичих мөрийг энд аваач -->
+    <div class="input-bar" id="inputBar">
       <div class="oy-composer">
-        <label for="oyFile" class="oy-file" title="Зураг/файл нэмэх">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <label for="oyFile" class="oy-file" title="Файл">
+          <!-- ... svg ... -->
+          <input id="oyFile" type="file" accept="image/*,audio/*" hidden>
         </label>
-        <input id="oyFile" type="file" accept="image/*" multiple hidden/>
 
         <div class="oy-input-wrap">
           <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
-          <div id="typing" class="oy-typing" hidden>
-            <span></span><span></span><span></span>
-          </div>
+          <div id="typing" class="oy-typing" hidden><span></span><span></span><span></span></div>
         </div>
 
-        <button id="btnSend" class="oy-send" title="Илгээх">➤</button>
+        <button id="btnSend" class="oy-send" title="Илгээх"></button>
       </div>
-    </main>
+    </div>
   </div>
+<script src="oy.js"></script>
 </body>
 </html>
-
-
+ 
 
 
 
