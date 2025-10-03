@@ -173,3 +173,19 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
+// --- Гар утас дээр viewport-ийн өндөр тохируулах ---
+function fitViewport() {
+  const app = document.getElementById('app');
+  const scroller = document.getElementById('mainScroll');
+  if (!window.visualViewport || !app) return;
+
+  const vh = window.visualViewport.height;
+  app.style.minHeight = vh + 'px';
+  if (scroller) scroller.style.maxHeight = (vh - 80) + 'px'; // 80px = input bar өндөр
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', fitViewport);
+  window.visualViewport.addEventListener('scroll', fitViewport);
+  fitViewport();
+}
