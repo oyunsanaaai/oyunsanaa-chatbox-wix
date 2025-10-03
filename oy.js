@@ -173,19 +173,36 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
-// --- Гар утас дээр viewport-ийн өндөр тохируулах ---
-function fitViewport() {
+/* ===== Viewport & keyboard fix ===== */
+function fitViewport(){
   const app = document.getElementById('app');
   const scroller = document.getElementById('mainScroll');
-  if (!window.visualViewport || !app) return;
+  const bar = document.getElementById('inputBar');
 
-  const vh = window.visualViewport.height;
-  app.style.minHeight = vh + 'px';
-  if (scroller) scroller.style.maxHeight = (vh - 80) + 'px'; // 80px = input bar өндөр
+  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  if (app) app.style.minHeight = vh + 'px';
+
+  const barH = bar ? bar.offsetHeight : 80;
+  if (scroller){
+    scroller.style.maxHeight = vh + 'px';
+    scroller.style.paddingBottom = (barH + 12) + 'px'; // мессеж нуугдахгүй
+  }
 }
 
-if (window.visualViewport) {
+if (window.visualViewport){
   window.visualViewport.addEventListener('resize', fitViewport);
   window.visualViewport.addEventListener('scroll', fitViewport);
-  fitViewport();
+}
+window.addEventListener('resize', fitViewport);
+fitViewport();
+
+/* textarea дээр фокус өгөхөд хамгийн доод мессеж рүү автоматаар очно */
+const tx = document.getElementById('oyInput');
+if (tx){
+  tx.addEventListener('focus', ()=>{
+    setTimeout(()=>{
+      document.getElementById('mainScroll')
+        ?.scrollTo({ top: 1e9, behavior: 'smooth' });
+    }, 50);
+  });
 }
