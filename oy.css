@@ -108,4 +108,61 @@ body{
 
 /@media (max-width:600px){
   /* Гарчгийг төвд барьж, товчийг header-ээс салгаж байрлуулна (нуухгүй) */
-  
+  @media (max-width:600px){
+  html, body { height:100%; margin:0; }
+  body { overflow:hidden; background:#0b1022; }
+
+  /* Бүх дэлгэц өндөрт тааруулна */
+  .app{
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    min-height:100svh;            /* iOS-т найдвартай */
+  }
+
+  /* Зөвхөн мессежийн бүс скроллдоно */
+  #oyStream{
+    flex:1 1 auto;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:12px;
+  }
+
+  /* Доод бар тогтмол байрлалд */
+  #inputBar{
+    position:sticky;               /* fixed-ээс найдвартай */
+    bottom:0; left:0; right:0;
+    z-index:10;
+    width:100%;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(0,0,0,.25);
+    transform:translateZ(0);       /* repaint гацахгүй */
+  }
+
+  /* Composer доторх layout */
+  .oy-composer{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+  }
+
+  .oy-input-wrap{ flex:1 1 auto; }
+
+  /* Инпут – ≥16px фонт (zoom-гүй) */
+  #oyInput{
+    width:100%;
+    font-size:17px;
+    line-height:1.35;
+    resize:none;
+  }
+
+  /* Send товчны тогтмол хэмжээ – багтдаг болгоно */
+  .oy-send{
+    flex:0 0 56px;
+    width:56px; height:56px;
+    border-radius:16px;
+  }
+}
