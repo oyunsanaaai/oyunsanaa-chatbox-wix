@@ -173,34 +173,39 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
-/* ===== FINAL VIEWPORT/KBD FIX ===== */
-function applyLayout(){
+/* === Mobile viewport + keyboard final layout === */
+(function(){
   const app = document.getElementById('app');
   const scroller = document.getElementById('mainScroll');
   const bar = document.getElementById('inputBar');
 
-  const vh = (window.visualViewport?.height) || window.innerHeight;
-  if (app) app.style.minHeight = vh + 'px';
+  function layout(){
+    const vh = (window.visualViewport?.height) || window.innerHeight;
+    if (app) app.style.height = Math.round(vh) + 'px';
 
-  const barH = bar ? bar.offsetHeight : 96;
-  document.documentElement.style.setProperty('--bar-h', barH + 'px');
+    const barH = bar ? bar.offsetHeight : 90;
+    document.documentElement.style.setProperty('--bar-h', barH + 'px');
 
-  if (scroller){
-    scroller.style.maxHeight = vh + 'px';
+    if (scroller){
+      scroller.style.maxHeight = Math.round(vh) + 'px';
+      scroller.style.paddingBottom = (barH + 12) + 'px';
+    }
   }
-}
 
-if (window.visualViewport){
-  visualViewport.addEventListener('resize', applyLayout);
-  visualViewport.addEventListener('scroll', applyLayout);
-}
-window.addEventListener('resize', applyLayout);
-window.addEventListener('orientationchange', applyLayout);
-applyLayout();
+  // iOS address-bar/keyboard өөрчлөлт бүрт дахин тооцоолно
+  if (window.visualViewport){
+    visualViewport.addEventListener('resize', layout);
+    visualViewport.addEventListener('scroll', layout);
+  }
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', layout);
+  document.addEventListener('DOMContentLoaded', layout);
+  setTimeout(layout, 0);
 
-/* Фокус өгмөгц хамгийн доод мессеж рүү ойртуулна (үсрэлт багасгана) */
-document.getElementById('oyInput')?.addEventListener('focus', ()=>{
-  setTimeout(()=>{
-    document.getElementById('mainScroll')?.scrollTo({ top: 1e9, behavior: 'smooth' });
-  }, 80);
-});
+  // Фокус авахад хамгийн сүүлийн мессеж харагдуулна
+  const ta = document.getElementById('oyInput');
+  ta?.addEventListener('focus', ()=>{
+    layout();
+    setTimeout(()=> scroller?.scrollTo({top: scroller.scrollHeight}), 50);
+  });
+})();
