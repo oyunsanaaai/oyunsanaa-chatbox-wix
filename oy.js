@@ -252,3 +252,45 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => stream?.scrollTo({top: 1e9, behavior: 'smooth'}), 50);
   });
 })();
+// === iOS keyboard/viewport тогтворжуулах ===
+(function(){
+  if (window.__oy_vv_bound) return;
+  window.__oy_vv_bound = true;
+
+  const vv = window.visualViewport;
+  const stream = document.getElementById('oyStream');
+  const bar = document.getElementById('inputBar');
+
+  // Доод талд динамик зай (padding) барих spacer
+  let spacer = document.querySelector('.oy-stream-bottom-pad');
+  if (!spacer){
+    spacer = document.createElement('div');
+    spacer.className = 'oy-stream-bottom-pad';
+    stream.appendChild(spacer);
+  }
+
+  function applySafeBottom(){
+    const inset = Number(getComputedStyle(document.documentElement)
+      .getPropertyValue('env(safe-area-inset-bottom)').replace('px','')) || 0;
+    spacer.style.height = (bar.offsetHeight + inset) + 'px';
+    // үргэлж доош нь харагдуулна
+    stream.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' });
+  }
+
+  // textarea дээр фокус авахад шууд доош ойртуулна
+  const ta = document.getElementById('oyInput');
+  ta.addEventListener('focus', () => {
+    setTimeout(applySafeBottom, 50);
+  });
+  ta.addEventListener('blur', () => {
+    spacer.style.height = bar.offsetHeight + 'px';
+  });
+
+  // visualViewport өөрчлөгдөх бүрт (keyboard гар/орох) тохируулна
+  if (vv){
+    vv.addEventListener('resize', applySafeBottom);
+    vv.addEventListener('scroll', applySafeBottom);
+  }
+  // эхний тооцоо
+  window.addEventListener('load', applySafeBottom);
+})();
