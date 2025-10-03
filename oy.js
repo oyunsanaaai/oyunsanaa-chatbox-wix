@@ -224,3 +224,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+// === iOS keyboard / visualViewport fix ===
+(() => {
+  const vv = window.visualViewport;
+  const root = document.documentElement;
+  function applyKb(){
+    // viewport-оос keyboard-ийн эзэлж буй өндөр (px)
+    const kb = vv ? Math.max(0, Math.round(window.innerHeight - vv.height)) : 0;
+    root.style.setProperty('--kb', kb + 'px');
+  }
+  if (vv){
+    applyKb();
+    vv.addEventListener('resize', applyKb);
+    vv.addEventListener('scroll', applyKb);
+  }
+})();
