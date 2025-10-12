@@ -293,4 +293,177 @@ document.addEventListener('DOMContentLoaded', () => {
   // эхний тооцоо
   window.addEventListener('load', applySafeBottom);
 })();
+<script>
+(()=> {
+  // -------- CONFIG --------
+  const TRIAL_LIMIT = 10;
+  const KEYS = {
+    member: 'oy_member_v1',
+    guest:  'oy_guest_v1',
+    trialCount: 'oy_trial_count_v1',
+    remember: 'oy_remember_v1'
+  };
 
+  // -------- HELPERS --------
+  const $  = (s, r=document)=>r.querySelector(s);
+  const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
+  const byId = id => document.getElementById(id);
+
+  function showOverlay(){ const ov=byId('oyLoginOverlay'); if(ov){ ov.style.display='flex'; document.body.style.overflow='hidden'; } }
+  function hideOverlay(){ const ov=byId('oyLoginOverlay'); if(ov){ ov.style.display='none'; document.body.style.overflow=''; } }
+
+  function isMember(){ return localStorage.getItem(KEYS.member)==='1'; }
+  function isGuest(){  return localStorage.getItem(KEYS.guest)==='1'; }
+  function getCount(){ return +(localStorage.getItem(KEYS.trialCount)||0); }
+  function setCount(n){ localStorage.setItem(KEYS.trialCount, String(n)); }
+
+  function markMember(persist=true){
+    localStorage.setItem(KEYS.member,'1');
+    localStorage.removeItem(KEYS.guest);
+    localStorage.removeItem(KEYS.trialCount);
+    if (persist) localStorage.setItem(KEYS.remember,'1'); else localStorage.removeItem(KEYS.remember);
+  }
+  function markGuest(){
+    localStorage.setItem(KEYS.guest,'1');
+    localStorage.removeItem(KEYS.member);
+    if (!localStorage.getItem(KEYS.trialCount)) setCount(0);
+  }
+
+  // -------- UI: Trial lock banner --------
+  function ensureLockBanner(){
+    if (byId('oyTrialLock')) return byId('oyTrialLock');
+    const div = document.createElement('div');
+    div.id = 'oyTrialLock';
+    div.style.cssText = `
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      max-width:min(92vw,680px); z-index:9998;
+      background:rgba(0,0,0,.65); color:#fff; border:1px solid rgba(255,255,255,.25);
+      border-radius:14px; padding:12px 14px; display:none; backdrop-filter:blur(10px);
+      box-shadow:0 18px 40px rgba(0,0,0,.25); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    `;
+    div.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <div id="oyLockMsg">Туршилтын 10 асуулт дууслаа. Үргэлжлүүлэхийн тулд бүртгүүлнэ үү.</div>
+        <div style="display:flex;gap:8px">
+          <a href="https://oyunsanaa.com" target="_top" rel="noopener"
+             style="text-decoration:none;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:linear-gradient(90deg,#3aa26d,#1f8a53);color:#fff;font-weight:700">
+            Бүртгүүлэх
+          </a>
+          <button id="oyLockClose" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;cursor:pointer">
+            Хожим
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+    byId('oyLockClose')?.addEventListener('click', ()=>{ div.style.display='none'; });
+    return div;
+  }
+
+  function disableComposer(disabled){
+    const ta  = byId('oyInput');    // таны чатны textarea (аль хэдийн байгаа)
+    const btn = byId('btnSend');    // таны илгээх товч
+    if (ta)  { ta.disabled = disabled; ta.placeholder = disabled ? 'Туршилтын 10 асуулт дууссан.' : ta.placeholder; }
+    if (btn) { btn.disabled = disabled; }
+  }
+
+  function onGuestMessageSent(){
+    // зочны тоолуур өсгөнө
+    const n = getCount() + 1;
+    setCount(n);
+    if (n >= TRIAL_LIMIT){
+      // түгжинэ
+      ensureLockBanner().style.display = 'block';
+      disableComposer(true);
+    }
+  }
+
+  // -------- Hook чат илгээхэд --------
+  function bindSendHooks(){
+    const ta  = byId('oyInput');
+    const btn = byId('btnSend');
+
+    // 1) Товч дарсан үед
+    btn?.addEventListener('click', ()=>{ if (isGuest()) onGuestMessageSent(); }, {capture:true});
+
+    // 2) Enter (Shift+Enter = шинэ мөр)
+    ta?.addEventListener('keydown', (e)=>{
+      if (e.key==='Enter' && !e.shiftKey){
+        if (isGuest()) onGuestMessageSent();
+      }
+    }, {capture:true});
+
+    // 3) Fallback — DOM дээр хэрэглэгчийн мессеж нэмэгдэж буйг ажиглах
+    const stream = byId('oyStream');
+    if (stream && 'MutationObserver' in window){
+      const mo = new MutationObserver((muts)=>{
+        muts.forEach(m=>{
+          m.addedNodes && m.addedNodes.forEach(node=>{
+            if (!(node instanceof HTMLElement)) return;
+            // таны кодонд хэрэглэгчийн бөмбөлөг class нь .oy-user байсан
+            if (node.classList && node.classList.contains('oy-user') && isGuest()){
+              onGuestMessageSent();
+            }
+          });
+        });
+      });
+      mo.observe(stream, {childList:true});
+    }
+  }
+
+  // -------- Login overlay actions --------
+  function bindLogin(){
+    const btnLogin = byId('loginBtn');
+    const btnNew   = byId('newUserBtn');
+    const remember = byId('oyRemember');
+    const email    = byId('oyUser');
+    const pass     = byId('oyPass');
+
+    // Шинэ хэрэглэгч → шууд сайт руу (HTML дээрээ аль хэдийн линктэй байгаа)
+    btnNew?.addEventListener('click', (e)=>{
+      // a/link биш button байж болзошгүй тул давхар хамгаалалт
+    });
+
+    btnLogin?.addEventListener('click', ()=>{
+      const hasCreds = (email && email.value.trim()) || (pass && pass.value.trim());
+      if (hasCreds){
+        // Гишүүн: лимитгүй
+        markMember(remember ? !!remember.checked : true);
+      } else {
+        // Хоосон дарвал: Туршилт горим (10 асуулт)
+        markGuest();
+      }
+      hideOverlay();
+      // Туршилт нь өмнө лимит хэтэрсэн байсан бол composer-ийг буцааж нээхгүй
+      if (isGuest() && getCount() >= TRIAL_LIMIT){
+        ensureLockBanner().style.display='block';
+        disableComposer(true);
+      } else {
+        disableComposer(false);
+      }
+    });
+  }
+
+  // -------- BOOT --------
+  document.addEventListener('DOMContentLoaded', ()=>{
+    // Нэвтэрсэн бол overlay үзүүлэхгүй
+    if (isMember()){
+      hideOverlay();
+      disableComposer(false);
+    }else{
+      // Хэрвээ өмнө trial эхлүүлсэн бол overlay-г дахин битгий гарга
+      if (isGuest()){
+        hideOverlay();
+        if (getCount() >= TRIAL_LIMIT){
+          ensureLockBanner().style.display='block';
+          disableComposer(true);
+        }
+      }else{
+        showOverlay();
+      }
+    }
+    bindLogin();
+    bindSendHooks();
+  });
+
+})();
+</script>
