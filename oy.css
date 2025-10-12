@@ -338,3 +338,52 @@ body{
 /* ногоон/цэнхэр өнгөтэй action товч— хүсвэл өөрчилж болно */
 .oy-login .btn.primary{ background:linear-gradient(135deg,#1ca64a,#0b7a2e); border:none }
 .oy-login .btn.secondary{ background:linear-gradient(135deg,#3aa0ff,#2a6bff); border:none }
+/* Login байршуулалт (дэлгэц бүрхэнэ) */
+#oyLoginOverlay.oy-login{
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  background: rgba(0,0,0,0.55);
+}
+
+/* Карт */
+#oyLoginOverlay.oy-login{
+  width: min(520px, 92vw);
+  margin: 0 auto;
+  padding: 22px 22px 18px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 16px;
+  color: #fff;
+  backdrop-filter: blur(12px) saturate(130%);
+  box-shadow: 0 10px 40px rgba(0,0,0,.35);
+  text-align: left;
+}
+
+/* Гарчиг/тайлбар төвд, бусад нь зүүн */
+#oyLoginOverlay .title{ text-align:center; font-weight:700; font-size:24px; margin:4px 0 6px }
+#oyLoginOverlay .sub{   text-align:center; opacity:.9; margin:0 0 12px }
+
+/* Оруулах талбарууд */
+#oyLoginOverlay label{ display:block; margin:10px 0 4px 2px }
+#oyLoginOverlay input{
+  width:100%; height:44px; padding:10px 12px;
+  border-radius:12px; border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.12); color:#fff; outline:none;
+}
+
+/* Доод мөр */
+#oyLoginOverlay .foot{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; margin:8px 0 10px; font-size:14px;
+}
+#oyLoginOverlay .foot a{ color:#cfe7ff; text-decoration:none }
+#oyLoginOverlay .foot a:hover{ text-decoration:underline }
+
+/* Товчнууд */
+#oyLoginOverlay .btn{
+  display:block; width:260px; margin:10px auto;
+  border:none; border-radius:12px; padding:12px 14px; color:#fff; cursor:pointer;
+}
+#oyLoginOverlay .btn.primary{   background:linear-gradient(90deg,#e67db1,#c54a91) }
+#oyLoginOverlay .btn.secondary{ background:linear-gradient(90deg,#3aa0ff,#2a6bff) }
