@@ -293,3 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // эхний тооцоо
   window.addEventListener('load', applySafeBottom);
 })();
+document.getElementById("newUserBtn").onclick = () => {
+  window.location.href = "https://oyunsanaa.com"; // эсвэл бүртгэлийн Wix хуудасны URL
+};
+document.getElementById("loginBtn").onclick = () => {
+  document.getElementById("oyLoginOverlay").style.display = "none";
+};
