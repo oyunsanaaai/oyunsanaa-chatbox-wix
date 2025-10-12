@@ -309,3 +309,6 @@ document.getElementById('btnLogin')?.addEventListener('click', ()=>{
 
 // Хүсвэл эхний удаа заавал харагдуул
 document.getElementById('oyLoginOverlay').style.display = 'flex';
+document.getElementById('btnLogin')?.addEventListener('click', ()=>{
+  document.getElementById('oyLoginOverlay')?.remove(); // цэвэрхэн хаана
+});
