@@ -294,3 +294,48 @@ document.addEventListener('DOMContentLoaded', () => {
   // эхний тооцоо
   window.addEventListener('load', applySafeBottom);
 })();
+/* ==== LOGIN OVERLAY ==== */
+.oy-login{
+  position: fixed; inset: 0;
+  display: none;                  /* JS асаана */
+  align-items: center; justify-content: center;
+  background: radial-gradient(60% 60% at 50% 30%, rgba(7,20,45,.75), rgba(1,8,18,.90));
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+}
+.oy-login.show{ display:flex; }
+
+.oy-card{
+  width:min(540px, 92vw);
+  border-radius: 16px;
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 18px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+  padding: 28px;
+  color:#e6f0ff;
+}
+.oy-card-title{ margin:0 0 8px; text-align:center; letter-spacing:.5px }
+.oy-card-sub{ margin:0 0 18px; text-align:center; opacity:.85 }
+
+.oy-label{ display:block; margin:14px 0 6px; font-size:.92rem; opacity:.9 }
+.oy-input{
+  width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+  background: rgba(0,0,0,.25); color:#fff; outline:none;
+}
+.oy-input::placeholder{ color:#cfe2ff88 }
+
+.oy-row{ display:flex; justify-content:space-between; align-items:center; margin:12px 0 18px }
+.oy-remember{ opacity:.9 }
+.oy-link{ color:#9cc3ff; text-decoration:none }
+.oy-link:hover{ text-decoration:underline }
+
+.oy-btn{
+  width:100%; border:0; border-radius:12px; padding:12px 16px; cursor:pointer; font-weight:600;
+}
+.oy-btn-primary{
+  background: linear-gradient(135deg, #3aa0ff, #1f6bff);
+  color:#fff; box-shadow: 0 8px 22px rgba(23,97,255,.35);
+}
+.oy-btn-primary:active{ transform: translateY(1px) }
+
+/* Login харагдаж байх үед чаттай харьцахыг хаах (optional) */
+body.locked .oy-shell{ filter: blur(1px); pointer-events:none }
