@@ -14,27 +14,27 @@
   <script defer src="oy.js"></script>
 </head>
 <body class="login-open">
-<!-- LOGIN OVERLAY (хоёр товч) -->
 <div id="oyLoginOverlay">
-  <div class="oy-login-box">
-    <h2>Оюунсанаа</h2>
+  <div class="oy-login">
+    <div class="title">Оюунсанаа</div>
+    <div class="sub">Шинэ хэрэглэгч бол бүртгүүлээд, гишүүн бол нэвтэрч чатлаарай.</div>
 
-    <button id="btnNew" class="oy-btn">Шинэ хэрэглэгч (сайт руу)</button>
+    <button id="btnToSite" class="btn secondary row">Шинэ хэрэглэгч (сайт руу)</button>
 
-    <div class="oy-sep">эсвэл гишүүн нэвтэрнэ</div>
+    <div class="form">
+      <label class="row">И-мэйл эсвэл утас</label>
+      <input class="row" id="oyEmail" type="text" placeholder="name@mail.com эсвэл 88112233">
 
-    <label class="oy-label">И-мэйл эсвэл утас</label>
-    <input id="oyEmail" type="text" placeholder="name@mail.com эсвэл 88112233" />
-
-    <label class="oy-label">Нууц үг</label>
-    <input id="oyPass" type="password" placeholder="••••••••" />
-
-    <div class="row">
-      <label class="remember"><input id="oyRemember" type="checkbox" checked> Remember me</label>
-      <a id="oyForgot" href="https://ТАНЫ-WIX-RESET-ХУУДАС" target="_blank" rel="noopener">Нууц үгээ мартсан уу?</a>
+      <label class="row">Нууц үг</label>
+      <input class="row" id="oyPass" type="password" placeholder="********">
     </div>
 
-    <button id="btnLogin" class="oy-btn primary">Гишүүн нэвтрэх (чат руу)</button>
+    <div class="foot">
+      <label><input id="oyRemember" type="checkbox" checked> Намайг сана</label>
+      <a id="oyForgot" href="#">Нууц үгээ мартсан уу?</a>
+    </div>
+
+    <button id="btnLogin" class="btn primary row">Гишүүн нэвтрэх (чат руу)</button>
   </div>
 </div>
 </div>  <div id="oyOverlay" class="oy-overlay" hidden></div
