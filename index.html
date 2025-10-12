@@ -14,25 +14,27 @@
   <script defer src="oy.js"></script>
 </head>
 <body class="login-open">
- <div id="oyLoginOverlay">
+<!-- LOGIN OVERLAY (хоёр товч) -->
+<div id="oyLoginOverlay">
   <div class="oy-login-box">
     <h2>Оюунсанаа</h2>
-    <p class="sub">Шинэ хэрэглэгч бол бүртгүүлээд, гишүүн бол нэвтэрч чатлаарай.</p>
 
-    <button id="newUserBtn" class="oy-btn oy-btn-ghost">Шинэ хэрэглэгч (сайт руу)</button>
+    <button id="btnNew" class="oy-btn">Шинэ хэрэглэгч (сайт руу)</button>
 
-    <label for="userInput">И-мэйл эсвэл утас</label>
-    <input id="userInput" type="text" placeholder="name@mail.com эсвэл 88112233"/>
+    <div class="oy-sep">эсвэл гишүүн нэвтэрнэ</div>
 
-    <label for="passInput">Нууц үг</label>
-    <input id="passInput" type="password" placeholder="••••••••"/>
+    <label class="oy-label">И-мэйл эсвэл утас</label>
+    <input id="oyEmail" type="text" placeholder="name@mail.com эсвэл 88112233" />
+
+    <label class="oy-label">Нууц үг</label>
+    <input id="oyPass" type="password" placeholder="••••••••" />
 
     <div class="row">
-      <label class="remember"><input id="rememberCheck" type="checkbox" checked> Намайг сана</label>
-      <a id="forgotLink" href="#">Нууц үгээ мартсан уу?</a>
+      <label class="remember"><input id="oyRemember" type="checkbox" checked> Remember me</label>
+      <a id="oyForgot" href="https://ТАНЫ-WIX-RESET-ХУУДАС" target="_blank" rel="noopener">Нууц үгээ мартсан уу?</a>
     </div>
 
-    <button id="loginBtn" class="oy-btn">Гишүүн нэвтрэх (чат руу)</button>
+    <button id="btnLogin" class="oy-btn primary">Гишүүн нэвтрэх (чат руу)</button>
   </div>
 </div>
 </div>  <div id="oyOverlay" class="oy-overlay" hidden></div
