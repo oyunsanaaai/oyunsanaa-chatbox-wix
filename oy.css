@@ -111,45 +111,108 @@ body{
   @media (max-width:600px){
   html, body { height:100%; margin:0; }
   body { overflow:hidden; background:#0b1022; }
-:root{ --kb: 0px; }                 /* JS энд keyboard-ийн өндрийг онооно */
 
-/* БҮХЭЛ ДЭЛГЭЦИЙН ФЛЕКС БАГАНА */
-html,body{height:100%;margin:0}
-.app{
-  min-height:100dvh;          /* iOS 17+ найдвартай viewport */
-  display:flex; flex-direction:column;
+  /* Бүх дэлгэц өндөрт тааруулна */
+  .app{
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    min-height:100svh;            /* iOS-т найдвартай */
+  }
+
+  /* Зөвхөн мессежийн бүс скроллдоно */
+  #oyStream{
+    flex:1 1 auto;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:12px;
+  }
+
+  /* Доод бар тогтмол байрлалд */
+/* Доод composer барыг үргэлж харагдуулна */
+#inputBar{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.25);
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  transform: translateZ(0); /* iOS repaint fix */
 }
 
-/* ЗӨВХӨН МЕССЕЖИЙН БҮС СКРОЛЛОНО */
+/* iOS keyboard үед түр зуур доод зай авч өгөх */
+.ios-fix-padding { padding-bottom: 300px; }  /* JS энэ утгыг динамикаар сольж болно */
+
+/* Чат мессежийн урсгал */
+#oyStream{
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px;
+}
+
+  /* Composer доторх layout */
+  .oy-composer{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+  }
+
+  .oy-input-wrap{ flex:1 1 auto; }
+
+  /* Инпут – ≥16px фонт (zoom-гүй) */
+  #oyInput{
+    width:100%;
+    font-size:17px;
+    line-height:1.35;
+    resize:none;
+  }
+
+  /* Send товчны тогтмол хэмжээ – багтдаг болгоно */
+  .oy-send{
+    flex:0 0 56px;
+    width:56px; height:56px;
+    border-radius:16px;
+  }
+}
+/* iOS zoom-оос сэргийлэхийн тулд textarea-гийн үсгийн хэмжээ ≥16px байх ёстой */
+#oyInput { font-size: 16px; }
+
+/* Доод мөр keyboard дээр “түлхэгдэх” үед өргөж харагдахаар суурь padding */
+.oy-stream { padding-bottom: 120px; }
+
+/* Keyboard гарч ирэхэд хэт сунжрахгүйн тулд */
+#inputBar { max-width: 900px; margin: 0 auto; }
+/* iOS viewport + keyboard-тэй зохицуулах */
+:root{
+  --kb: 0px;        /* JS-аас keyboard өндөр орж ирнэ */
+}
+
+html, body { height: 100%; margin:0; }
+.app{ min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
+
 #oyStream{
   flex:1 1 auto;
   overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:12px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 12px;
+  /* keyboard гарч ирэхэд доороо илүү padding авна */
+  padding-bottom: calc(120px + var(--kb,0px));
 }
 
-/* ДООД БАРЫГ position:static БОЛГОНО — ҮСРЭЛТ ҮГҮЙ */
+/* Доод composer тогтмол байрлах ба keyboard-тэй хамт дээшилнэ */
 #inputBar{
-  position:static;
-  width:100%;
-  padding:10px 12px;
-  background:rgba(0,0,0,.25);
-  /* нүүрэн дээр багтдаг хэмжээнд нь төвлөрүүлнэ */
-  max-width:900px;
-  margin:0 auto;
-  transform:none;
+  position: sticky; bottom: 0; left:0; right:0;
+  width: 100%;
+  z-index: 10;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.25);
+  transform: translateY(calc(-1 * var(--kb,0px))); /* ← шилжилт */
+  transform: translate3d(0, calc(-1 * var(--kb,0px)), 0);
 }
 
-.oy-composer{display:flex;align-items:center;gap:10px}
-.oy-input-wrap{flex:1 1 auto}
-#oyInput{
-  width:100%;
-  font-size:16px;      /* iOS zoom-г дарна */
-  line-height:1.35;
-  resize:none;
-}
-.oy-send{flex:0 0 56px;width:56px;height:56px;border-radius:16px}
-
-/* Keyboard дээр дарвал доороос дарагдахгүй padding */
-.oy-stream-bottom-pad{height:0}
-
+/* iOS zoom бүү хийг */
+#oyInput{ font-size:16px; line-height:1.35; }
