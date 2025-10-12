@@ -14,7 +14,30 @@
   <script defer src="oy.js"></script>
 </head>
 <body>
-  <div id="oyOverlay" class="oy-overlay" hidden></div>
+  <!-- LOGIN OVERLAY (чатын дотор ажиллана) -->
+<div id="oyLogin" hidden>
+  <div class="oy-card">
+    <h1 class="oy-title">Оюунсанаа — Нэвтрэх</h1>
+    <p class="oy-sub">Шинэ хэрэглэгч → бүртгүүлэх, гишүүд → нэвтэрч орно.</p>
+
+    <button class="oy-btn oy-btn-ghost" id="oySignupBtn">Шинэ хэрэглэгч</button>
+
+    <label class="oy-label">И-мэйл эсвэл утас</label>
+    <input class="oy-input" id="oyUser" type="text" placeholder="name@mail.com эсвэл 88112233">
+
+    <label class="oy-label">Нууц үг</label>
+    <input class="oy-input" id="oyPass" type="password" placeholder="••••••••">
+
+    <div class="row">
+      <label class="remember"><input id="oyRemember" type="checkbox"> Remember me</label>
+      <a class="oy-link" id="oyForgot" href="#">Нууц үг мартсан уу?</a>
+    </div>
+
+    <button class="oy-btn" id="oyLoginBtn">НЭВТРЭХ</button>
+  </div>
+</div>
+  <div id="oyOverlay" class="oy-overlay" hidden></div
+                                                  
 
   <!-- HEADER -->
   <header class="oy-header">
