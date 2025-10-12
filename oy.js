@@ -1,11 +1,3 @@
-// TEMP: SW + cache bust
-navigator.serviceWorker?.getRegistrations?.().then(rs => rs.forEach(r => r.unregister()));
-localStorage.clear();
-(['oy.css','oy.js']).forEach(n => console.log('cache bust', n));
-()=> {
-  if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
-  const $ = (s, r=document) => r.querySelector(s);
-
   const el = {
     overlay:   $('#oyOverlay'),
     drawer:    $('#oyDrawer'),
