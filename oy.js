@@ -141,7 +141,7 @@
     try{
       const history = loadMsgs().slice(-12);
      // файлын дээд талд нэг мөр нэмж өг
-const API_BASE = "https://api-hugjuulelt-bice.vercel.app";
+const API_BASE = "https://oyunsanaa-chat.oyunsanaa-ai.workers.dev";
 
 // дараа нь fetch ийм болно
 const r = await fetch(`${API_BASE}/api/oy-chat`, {
