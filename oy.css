@@ -190,4 +190,13 @@ button {
   border-radius: 6px;
   cursor: pointer;
 }
+.oy-login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* ← бүгд зүүн тийш харна */
+}
 
+button {
+  align-self: center;   /* ← зөвхөн товчийг голлуулна */
+  border: none;
+}
