@@ -141,19 +141,13 @@
     try{
       const history = loadMsgs().slice(-12);
      // файлын дээд талд нэг мөр нэмж өг
-const API_BASE = "https://oyunsanaa-chat.oyunsanaa-ai.workers.dev";
+// ЗӨВ: бүтэн endpoint руу шууд POST явуул
+const API_BASE = "https://oyunsanaa-chat.oyunsanaa-ai.workers.dev/api/oy-chat";
 
-// дараа нь fetch ийм болно
-const r = await fetch(`${API_BASE}/api/oy-chat`, {
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body: JSON.stringify({
-    model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-    persona:'soft',
-    msg:t,
-    chatSlug:'one-chat',
-    history
-  })
+const r = await fetch(API_BASE, {
+  method: 'POST',
+  headers: {'Content-Type':'application/json'},
+  body: JSON.stringify({ model:(t.length>220?'gpt-4o':'gpt-4o-mini'), persona:'soft', msg:t, chatSlug:'one-chat', history })
 });
       const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
       hideTyping(); el.send.disabled=false;
