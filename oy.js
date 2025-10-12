@@ -293,3 +293,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // эхний тооцоо
   window.addEventListener('load', applySafeBottom);
 })();
+// LOGIN actions
+document.getElementById('btnToSite')?.addEventListener('click', ()=>{
+  location.href = 'https://oyunsanaa.com';   // Wix / бүртгэлийн хуудас
+});
+
+document.getElementById('btnLogin')?.addEventListener('click', ()=>{
+  // энд жинхэнэ шалгалт / API холболтоо хийнэ. Одоохондоо зүгээр л хаана.
+  document.getElementById('oyLoginOverlay').style.display = 'none';
+});
+
+// Хүсвэл эхний удаа заавал харагдуул
+document.getElementById('oyLoginOverlay').style.display = 'flex';
