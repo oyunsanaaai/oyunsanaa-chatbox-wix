@@ -1,3 +1,7 @@
+ (()=> {
+  if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
+  const $ = (s, r=document) => r.querySelector(s);
+
   const el = {
     overlay:   $('#oyOverlay'),
     drawer:    $('#oyDrawer'),
@@ -11,6 +15,7 @@
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
   };
+
   /* ---------- THEME (5 өнгө) ---------- */
   const THEMES = [
     { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
@@ -289,5 +294,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // эхний тооцоо
   window.addEventListener('load', applySafeBottom);
 })();
-
-
