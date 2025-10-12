@@ -286,3 +286,55 @@ body{
 @media (max-width:600px){
   #oyLoginOverlay .oy-login-box{ width:calc(100vw - 24px); padding:18px 16px 76px; }
 }
+/* ===== LOGIN (scoped) ===== */
+#oyLoginOverlay{          /* бүх дэлгэцийн бүрхүүл */
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.55);
+}
+
+.oy-login{                 /* цонхны хайрцаг */
+  width: 520px; max-width: 92%;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.35);
+  backdrop-filter: blur(12px) saturate(130%);
+  color:#fff; padding: 22px 22px 18px;
+}
+
+/* гарчиг ба тайлбар ТӨВД */
+.oy-login .title{ text-align:center; font-weight:700; font-size:28px; margin:4px 0 8px }
+.oy-login .sub{ text-align:center; opacity:.9; margin-bottom:12px }
+
+/* формыг ЗҮҮН тал руу — ингэснээр “бүгд голлуулах” асуудал арилна */
+.oy-login .form{ display:flex; flex-direction:column; gap:10px; text-align:left }
+
+/* мөрүүдийн нийт өргөн, төвд барих */
+.oy-login .row{ width: 360px; max-width: 92%; margin:0 auto }
+
+/* товчнууд ижил өргөн, төвд */
+.oy-login .btn{ width: 360px; max-width:92%; margin: 4px auto; 
+  display:block; border-radius:12px; padding:12px 14px; 
+  border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); color:#fff;
+}
+.oy-login .btn:hover{ background:rgba(255,255,255,.18) }
+
+/* оруулах талбарууд */
+.oy-login input[type="text"],
+.oy-login input[type="password"]{
+  width: 360px; max-width:92%; margin:0 auto;
+  height:44px; padding:10px 12px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.10); color:#fff; outline:none;
+}
+
+/* “Remember me” зүүн доор, “Нууц үгээ мартсан уу?” баруун доор */
+.oy-login .foot{ display:flex; align-items:center; justify-content:space-between;
+  width:360px; max-width:92%; margin: 2px auto 10px; font-size:14px }
+.oy-login .foot a{ color:#cfe7ff; text-decoration:none }      /* доогуур зураасгүй */
+.oy-login .foot a:hover{ text-decoration:underline }
+
+/* ногоон/цэнхэр өнгөтэй action товч— хүсвэл өөрчилж болно */
+.oy-login .btn.primary{ background:linear-gradient(135deg,#1ca64a,#0b7a2e); border:none }
+.oy-login .btn.secondary{ background:linear-gradient(135deg,#3aa0ff,#2a6bff); border:none }
