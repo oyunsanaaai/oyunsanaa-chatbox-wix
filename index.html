@@ -13,8 +13,34 @@
 <link rel="apple-touch-icon" href="/icons/192.png">
   <script defer src="oy.js"></script>
 </head>
-<body>
-  <div id="oyOverlay" class="oy-overlay" hidden></div
+<body class="login-open">
+  <!-- 🔒 НЭВТРЭХ / БҮРТГҮҮЛЭХ ОVERLAY — зөвхөн энэ блокийг нэм -->
+<div id="oyLoginOverlay" aria-modal="true" role="dialog">
+  <div class="oy-login-box">
+    <h2>Оюунсанаа руу нэвтрэх</h2>
+    <p class="sub">Шинэ хэрэглэгч бол бүртгүүлээд, гишүүн бол нэвтэрч чатлаарай.</p>
+
+    <!-- ШИНЭ ХЭРЭГЛЭГЧ → шууд сайт руу (JS шаардлагагүй) -->
+    <a class="oy-btn oy-btn-ghost" href="https://oyunsanaa.com" target="_top" rel="noopener">
+      Шинэ хэрэглэгч 
+    </a>
+
+    <label class="oy-label" for="oyUser">И-мэйл эсвэл утас</label>
+    <input id="oyUser" type="text" placeholder="name@mail.com эсвэл 88112233"/>
+
+    <label class="oy-label" for="oyPass">Нууц үг</label>
+    <input id="oyPass" type="password" placeholder="••••••••"/>
+
+    <div class="row">
+      <label class="remember"><input id="oyRemember" type="checkbox" checked> Намайг сана</label>
+      <a class="forgot" href="https://oyunsanaa.com/forgot" target="_top" rel="noopener">Нууц үгээ мартсан уу?</a>
+    </div>
+
+    <button id="loginBtn" class="oy-btn oy-btn-primary" type="button">
+      Гишүүн нэвтрэх 
+    </button>
+  </div>
+</div>  <div id="oyOverlay" class="oy-overlay" hidden></div
                                                 
   <!-- HEADER -->
   <header class="oy-header">
