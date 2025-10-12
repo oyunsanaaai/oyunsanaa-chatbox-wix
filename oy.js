@@ -15,38 +15,6 @@
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
   };
-// === LOGIN control ===
-const loginEl = document.getElementById('oyLogin');
-const btnLogin = document.getElementById('btnLogin');
-const btnRegister = document.getElementById('btnRegister');
-
-function showLogin() {
-  document.body.classList.add('locked');
-  loginEl.classList.add('show');
-  loginEl.hidden = false;              // аль нэг нь л хангалттай, баталгаажуулж байна
-}
-function hideLogin() {
-  loginEl.classList.remove('show');
-  loginEl.hidden = true;
-  document.body.classList.remove('locked');
-}
-
-// Анх асаахад – түлхүүр байна уу?
-const hasAuth = localStorage.getItem('oy_auth_v1');
-if (!hasAuth) showLogin(); else hideLogin();
-
-// НЭВТРЭХ
-btnLogin?.addEventListener('click', (e) => {
-  e.preventDefault();
-  // Энд одоохондоо жинхэнэ баталгаажуулалт хийхгүй, зөвхөн локал санах ой
-  localStorage.setItem('oy_auth_v1', 'ok');
-  hideLogin();
-});
-
-// ШИНЭ ХЭРЭГЛЭГЧ → сайт
-btnRegister?.addEventListener('click', () => {
-  window.location.href = 'https://oyunsanaa.com';   // бүртгэлийн нүүр
-});
   /* ---------- THEME (5 өнгө) ---------- */
   const THEMES = [
     { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
