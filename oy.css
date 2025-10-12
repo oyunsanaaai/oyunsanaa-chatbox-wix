@@ -200,3 +200,89 @@ button {
   align-self: center;   /* ← зөвхөн товчийг голлуулна */
   border: none;
 }
+/* ------- Үндсэн чатны бүдүүвч (та хүссэнээрээ сольж болно) ------- */
+:root{
+  --brand:#2E6F6C;          /* товчны өнгө */
+  --glass:rgba(255,255,255,.10);
+  --line:rgba(255,255,255,.25);
+  --bg1:#0e1630;
+  --bg2:#301a40;
+  --text:#fff;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--text);
+  font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+}
+
+.oy-header{
+  padding:12px 16px; text-align:center; font-weight:700;
+  background:linear-gradient(0deg,transparent,rgba(0,0,0,.25));
+  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:1;
+}
+
+.oy-chat{padding:16px}
+.oy-chat-placeholder{
+  height:50vh; border:1px dashed var(--line); border-radius:12px;
+  display:grid; place-items:center; color:#fff; opacity:.8; background:var(--glass);
+}
+
+/* ---------------- LOGIN OVERLAY (цэвэр, зүүн талдаа) ---------------- */
+#oyLoginOverlay{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; justify-content:center; align-items:center;
+  background:rgba(255,255,255,.35);             /* ✨ цайвар тунгалаг фон */
+  backdrop-filter: blur(16px) saturate(120%);    /* ар талыг зөөлөнぼ */
+}
+
+#oyLoginOverlay .oy-login-box{
+  width:min(92vw, 520px);
+  max-height:86vh; overflow:auto;
+  background: var(--glass);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:22px 22px 76px;
+  color:#fff;
+  text-align:left;                               /* ⬅️ бүх бичиг зүүн талдаа */
+  backdrop-filter: blur(12px) saturate(130%);
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+
+#oyLoginOverlay h2{ margin:0 0 6px; text-align:center; font-weight:800 }
+#oyLoginOverlay .sub{ margin:0 0 14px; text-align:center; opacity:.9 }
+
+.oy-label{ display:block; margin:10px 4px 6px; opacity:.95 }
+
+#oyLoginOverlay input{
+  width:100%; padding:12px 14px; border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.14);
+  color:#fff; outline:none; text-align:left;     /* ⬅️ талбар доторх текст зүүн */
+}
+#oyLoginOverlay input::placeholder{ color:rgba(255,255,255,.85) }
+
+.row{ display:flex; justify-content:space-between; align-items:center; margin:10px 2px 12px }
+.remember{ display:flex; align-items:center; gap:8px; font-size:13px; opacity:.95 }
+.forgot{ font-size:13px; color:#e7f1ff; text-decoration:underline }
+
+.oy-btn{
+  width:100%; padding:12px 14px; border-radius:14px; cursor:pointer;
+  border:1px solid var(--line); color:#fff; background:rgba(255,255,255,.12);
+  margin-top:8px; text-align:center; font-weight:700;
+}
+.oy-btn.primary{ background:linear-gradient(90deg, var(--brand), #1f7a59) }
+
+/* Доод булангуудад тогтмол байлгах (давхарлахаас сэргийлж зай гаргана) */
+#oyLoginOverlay .oy-login-box{ position:relative; }
+#oyLoginOverlay .remember{ position:absolute; left:18px; bottom:18px; }
+#oyLoginOverlay .forgot{ position:absolute; right:18px; bottom:18px; }
+#oyLoginOverlay .primary{ margin-top:46px; }
+
+/* Утасны дэлгэцэнд тохируулга */
+@media (max-width:600px){
+  #oyLoginOverlay .oy-login-box{ width:calc(100vw - 24px); padding:18px 16px 76px; }
+}
