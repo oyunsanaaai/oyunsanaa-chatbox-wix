@@ -1,12 +1,11 @@
-export default async function handler(req, res) {
-  // ✅ CORS зөвшөөрөл
+// CommonJS хувилбар — package.json-д "type":"module" шаардахгүй
+module.exports = async function handler(req, res) {
   const allowList = [
     "https://www.oyunsanaa.com",
     "https://oyunsanaa.com",
     "https://chat.oyunsanaa.com",
     "https://oyunsanaa-chatbox-wix.vercel.app"
   ];
-
   const origin = req.headers.origin || "";
   const allowOrigin = allowList.includes(origin) ? origin : allowList[0];
 
@@ -15,43 +14,37 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // ✅ Preflight OPTIONS
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
     const msg = body.msg || "";
     const img = body.img || "";
     const persona = String(body.persona || "soft").trim();
     const model = String(body.model || "gpt-4o-mini").trim();
 
-    // 🧠 “Оюунсанаа” системийн тодорхойлолт
     const CORE_ID = `
 Та "Оюунсанаа" — сэтгэлийн боловсрол, өдөр тутмын туслагч AI.
-- Хүн биш, эмч биш; онош тавихгүй, эм бичихгүй.
-- Зөвхөн ерөнхий зөвлөгөө, дадал, зорилго, хандлагын зөвлөгөө өг.
-- Монгол хэлээр, зөөлөн, ойлгомжтой, итгэл төрүүлэх өнгөөр ярь.
-- Эмзэг сэдэв гарвал “мэргэжлийн тусламж аваарай” гэж анхааруул.`.trim();
+Хүн биш, эмч биш; онош тавихгүй, эм бичихгүй.
+Монгол хэлээр зөөлөн, ойлгомжтой ярь. Эмзэг сэдэвт мэргэжлийн тусламж санал болго.`.trim();
 
-    const PERSONA = {
-      soft: "Чи зөөлөн, халамжтай, урам зориг өгдөг өнгөөр ярь.",
-      wise: "Чи ухаалаг, нам гүм, тайван өнгөөр ярь.",
-      parent: "Чи дулаахан, ээж шиг зөөлөн өнгөөр ярь."
-    }[persona] || PERSONA.soft;
+    const PERSONA_MAP = {
+      soft: "Чи зөөлөн, халамжтай өнгөөр ярь.",
+      wise: "Чи нам гүм, ухаалаг тайван өнгөөр ярь.",
+      parent: "Чи дулаан, ээж шиг дэмжих өнгөөр ярь."
+    };
+    const PERSONA = PERSONA_MAP[persona] || PERSONA_MAP.soft;
 
-    // 💬 Chat мессежүүд
     const messages = [
       { role: "system", content: `${CORE_ID}\n${PERSONA}` },
       { role: "user", content: msg || "Сайн уу" }
     ];
 
-    // 🖼️ Хэрвээ зураг ирсэн бол
     const input = img
       ? [{ role: "user", content: [{ type: "image_url", image_url: { url: img } }] }]
       : [];
 
-    // 🔑 OpenAI API дуудлага
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
 
@@ -71,6 +64,17 @@ export default async function handler(req, res) {
         messages: [...messages, ...input]
       })
     });
+
+    const data = await r.json();
+    if (!r.ok) return res.status(r.status).json(data);
+
+    const reply = data.choices?.[0]?.message?.content || "";
+    return res.status(200).json({ reply });
+  } catch (err) {
+    console.error("API error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
 
     const data = await r.json();
     if (!r.ok) return res.status(r.status).json(data);
