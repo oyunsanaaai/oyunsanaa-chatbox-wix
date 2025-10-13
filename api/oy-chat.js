@@ -1,5 +1,4 @@
 // /api/oy-chat.js  (NEXT/Vercel API route)
-export default async function handler(req, res) {
   // 1) Зөвшөөрөх origin-уудаа энд жагсаа
   const allowList = [
     "https://www.oyunsanaa.com",
