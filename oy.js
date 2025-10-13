@@ -141,8 +141,10 @@
     try{
       const history = loadMsgs().slice(-12);
      // файлын дээд талд нэг мөр нэмж өг
-const API_BASE = "https://oyunsanaa.wixsite.com/_functions";
-const r = await fetch(`${API_BASE}/oy_chat`, {
+const API_BASE = "https://api-hugjuulelt-bice.vercel.app";
+
+// дараа нь fetch ийм болно
+const r = await fetch(`${API_BASE}/api/oy-chat`, {
   method:'POST',
   headers:{'Content-Type':'application/json'},
   body: JSON.stringify({
@@ -222,3 +224,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+/* ===== iOS keyboard / visualViewport: ONE TRUE BLOCK ===== */
+(() => {
+  const ua = navigator.userAgent || '';
+  const IS_IOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in document);
+  if (!IS_IOS) return;
+
+  const vv     = window.visualViewport;
+  const root   = document.documentElement;
+  const stream = document.getElementById('oyStream');
+  const input  = document.getElementById('oyInput');
+
+  function applyKb(){
+    if (!vv) return;
+    // keyboard өндөр ≈ window.innerHeight - vv.height
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height));
+    root.style.setProperty('--kb', kb + 'px');
+  }
+
+  vv?.addEventListener('resize', applyKb);
+  vv?.addEventListener('scroll',  applyKb);
+  window.addEventListener('orientationchange', () => setTimeout(applyKb, 200));
+  applyKb();
+
+  // фокус авахад доош нь наана (инпут харагдаж байх)
+  input?.addEventListener('focus', () => {
+    setTimeout(() => stream?.scrollTo({top: 1e9, behavior: 'smooth'}), 50);
+  });
+})();
+// === iOS keyboard/viewport тогтворжуулах ===
+(function(){
+  if (window.__oy_vv_bound) return;
+  window.__oy_vv_bound = true;
+
+  const vv = window.visualViewport;
+  const stream = document.getElementById('oyStream');
+  const bar = document.getElementById('inputBar');
+
+  // Доод талд динамик зай (padding) барих spacer
+  let spacer = document.querySelector('.oy-stream-bottom-pad');
+  if (!spacer){
+    spacer = document.createElement('div');
+    spacer.className = 'oy-stream-bottom-pad';
+    stream.appendChild(spacer);
+  }
+
+  function applySafeBottom(){
+    const inset = Number(getComputedStyle(document.documentElement)
+      .getPropertyValue('env(safe-area-inset-bottom)').replace('px','')) || 0;
+    spacer.style.height = (bar.offsetHeight + inset) + 'px';
+    // үргэлж доош нь харагдуулна
+    stream.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' });
+  }
+
+  // textarea дээр фокус авахад шууд доош ойртуулна
+  const ta = document.getElementById('oyInput');
+  ta.addEventListener('focus', () => {
+    setTimeout(applySafeBottom, 50);
+  });
+  ta.addEventListener('blur', () => {
+    spacer.style.height = bar.offsetHeight + 'px';
+  });
+
+  // visualViewport өөрчлөгдөх бүрт (keyboard гар/орох) тохируулна
+  if (vv){
+    vv.addEventListener('resize', applySafeBottom);
+    vv.addEventListener('scroll', applySafeBottom);
+  }
+  // эхний тооцоо
+  window.addEventListener('load', applySafeBottom);
+})();
