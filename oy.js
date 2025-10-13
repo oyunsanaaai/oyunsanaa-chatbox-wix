@@ -142,9 +142,7 @@
       const history = loadMsgs().slice(-12);
      // файлын дээд талд нэг мөр нэмж өг
 const API_BASE = "https://oyunsanaa.wixsite.com/_functions";
-
-// дараа нь fetch ийм болно
-const r = await fetch(`${API_BASE}/api/oy-chat`, {
+const r = await fetch(`${API_BASE}/oy_chat`, {
   method:'POST',
   headers:{'Content-Type':'application/json'},
   body: JSON.stringify({
