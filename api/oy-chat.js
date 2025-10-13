@@ -1,22 +1,34 @@
+// /api/oy-chat.js  (NEXT/Vercel API route)
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // 1) Зөвшөөрөх origin-уудаа энд жагсаа
+  const allowList = [
+    "https://www.oyunsanaa.com",
+    "https://oyunsanaa.com",
+    "https://oyunsanaa-chatbox-wix.vercel.app"
+  ];
+  const origin = req.headers.origin || "";
+  const allowOrigin = allowList.includes(origin) ? origin : allowList[0];
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end(); // preflight хүсэлтийг зөвшөөрөх
+  // 2) CORS headers
+  res.setHeader("Access-Control-Allow-Origin", allowOrigin);
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Max-Age", "86400");
+
+  // 3) Preflight-д 204 буцаагаад ЭНД ДУУСГА
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
   }
 
-  // эндээс хойш одооныхоо үндсэн кодоо бич
-  ...
-}
-// /api/oy-chat дотор (handler/route эхэнд)
-if (req.method === 'OPTIONS') {
-  return res.status(200)
-    .setHeader('Access-Control-Allow-Origin', 'https://chat.oyunsanaa.com')
-    .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    .setHeader('Access-Control-Allow-Headers', 'Content-Type')
-    .end();
+  try {
+    // 4) --- Эндээс доош өөрийн үндсэн логикоo ажиллуул ---
+    // ... your logic ...
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
 }
 
 // POST-д хариу өгөхдөө ч мөн адил толгойгоо нэм:
