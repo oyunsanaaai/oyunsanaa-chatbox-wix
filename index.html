@@ -188,13 +188,15 @@
     if (r.ok) { hide(); location.replace('/chat'); }
     else { $('os_auth_err').style.display='block'; }
   }
-if (r.ok) { hide(); location.replace('/chat'); }
-    else { $('os_auth_err').style.display='block'; }
-  }
+// ❶ Эхлээд ҮРГЭЛЖ overlay-г харуул
+show();
 
-  if (getCookie('os_auth')) return;  // cookie байвал шууд чат
-  show();                            // cookie байхгүй бол overlay нээнэ
-})();
+// ❷ Cookie/токен хүчинтэй эсэхийг серверээс асуугаад,
+//    зөв бол overlay-г нууж чат ажиллуулна
+fetch('/api/auth-check', { method:'GET', credentials:'include' })
+  .then(r => r.json())
+  .then(d => { if (d?.ok) hide(); })
+  .catch(()=>{ /* алдаа бол overlay-г байлга */ });
 </script>
 </body>
 </html>
