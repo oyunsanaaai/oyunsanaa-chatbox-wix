@@ -1,5 +1,6 @@
-// /api/auth-check.js  (CommonJS, алдаа унахаар 200 {ok:false} буцаана)
-const jwt = require('jsonwebtoken');
+// /api/auth-check.js  (CommonJS, алдаа гарсан ч 200 {ok:false} буцаана)
+let jwt;
+try { jwt = require('jsonwebtoken'); } catch (_) { /* dependency алга байж болно */ }
 
 module.exports = async function handler(req, res) {
   try {
@@ -9,20 +10,18 @@ module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') return res.status(204).end();
 
-    const secret = process.env.JWT_SECRET || '';
-    if (!secret) return res.status(200).json({ ok: false });
-
     const cookie = String(req.headers.cookie || '');
     const token = cookie.split('; ').find(s => s.startsWith('os_auth='))?.split('=')[1];
-    if (!token) return res.status(200).json({ ok: false });
+    const secret = process.env.JWT_SECRET || '';
 
-    try {
-      jwt.verify(token, secret);
-      return res.status(200).json({ ok: true });
-    } catch {
+    if (!token || !secret || !jwt) {
+      // токен/secret эсвэл jsonwebtoken байхгүй бол OK=false
       return res.status(200).json({ ok: false });
     }
-  } catch (e) {
+
+    try { jwt.verify(token, secret); return res.status(200).json({ ok: true }); }
+    catch { return res.status(200).json({ ok: false }); }
+  } catch {
     return res.status(200).json({ ok: false });
   }
 };
