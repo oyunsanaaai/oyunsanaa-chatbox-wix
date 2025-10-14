@@ -2,7 +2,6 @@
   "name": "oyunsanaa-chatbox-wix",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "engines": { "node": ">=18" },
   "dependencies": {
     "openai": "^4.55.0"
