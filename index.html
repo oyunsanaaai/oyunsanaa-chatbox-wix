@@ -188,8 +188,13 @@
     if (r.ok) { hide(); location.replace('/chat'); }
     else { $('os_auth_err').style.display='block'; }
   }
-if (getCookie('os_auth')) return;   // cookie байвал шууд чат
-show();                              // cookie байхгүй бол overlay нээнэ
+if (r.ok) { hide(); location.replace('/chat'); }
+    else { $('os_auth_err').style.display='block'; }
+  }
+
+  if (getCookie('os_auth')) return;  // cookie байвал шууд чат
+  show();                            // cookie байхгүй бол overlay нээнэ
+})();
 </script>
 </body>
 </html>
