@@ -165,31 +165,41 @@
 </script>
 <script>
 (function(){
-  const $=(id)=>document.getElementById(id);
+  const $ = (id)=>document.getElementById(id);
   const show = ()=>$('os-auth').classList.add('show');
   const hide = ()=>$('os-auth').classList.remove('show');
 
-  // товчлуурууд
-  $('os_auth_signup')?.onclick = ()=>{ location.href='https://oyunsanaa.com'; };
-  $('os_auth_login')?.onclick  = submit;
-  $('os_auth_pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+  // --- товчлуурууд ---
+  const signupBtn = $('os_auth_signup');
+  const loginBtn  = $('os_auth_login');
+  const passInp   = $('os_auth_pass');
+
+  if (signupBtn) signupBtn.onclick = ()=>{ location.href='https://oyunsanaa.com'; };
+  if (loginBtn)  loginBtn.onclick  = submit;
+  if (passInp)   passInp.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
 
   async function submit(){
     const email = $('os_auth_email')?.value.trim() || '';
     const code  = $('os_auth_pass')?.value.trim() || '';
     const remember = $('os_auth_rem')?.checked || false;
-    const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,remember})});
-    if(r.ok){ hide(); location.replace('/chat'); } else { $('os_auth_err').style.display='block'; }
+
+    const r = await fetch('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, code, remember })
+    });
+    if (r.ok) { hide(); location.replace('/chat'); }
+    else { $('os_auth_err').style.display='block'; }
   }
 
-  // ГОЛ ЛОГИК: эхлээд үргэлж overlay-г харуулна, дараа нь серверээс шалгаад нууж чат ажиллуулна
+  // 👉 ЭНЭ ХЭСЭГ ГОЛ НЬ: эхлээд үргэлж overlay-г харуулна,
+  //    дараа нь серверээс токен хүчинтэй эсэхийг асуугаад нууж чат руу оруулна
   show();
-  fetch('/api/auth-check',{method:'GET',credentials:'include'})
+  fetch('/api/auth-check', { method:'GET', credentials:'include' })
     .then(r=>r.json())
-    .then(d=>{ if(d?.ok) hide(); })
-    .catch(()=>{});
+    .then(d=>{ if (d?.ok) hide(); })   // token зөв бол нууж чат ажиллуулна
+    .catch(()=>{});                    // алдаа бол overlay хэвээр
 })();
-</script>
 </script>
 </body>
 </html>
