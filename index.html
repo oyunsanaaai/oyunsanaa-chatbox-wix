@@ -57,29 +57,6 @@
     <div id="os_auth_err" class="err">Нэвтрэх амжилтгүй. Нууц үгээ шалгаарай.</div>
   </div>
 </div>
-
-<script>
-  (function(){
-    const $ = (id)=>document.getElementById(id);
-    const getCookie = (n)=>document.cookie.split('; ').find(r=>r.startsWith(n+'='))?.split('=')[1];
-    const show = ()=>{$('os-auth').classList.add('show');};
-    const hide = ()=>{$('os-auth').classList.remove('show');};
-
-    $('os_auth_signup').onclick = ()=>{ location.href = 'https://oyunsanaa.com'; };
-    $('os_auth_login').onclick = submit;
-    $('os_auth_pass').addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
-
-    async function submit(){
-      const pass = $('os_auth_pass').value.trim();
-      const remember = $('os_auth_rem').checked;
-      const r = await fetch('/api/login',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ pass, remember })});
-      if(r.ok){ hide(); window.dispatchEvent(new Event('os-auth-ok')); }
-      else { $('os_auth_err').style.display='block'; }
-    }
-
-    if(getCookie('os_auth')!=='1'){ show(); }
-  })();
-</script>
   <div id="oyOverlay" class="oy-overlay" hidden></div>
 
   <!-- HEADER -->
@@ -185,6 +162,28 @@
       navigator.serviceWorker.register('/sw.js').catch(()=>{});
     });
   }
+</script>
+  <script>
+  (function(){
+    const $ = (id)=>document.getElementById(id);
+    const getCookie = (n)=>document.cookie.split('; ').find(r=>r.startsWith(n+'='))?.split('=')[1];
+    const show = ()=>{$('os-auth').classList.add('show');};
+    const hide = ()=>{$('os-auth').classList.remove('show');};
+
+    $('os_auth_signup').onclick = ()=>{ location.href = 'https://oyunsanaa.com'; };
+    $('os_auth_login').onclick = submit;
+    $('os_auth_pass').addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
+
+    async function submit(){
+      const pass = $('os_auth_pass').value.trim();
+      const remember = $('os_auth_rem').checked;
+      const r = await fetch('/api/login',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ pass, remember })});
+      if(r.ok){ hide(); window.dispatchEvent(new Event('os-auth-ok')); }
+      else { $('os_auth_err').style.display='block'; }
+    }
+
+    if(getCookie('os_auth')!=='1'){ show(); }
+  })();
 </script>
 </body>
 </html>
