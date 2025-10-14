@@ -163,40 +163,33 @@
     });
   }
 </script>
-  <script>
+<script>
 (function(){
-  const $ = (id)=>document.getElementById(id);
-  const getCookie = (n)=>document.cookie.split('; ').find(r=>r.startsWith(n+'='))?.split('=')[1];
-  const show = ()=>{$('os-auth').classList.add('show');};
-  const hide = ()=>{$('os-auth').classList.remove('show');};
+  const $=(id)=>document.getElementById(id);
+  const show = ()=>$('os-auth').classList.add('show');
+  const hide = ()=>$('os-auth').classList.remove('show');
 
-  $('os_auth_signup').onclick = ()=>{ location.href = 'https://oyunsanaa.com'; };
-  $('os_auth_login').onclick = submit;
-  $('os_auth_pass').addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+  // товчлуурууд
+  $('os_auth_signup')?.onclick = ()=>{ location.href='https://oyunsanaa.com'; };
+  $('os_auth_login')?.onclick  = submit;
+  $('os_auth_pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
 
   async function submit(){
-    const email = $('os_auth_email').value.trim();
-    const code  = $('os_auth_pass').value.trim();   // ← нууц код
+    const email = $('os_auth_email')?.value.trim() || '';
+    const code  = $('os_auth_pass')?.value.trim() || '';
     const remember = $('os_auth_rem')?.checked || false;
-
-    const r = await fetch('/api/login', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, code, remember })
-    });
-
-    if (r.ok) { hide(); location.replace('/chat'); }
-    else { $('os_auth_err').style.display='block'; }
+    const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,remember})});
+    if(r.ok){ hide(); location.replace('/chat'); } else { $('os_auth_err').style.display='block'; }
   }
-// ❶ Эхлээд ҮРГЭЛЖ overlay-г харуул
-show();
 
-// ❷ Cookie/токен хүчинтэй эсэхийг серверээс асуугаад,
-//    зөв бол overlay-г нууж чат ажиллуулна
-fetch('/api/auth-check', { method:'GET', credentials:'include' })
-  .then(r => r.json())
-  .then(d => { if (d?.ok) hide(); })
-  .catch(()=>{ /* алдаа бол overlay-г байлга */ });
+  // ГОЛ ЛОГИК: эхлээд үргэлж overlay-г харуулна, дараа нь серверээс шалгаад нууж чат ажиллуулна
+  show();
+  fetch('/api/auth-check',{method:'GET',credentials:'include'})
+    .then(r=>r.json())
+    .then(d=>{ if(d?.ok) hide(); })
+    .catch(()=>{});
+})();
+</script>
 </script>
 </body>
 </html>
