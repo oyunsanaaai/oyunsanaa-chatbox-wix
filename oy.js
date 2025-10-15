@@ -141,89 +141,61 @@
     try{
       const history = loadMsgs().slice(-12);
      // файлын дээд талд нэг мөр нэмж өг
-const API_BASE = "https://api-hugjuulelt-bice.vercel.app";
+// SAME-ORIGIN ашиглая: host солигдсон ч ажиллана
+const API_BASE = ""; // window.location.origin-с POST хийнэ
 
-// дараа нь fetch ийм болно
-const r = await fetch(`${API_BASE}/api/oy-chat`, {
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body: JSON.stringify({
-    model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-    persona:'soft',
-    msg:t,
-    chatSlug:'one-chat',
-    history
-  })
-});
-      const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
-      hideTyping(); el.send.disabled=false;
-      if (error) throw new Error(error);
-      bubble(reply||'...','bot'); pushMsg('bot', reply||'...');
-    }catch(e){
-      hideTyping(); el.send.disabled=false;
-      bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
-    }
+const el = {
+  chat: document.getElementById("chat"),
+  form: document.getElementById("chatForm"),
+  input: document.getElementById("oyInput"),
+  send: document.getElementById("btnSend"),
+};
+
+function bubble(text, who="bot"){
+  const b = document.createElement("div");
+  b.className = "b " + who;
+  b.textContent = text;
+  el.chat.appendChild(b);
+  el.chat.scrollTop = el.chat.scrollHeight;
+}
+
+const loadMsgs = () => JSON.parse(localStorage.getItem("oy_msgs")||"[]");
+const saveMsgs = (m) => localStorage.setItem("oy_msgs", JSON.stringify(m));
+function pushMsg(role, content){
+  const msgs = loadMsgs();
+  msgs.push({role, content});
+  saveMsgs(msgs);
+}
+
+async function send(e){
+  e && e.preventDefault();
+  const t = (el.input.value||"").trim();
+  if(!t) return;
+  bubble(t,"user"); pushMsg("user", t); el.input.value="";
+
+  try {
+    const history = loadMsgs().slice(-10);
+    // 220 тэмдэгтээс урт бол gpt-4o, үгүй бол gpt-4o-mini
+    const model = (t.length > 220 ? "gpt-4o" : "gpt-4o-mini");
+
+    const r = await fetch(`${API_BASE}/api/oy-chat`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ msg: t, model, persona: "soft", history })
+    });
+
+    if(!r.ok) throw new Error(`API ${r.status}`);
+    const { reply, error } = await r.json();
+    if(error) throw new Error(error);
+
+    bubble(reply, "bot"); pushMsg("assistant", reply);
+  } catch(err){
+    bubble("^ Холболт эсвэл API тохиргоо дутуу байна.", "bot");
+    console.error(err);
   }
-  el.send?.addEventListener('click', send);
-  el.input?.addEventListener('keydown', e=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-  });
+}
 
-  /* ---------- BOOT ---------- */
-  renderThemePicker();
-  redraw();
-})();
-/* ===== iOS keyboard / viewport fix ===== */
-// ===== SEND HANDLERS (final) =====
-document.addEventListener('DOMContentLoaded', () => {
-  const ta  = document.getElementById('oyInput');
-  const btn = document.getElementById('btnSend');
-
-  async function handleSend(){
-    if (!ta) return;
-    const text = ta.value.trim();
-    if (!text) return;
-
-    // UI: disable while sending
-    btn && (btn.disabled = true);
-
-    try {
-      // ↓↓↓ ЭНД ТАНЫ ОДООХ API URL-ыг тавина ↓↓↓
-      const API_URL = '/api/chat'; // <-- өөрийнхөө одоо ашиглаж байсан URL-аа энд тавь
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ message: text })
-      });
-
-      // илгээсний дараа талбарыг цэвэрлээд доош наана
-      ta.value = '';
-      requestAnimationFrame(() => {
-        document.getElementById('oyStream')?.scrollTo({top: 1e9, behavior: 'smooth'});
-      });
-
-      // Хэрвээ та streaming хэрэглэдэг бол энд өөр код яваа байж болно.
-      if (!res.ok) {
-        console.error('Send failed', await res.text());
-      }
-    } catch (e) {
-      console.error('Network error', e);
-    } finally {
-      btn && (btn.disabled = false);
-    }
-  }
-
-  // Click
-  btn?.addEventListener('click', handleSend);
-
-  // Enter (Shift+Enter = шинэ мөр)
-  ta?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  });
-});
+el.form.addEventListener("submit", send);
 /* ===== iOS keyboard / visualViewport: ONE TRUE BLOCK ===== */
 (() => {
   const ua = navigator.userAgent || '';
