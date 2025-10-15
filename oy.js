@@ -141,7 +141,7 @@
     try{
       const history = loadMsgs().slice(-12);
      // файлын дээд талд нэг мөр нэмж өг
-const API_BASE = "https://chat.oyunsanaa.com";
+const API_BASE = "https://api-hugjuulelt-bice.vercel.app";
 
 // дараа нь fetch ийм болно
 const r = await fetch(`${API_BASE}/api/oy-chat`, {
@@ -173,14 +173,138 @@ const r = await fetch(`${API_BASE}/api/oy-chat`, {
   renderThemePicker();
   redraw();
 })();
-// middleware.js  (хэрэв /chat замыг хамгаалах бол matcher-аа өөрчилнө)
-export const config = { matcher: ['/chat'] };
-export default function middleware(req) {
-  const url = new URL(req.url);
-  const authed = req.cookies.get('os_auth')?.value === '1';
-  if (!authed) { url.pathname = '/'; return Response.redirect(url); }
-  return Response.next();
-}
+/* ===== iOS keyboard / viewport fix ===== */
+// ===== SEND HANDLERS (final) =====
+document.addEventListener('DOMContentLoaded', () => {
+  const ta  = document.getElementById('oyInput');
+  const btn = document.getElementById('btnSend');
+
+  async function handleSend(){
+    if (!ta) return;
+    const text = ta.value.trim();
+    if (!text) return;
+
+    // UI: disable while sending
+    btn && (btn.disabled = true);
+
+    try {
+      // ↓↓↓ ЭНД ТАНЫ ОДООХ API URL-ыг тавина ↓↓↓
+      const API_URL = '/api/chat'; // <-- өөрийнхөө одоо ашиглаж байсан URL-аа энд тавь
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ message: text })
+      });
+
+      // илгээсний дараа талбарыг цэвэрлээд доош наана
+      ta.value = '';
+      requestAnimationFrame(() => {
+        document.getElementById('oyStream')?.scrollTo({top: 1e9, behavior: 'smooth'});
+      });
+
+      // Хэрвээ та streaming хэрэглэдэг бол энд өөр код яваа байж болно.
+      if (!res.ok) {
+        console.error('Send failed', await res.text());
+      }
+    } catch (e) {
+      console.error('Network error', e);
+    } finally {
+      btn && (btn.disabled = false);
+    }
+  }
+
+  // Click
+  btn?.addEventListener('click', handleSend);
+
+  // Enter (Shift+Enter = шинэ мөр)
+  ta?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+});
+/* ===== iOS keyboard / visualViewport: ONE TRUE BLOCK ===== */
+(() => {
+  const ua = navigator.userAgent || '';
+  const IS_IOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in document);
+  if (!IS_IOS) return;
+
+  const vv     = window.visualViewport;
+  const root   = document.documentElement;
+  const stream = document.getElementById('oyStream');
+  const input  = document.getElementById('oyInput');
+
+  function applyKb(){
+    if (!vv) return;
+    // keyboard өндөр ≈ window.innerHeight - vv.height
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height));
+    root.style.setProperty('--kb', kb + 'px');
+  }
+
+  vv?.addEventListener('resize', applyKb);
+  vv?.addEventListener('scroll',  applyKb);
+  window.addEventListener('orientationchange', () => setTimeout(applyKb, 200));
+  applyKb();
+
+  // фокус авахад доош нь наана (инпут харагдаж байх)
+  input?.addEventListener('focus', () => {
+    setTimeout(() => stream?.scrollTo({top: 1e9, behavior: 'smooth'}), 50);
+  });
+})();
+// === iOS keyboard/viewport тогтворжуулах ===
+(function(){
+  if (window.__oy_vv_bound) return;
+  window.__oy_vv_bound = true;
+
+  const vv = window.visualViewport;
+  const stream = document.getElementById('oyStream');
+  const bar = document.getElementById('inputBar');
+
+  // Доод талд динамик зай (padding) барих spacer
+  let spacer = document.querySelector('.oy-stream-bottom-pad');
+  if (!spacer){
+    spacer = document.createElement('div');
+    spacer.className = 'oy-stream-bottom-pad';
+    stream.appendChild(spacer);
+  }
+
+  function applySafeBottom(){
+    const inset = Number(getComputedStyle(document.documentElement)
+      .getPropertyValue('env(safe-area-inset-bottom)').replace('px','')) || 0;
+    spacer.style.height = (bar.offsetHeight + inset) + 'px';
+    // үргэлж доош нь харагдуулна
+    stream.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' });
+  }
+
+  // textarea дээр фокус авахад шууд доош ойртуулна
+  const ta = document.getElementById('oyInput');
+  ta.addEventListener('focus', () => {
+    setTimeout(applySafeBottom, 50);
+  });
+  ta.addEventListener('blur', () => {
+    spacer.style.height = bar.offsetHeight + 'px';
+  });
+
+  // visualViewport өөрчлөгдөх бүрт (keyboard гар/орох) тохируулна
+  if (vv){
+    vv.addEventListener('resize', applySafeBottom);
+    vv.addEventListener('scroll', applySafeBottom);
+  }
+  // эхний тооцоо
+  window.addEventListener('load', applySafeBottom);
+})();
+
+
+
+
+
+
+
+
+
+
+
 
 
 
