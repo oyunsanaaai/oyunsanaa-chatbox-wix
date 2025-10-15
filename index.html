@@ -14,50 +14,6 @@
   <script defer src="oy.js"></script>
 </head>
 <body>
-  <!-- (одоогийн chat-ийн хуудсандаа нэмэх) AUTH OVERLAY UI -->
-<style>
-  #os-auth{position:fixed;inset:0;display:none;place-items:center;background:linear-gradient(180deg,#0a1a2d80,#0a1a2dcc);backdrop-filter:blur(8px);z-index:2147483647}
-  #os-auth.show{display:grid}
-  #os-auth .card{width:min(92vw,520px);padding:28px;border-radius:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#eaf2ff;box-shadow:0 10px 40px rgba(0,0,0,.35)}
-  #os-auth h1{margin:0 0 6px 0;font:600 20px/1.2 Inter,system-ui}
-  #os-auth .sub{margin:0 0 16px 0;color:#b7c7e6;font:400 14px/1.4 Inter,system-ui}
-  #os-auth label{display:block;margin:12px 0 6px;color:#b7c7e6;font:400 13px Inter}
-  #os-auth input[type=text],#os-auth input[type=password]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:#eaf2ff;outline:none}
-  #os-auth input:focus{border-color:#8ec1ff; box-shadow:0 0 0 3px rgba(110,169,255,.2)}
-  #os-auth .row{display:flex;gap:12px;margin-top:16px}
-  #os-auth .btn{flex:1;padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#eaf2ff;font-weight:600;cursor:pointer}
-  #os-auth .btn.primary{background:#6aa9ff;border-color:transparent;color:#081c3a}
-  #os-auth .muted{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:#b7c7e6;font-size:13px}
-  #os-auth .muted a{color:#a9c8ff;text-decoration:none}
-  #os-auth .remember{display:flex;align-items:center;gap:8px}
-  #os-auth .err{margin-top:12px;color:#ffb4b4;font-size:13px;display:none}
-</style>
-
-<div id="os-auth" aria-hidden="true">
-  <div class="card">
-    <h1>Оюунсанаа · Нэвтрэх</h1>
-    <div class="sub">Шинэ хэрэглэгчид oyunsanaa.com дээр бүртгүүлнэ, гишүүд шууд нэвтэрнэ.</div>
-
-    <label>И-мэйл эсвэл утас</label>
-    <input id="os_auth_email" type="text" placeholder="name@mail.com эсвэл 88••••••" autocomplete="username" />
-
-    <label>Нууц үг</label>
-    <input id="os_auth_pass" type="password" placeholder="••••••••" autocomplete="current-password" />
-
-    <div class="muted">
-      <label class="remember"><input id="os_auth_rem" type="checkbox" /> Намайг сана</label>
-      <a href="https://oyunsanaa.com/support" target="_blank" rel="noopener">Нууц үг мартсан</a>
-    </div>
-
-    <div class="row">
-      <button id="os_auth_login" class="btn primary">Гишүүд нэвтрэх</button>
-      <button id="os_auth_signup" class="btn">Шинэ хэрэглэгч</button>
-    </div>
-
-    <div id="os_auth_err" class="err">Нэвтрэх амжилтгүй. Нууц үгээ шалгаарай.</div>
-  </div>
-</div>
-
   <div id="oyOverlay" class="oy-overlay" hidden></div>
 
   <!-- HEADER -->
@@ -164,37 +120,24 @@
       navigator.serviceWorker.register('/sw.js').catch(()=>{});
     });
   }
-  
-</script>
-  <script>
-(function(){
-  const $=(id)=>document.getElementById(id);
-  const show = ()=>$('os-auth')?.classList.add('show');
-  const hide = ()=>$('os-auth')?.classList.remove('show');
-
-  $('os_auth_signup')?.addEventListener('click', ()=>{ location.href='https://oyunsanaa.com'; });
-  $('os_auth_login')?.addEventListener('click', submit);
-  $('os_auth_pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
-
-  async function submit(){
-    const email = $('os_auth_email')?.value.trim() || '';
-    const code  = $('os_auth_pass')?.value.trim() || '';
-    const remember = $('os_auth_rem')?.checked || false;
-    const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,remember})});
-    if(r.ok){ hide(); location.replace('/chat'); } else { $('os_auth_err').style.display='block'; }
-  } 
-
-  // Эхлээд үргэлж харуул → сервер зөв гэвэл нууж ажиллуул
-  show();
-  fetch('/api/auth-check', { method:'GET', credentials:'include' })
-    .then(r=>r.json())
-    .then(d=>{ if(d?.ok) hide(); })
-    .catch(()=>{});
-})();
-</script>
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
