@@ -2,27 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const p = req.nextUrl.pathname;
+  if (p === "/login" || p.startsWith("/_next") || p === "/favicon.ico" || p.startsWith("/api/preview")) {
+    return NextResponse.next();
+  }
+  const ok = req.cookies.get("oy_user")?.value || req.cookies.get("oy_preview")?.value === "1";
+  if (ok) return NextResponse.next();
 
-  // Нээлттэй замууд
-  if (
-    pathname.startsWith("/preview") ||
-    pathname.startsWith("/api/guest") ||
-    pathname.startsWith("/api/wix") ||     // Wix webhook/link
-    pathname.startsWith("/api/health") ||  // healthcheck (доор бий)
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/assets") ||
-    pathname === "/"
-  ) return NextResponse.next();
-
-  // Cookie шалгана
-  const hasUser  = req.cookies.get("oy_user");
-  const hasGuest = req.cookies.get("oy_guest");
-  if (hasUser || hasGuest) return NextResponse.next();
-
-  // Нэвтрэх руу
-  const url = req.nextUrl.clone();
-  url.pathname = "/login";
+  const url = req.nextUrl.clone(); url.pathname = "/login";
   return NextResponse.redirect(url);
 }
+export const config = { matcher: ["/((?!.*\\.).*)"] };
