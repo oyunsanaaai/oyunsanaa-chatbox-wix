@@ -1,8 +1,4 @@
-// api/oy-chat.js  (trial шалгалт + квот нэмсэн бүрэн хувилбар)
-const jwt = require('jsonwebtoken');
-let kv = null;
-try { kv = require('@vercel/kv'); } catch (_) { kv = null; }
-
+// CommonJS хувилбар (Vercel дээр илүү найдвартай)
 module.exports = async function handler(req, res) {
   const allowList = [
     "https://www.oyunsanaa.com",
@@ -16,53 +12,25 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", allowOrigin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    // ---- Auth (member/trial) ----
-    const cookie = String(req.headers.cookie || "");
-    const token = cookie.split('; ').find(s => s.startsWith('os_auth='))?.split('=')[1];
-    if (!token) return res.status(401).json({ error: "NO_TOKEN" });
-
-    const secret = process.env.JWT_SECRET;
-    let decoded;
-    try {
-      decoded = jwt.verify(token, secret);
-    } catch (e) {
-      return res.status(401).json({ error: "INVALID_TOKEN" });
-    }
-
-    // ---- Trial quota/time ----
-    if (decoded.role === 'trial') {
-      const max = Number(process.env.TRIAL_MAX_MSG || 15);
-      const jti = decoded.jti || decoded.jwtid || token.slice(-24);
-      let used = 0;
-
-      if (kv && kv.incr) {
-        used = await kv.incr(`trial:${jti}:used`);
-        // 2 өдрийн дараа автоматаар цэвэрлэнэ
-        if (used === 1 && kv.expire) await kv.expire(`trial:${jti}:used`, 172800);
-      } else {
-        // KV байхгүй бол хамгийн энгийн fallback: 1 л удаа зөвшөөрнө
-        used = max + 1;
-      }
-
-      const remaining = Math.max(0, max - used);
-      res.setHeader('X-Trial-Remaining', String(remaining));
-      if (used > max) return res.status(402).json({ error: "TRIAL_QUOTA_EXCEEDED", remaining: 0 });
-    }
-
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    const body =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     const msg = body.msg || "";
     const img = body.img || "";
     const persona = String(body.persona || "soft").trim();
     const model = String(body.model || "gpt-4o-mini").trim();
 
     const CORE_ID =
-      "Та 'Оюунсанаа' — сэтгэлийн боловсрол, өдөр тутмын туслагч AI.";
+      "Та 'Оюунсанаа' — сэтгэлийн боловсрол, өдөр тутмын туслагч AI...";
     const PERSONA_MAP = {
       soft: "Чи зөөлөн, халамжтай өнгөөр ярь.",
       wise: "Чи нам гүм, ухаалаг тайван өнгөөр ярь.",
