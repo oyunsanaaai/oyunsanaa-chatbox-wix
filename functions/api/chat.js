@@ -11,7 +11,37 @@ export const onRequestGet     = () => new Response("Use POST /api/chat", { statu
 export async function onRequestPost({ request, env }) {
   const key = env.OPENAI_API_KEY;
   if (!key) return jerr(500, "OPENAI_API_KEY missing");
+  // --- Session шалгах
+const cookie = request.headers.get('cookie') || '';
+const get = (k) => (cookie.match(new RegExp(`${k}=([^;]+)`)) || [])[1];
 
+let role = 'guest';
+let session = null;
+
+const authTok  = get('oy_auth');
+const guestTok = get('oy_guest');
+
+if (authTok) {
+  session = verify(authTok);
+  if (session && session.role === 'member') role = 'member';
+} else if (guestTok) {
+  session = verify(guestTok);
+  role = 'guest';
+}
+
+// ⬇️ COOKIE ҮГҮЙ Ч БАЙ ЗОЧИН БОЛГООД ЯВУУЛНА
+if (!session) {
+  const guest = {
+    id: crypto.randomUUID(),
+    role: 'guest',
+    limit: 20,                               // 20 мессеж
+    exp: Date.now() + 2 * 60 * 60 * 1000     // 2 цаг
+  };
+  const token = sign(guest);
+  headers.append('Set-Cookie', `oy_guest=${token}; HttpOnly; Path=/; SameSite=Lax; Secure`);
+  session = guest;
+  role = 'guest';
+}
   const body     = await request.json().catch(()=> ({}));
   const text     = body?.text ?? "";
   const images   = Array.isArray(body?.images) ? body.images : [];
