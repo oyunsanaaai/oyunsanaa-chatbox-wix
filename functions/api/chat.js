@@ -1,19 +1,43 @@
-import { CORS, ok, err, hashPass, sign } from "../../_utils.js";
+// functions/api/chat.js
+import { CORS, ok, err } from "../_utils.js";
 
 export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS });
 
 export async function onRequestPost({ request, env }) {
-  const { email, password } = await request.json().catch(() => ({}));
-  if (!email || !password) return err(400, { error: "Имэйл/нууц үг дутуу" });
+  const key = env.OPENAI_API_KEY;
+  if (!key) return err(500, { error: "OPENAI_API_KEY missing" });
 
-  const kv = env.OY_KV;
-  const key = "user:" + email.toLowerCase();
-  const user = await kv.get(key, { type: "json" });
-  if (!user) return err(401, { error: "И-мэйл бүртгэлгүй" });
+  let body = await request.json().catch(()=> ({}));
+  const text    = body?.text || "";
+  const images  = Array.isArray(body?.images) ? body.images : [];
+  const history = Array.isArray(body?.chatHistory) ? body.chatHistory : [];
+  const userLang = (body?.userLang || "mn").split("-")[0];
 
-  const okPass = (await hashPass(password)) === user.pass;
-  if (!okPass) return err(401, { error: "Нууц үг буруу" });
+  if (!text && images.length === 0) return err(400, { error: "empty message" });
 
-  const token = await sign({ uid: user.id, email: user.email }, env.APP_SECRET);
-  return ok({ token, uid: user.id, name: user.name, ageBand: user.ageBand });
+  // OpenAI messages формат болгож бэлдье
+  const messages = [
+    { role: "system", content: `You are Oyunsanaa, a helpful assistant. Reply in ${userLang}.` },
+    ...history.map(h => ({ role: h.role, content: h.content })),
+    { role: "user", content: text || " " }
+  ];
+
+  // Зураг ирвэл 4o, эс бөгөөс 4o-mini
+  const model = images.length ? "gpt-4o" : "gpt-4o-mini-2024-07-18";
+
+  try {
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, messages })
+    });
+    const data = await r.json();
+
+    if (!r.ok) return err(502, { error: "Upstream error", detail: data });
+
+    const reply = data?.choices?.[0]?.message?.content || "…";
+    return ok({ reply, model });
+  } catch (e) {
+    return err(500, { error: String(e) });
+  }
 }
