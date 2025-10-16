@@ -1,84 +1,66 @@
-// api/chat.js — Vercel Edge Function (Next.js API Routes-т ч явна)
+// api/chat.js
 export const config = { runtime: "edge" };
 
-import OpenAI from "openai";
-
-// Ангиллын систем prompt-ууд (товч дарсан moduleId-аас шалтгаалж дагалдана)
-const MODULE_PROMPTS = {
-  "psychology": "You are Oyunsanaa, a warm psychology coach.",
-  "health": "You are a balanced health and wellness coach.",
-  "finance": "You are a practical personal finance coach.",
-  "goals": "You are a goals and productivity coach.",
-  "relationships": "You are a relationship and communication coach.",
-  "environment": "You are an environment and habit-building coach.",
-  "reminders": "You help set reminders and keep people accountable.",
-  "journal": "You are a reflective journaling companion.",
-};
-
-function pickModel({ text = "", images = [] }) {
-  const hasImage = Array.isArray(images) && images.length > 0;
-  const wc = (text || "").trim().split(/\s+/).filter(Boolean).length;
-  const isLong = (text?.length || 0) >= 800 || wc >= 120;
-  if (hasImage || isLong) return "gpt-4.0";
-  return "gpt-4.0-mini";
-}
-
-function cors(res) {
-  res.headers.set("Access-Control-Allow-Origin", "https://chat.oyunsanaa.com");
-  res.headers.set("Vary", "Origin");
-  res.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
-}
-
 export default async function handler(req) {
-  const res = new Response(null, { status: 200, headers: new Headers() });
-  cors(res);
-
-  if (req.method === "OPTIONS") return res;
-
+  const cors = {
+    "Access-Control-Allow-Origin": "https://chat.oyunsanaa.com",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin"
+  };
+  if (req.method === "OPTIONS") return new Response(null, { status: 200, headers: cors });
   if (req.method !== "POST")
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405, headers: res.headers
-    });
+    return new Response(JSON.stringify({ ok:false, error:"Method not allowed" }), { status:405, headers:cors });
 
   try {
-    const body = await req.json();
-    const { text = "", images = [], moduleId = "psychology", chatHistory = [] } = body || {};
+    const { text = "", images = [], moduleId = "psychology", chatHistory = [] } = await req.json();
 
-    const model = pickModel({ text, images });
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    // ——— модель сонголт
+    const wc = (text || "").trim().split(/\s+/).filter(Boolean).length;
+    const isLong = (text?.length || 0) >= 800 || wc >= 120;
+    const useVision = Array.isArray(images) && images.length > 0;
+    const model = (useVision || isLong) ? "gpt-4.0" : "gpt-4.0-mini";
 
-    // vision контент бэлдье
+    // ——— системийн persona (модуль бүрт өөр өнгө ая)
+    const PERSONA = {
+      psychology:  "You are Oyunsanaa, a warm psychology coach.",
+      health:      "You are a balanced health & wellness coach.",
+      finance:     "You are a practical personal finance coach.",
+      goals:       "You are a goals & productivity coach.",
+      relationships:"You are a relationship & communication coach.",
+      environment: "You are a habits & environment coach.",
+      reminders:   "You help set reminders and keep people accountable.",
+      journal:     "You are a reflective journaling companion."
+    };
+
+    // ——— OpenAI payload (Vision data URL / URL хоёуланг дэмжинэ)
     const content = [];
-    if (text) content.push({ type: "text", text });
-    (images || []).forEach((u) => {
-      if (u) content.push({ type: "image_url", image_url: { url: u } });
-    });
+    if (text) content.push({ type:"text", text });
+    for (const u of images || []) {
+      if (!u) continue;
+      content.push({ type:"image_url", image_url:{ url: u } }); // data:... эсвэл https://...
+    }
 
     const messages = [
-      { role: "system", content: MODULE_PROMPTS[moduleId] || "You are Oyunsanaa." },
-      // хүсвэл чат түүхээ дамжуулж болно: [{role:'user',content:'...'}, ...]
+      { role:"system", content: PERSONA[moduleId] || "You are Oyunsanaa." },
       ...chatHistory,
-      { role: "user", content }
+      { role:"user", content }
     ];
 
-    const completion = await openai.chat.completions.create({
-      model,
-      messages,
-      temperature: 0.7,
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ model, messages, temperature: 0.7 })
     });
+    const data = await r.json();
+    const reply = data?.choices?.[0]?.message?.content ?? "";
 
-    const reply = completion.choices?.[0]?.message?.content || "";
-
-    return new Response(JSON.stringify({ ok: true, model, reply }), {
-      status: 200,
-      headers: res.headers,
-    });
+    return new Response(JSON.stringify({ ok:true, model, reply }), { status:200, headers:cors });
   } catch (e) {
     console.error(e);
-    return new Response(JSON.stringify({ ok: false, error: "Server error" }), {
-      status: 500,
-      headers: res.headers,
-    });
+    return new Response(JSON.stringify({ ok:false, error:"Server error" }), { status:500, headers:cors });
   }
 }
