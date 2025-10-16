@@ -1,95 +1,73 @@
-// api/chat.js
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+// /api/chat.js  — Vercel serverless function (Node.js)
+// Node runtime:
+export const config = { runtime: 'nodejs18.x' };
 
-function cors(res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+function pickModel({ text = '', images = [] }) {
+  // Урт яриа эсвэл зурагтай бол 4.0, бусад нь 4.0-mini
+  const long = (text || '').trim().length > 400 || images.length > 0;
+  return long ? 'gpt-4.0' : 'gpt-4.0-mini';
 }
 
-module.exports = async (req, res) => {
-  cors(res);
-  if (req.method === "OPTIONS") return res.status(200).end();
-
-  // GET = амьд эсэх шалгах (404 оношлоход хэрэгтэй)
-  if (req.method === "GET") {
-    return res.status(200).json({ ok: true, tip: "POST /api/chat" });
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(200).json({ ok: true, tip: 'POST /api/chat' });
   }
 
   try {
-    const body = req.body || {};
-    const {
-      text = "",
-      images = [],          // dataURL-ууд (image/png;base64, …)
-      chatHistory = [],     // [{role, content}]
-      moduleId = "general",
-      userLang = "mn"       // 'mn', 'en', 'ru', ...
-    } = body;
+    const { moduleId, text = '', images = [], chatHistory = [], userLang = 'mn' } =
+      typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const model = pickModel({ text, images });
 
-    // Модель сонголт: зураг байвал 4o (Vision), эс бөгөөс 4o-mini
-    const useVision = Array.isArray(images) && images.length > 0;
-    const model = useVision ? "gpt-4o" : "gpt-4o-mini";
-
-    // Системийн заавар: богино, туслах, хэл
-    const sys = `
-You are Oyunsanaa, a warm, concise assistant.
-Always reply in the user's language: ${userLang}.
-If images are provided, carefully analyze them (OCR + scene understanding) and cite what you see.
-Keep answers compact but helpful. For long multi-step coaching, outline bullet steps.
-Current module: ${moduleId}.
-`.trim();
-
-    // Messages барих
-    const messages = [{ role: "system", content: sys }];
-
-    // Өмнөх түүх
-    if (Array.isArray(chatHistory)) {
-      for (const m of chatHistory) {
-        if (m && m.role && m.content) messages.push({ role: m.role, content: m.content });
-      }
-    }
-
-    // Хэрэглэгчийн текст
-    if (text) messages.push({ role: "user", content: text });
-
-    // Зураг (Vision input)
-    if (useVision) {
-      // OpenAI vision-д олон дүрс явуулахын тулд content массив ашиглана
-      const visionParts = images.map((d) => ({ type: "image_url", image_url: d }));
-      messages.push({
-        role: "user",
-        content: visionParts
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_BETA;
+    if (!apiKey) {
+      // Ключ тохируулаагүй бол түр зуурын stub
+      return res.status(200).json({
+        ok: true,
+        model,
+        reply: `[stub] (${model}) «${moduleId}» дээр ирсэн текст: ${text || '(хоосон)'}`
       });
     }
 
-    const r = await fetch(OPENAI_URL, {
-      method: "POST",
+    // --- Жинхэнэ дуудлага (JSON-mode) ---
+    const messages = [
+      { role: 'system', content: `You are Oyunsanaa assistant. Reply in ${userLang}. Module=${moduleId}.` },
+      ...chatHistory,
+      { role: 'user', content: text || '(no text)' }
+    ];
+
+    // Хэрэв зургууд байвал multimodal оруулах
+    if (images.length) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: '(see attached images)' },
+          ...images.map(u => ({ type: 'input_image', image_url: u }))
+        ]
+      });
+    }
+
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model,
         messages,
-        temperature: 0.6
+        temperature: 0.5
       })
     });
 
     if (!r.ok) {
       const errText = await r.text();
-      return res.status(500).json({ ok: false, error: "openai_fail", detail: errText });
+      return res.status(500).json({ ok: false, error: 'openai_failed', detail: errText });
     }
-
     const data = await r.json();
-    const reply = data?.choices?.[0]?.message?.content || "Хариу ирсэнгүй.";
+    const reply = data?.choices?.[0]?.message?.content || '…';
 
-    return res.status(200).json({ ok: true, reply, model });
+    return res.status(200).json({ ok: true, model, reply });
   } catch (e) {
-    console.error("API crash:", e);
-    return res.status(500).json({ ok: false, error: "server_crash", detail: String(e?.message || e) });
+    return res.status(500).json({ ok: false, error: 'server_error', detail: String(e) });
   }
-};
+}
