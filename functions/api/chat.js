@@ -19,13 +19,21 @@ export async function onRequestPost({ request, env }) {
   const userLang = (body?.userLang || "mn").split("-")[0];
   if (!text && images.length===0) return jerr(400, "Empty message");
 
-  const messages = [
-    { role:"system", content:`You are Oyunsanaa. Reply in ${userLang}.` },
-    ...history.map(h => ({ role:h.role, content:h.content })),
-    { role:"user", content: text || " " }
-  ];
-  // Зураг байвал GPT-4o; зураггүй бол 4o-mini
-  const model = images.length ? "gpt-4o" : "gpt-4o-mini-2024-07-18";
+// 4o-д зориулсан контент массив: text + image_url
+const userContent = [
+  { type: "text", text: text || " " },
+  ...images.map(u => ({ type: "image_url", image_url: { url: u } }))
+];
+
+const messages = [
+  { role: "system", content: `You are Oyunsanaa. Reply in ${userLang}.` },
+  ...history.map(h => ({ role: h.role, content: h.content })),
+  { role: "user", content: userContent }
+];
+
+// Зураг байвал 4o, үгүй бол 4o-mini
+const model = images.length ? "gpt-4o" : "gpt-4o-mini-2024-07-18";
+
 
   try {
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
