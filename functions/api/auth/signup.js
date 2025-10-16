@@ -1,23 +1,24 @@
-import { CORS, ok, err, hashPass, uuid, sign } from "../../_utils.js";
+import { CORS, ok, err, uuid, hashPass, sign } from "../../_utils.js";
 
-export async function onRequestOptions() { return new Response(null, { status:204, headers: CORS }); }
+export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS });
+
 export async function onRequestPost({ request, env }) {
-  const { email, password, name, ageBand } = await request.json().catch(()=> ({}));
-  if (!email || !password) return err(400, { error: "email/password required" });
+  const { email, password, name = "", ageBand = "" } = await request.json().catch(() => ({}));
+  if (!email || !password) return err(400, { error: "Имэйл/нууц үг дутуу" });
 
-  const db = env.OY_DB; // D1 binding
-  const id = uuid();
-  const pass_hash = await hashPass(password);
-  try {
-    await db.prepare(
-      "INSERT INTO users (id, email, pass_hash, name, age_band, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-    ).bind(id, email, pass_hash, name||"", ageBand||"", Date.now()).run();
-  } catch {
-    return err(409, { error: "Email exists" });
-  }
-  // trial-start
-  await db.prepare("INSERT OR REPLACE INTO usage (user_id, msg_count, trial_started_at) VALUES (?, 0, ?)").bind(id, Date.now()).run();
+  const kv = env.OY_KV;
+  const key = "user:" + email.toLowerCase();
+  if (await kv.get(key)) return err(409, { error: "Энэ имэйл бүртгэлтэй" });
 
-  const token = await sign({ uid:id, email }, env.APP_SECRET);
-  return ok({ token, uid: id });
+  const user = {
+    id: uuid(),
+    email: email.toLowerCase(),
+    name, ageBand,
+    pass: await hashPass(password),
+    createdAt: Date.now()
+  };
+  await kv.put(key, JSON.stringify(user));
+
+  const token = await sign({ uid: user.id, email: user.email }, env.APP_SECRET);
+  return ok({ token, uid: user.id, name: user.name, ageBand: user.ageBand });
 }
