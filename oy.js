@@ -1,5 +1,5 @@
-// oy.js — нэгтгэсэн хувилбар
-(()=> {
+// oy.js — цэвэрлэсэн, нэгтгэсэн хувилбар
+(() => {
   if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
   const $ = (s, r=document) => r.querySelector(s);
 
@@ -15,10 +15,9 @@
     panes:     document.querySelectorAll('.oy-pane'),
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
-    menuMount: $('#oyMenuDyn')
   };
 
-  /* --------- ТЕМА ---------- */
+  /* ---------- ТЕМА ---------- */
   const THEMES = [
     { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
     { name:'Calm Green',   brand:'#155E1A', bg1:'#0f2027', bg2:'#203a43', user:'#C2C4B9', bot:'#EEF3F4' },
@@ -48,12 +47,13 @@
     });
     const idx = +localStorage.getItem(THEME_KEY) || 0; applyTheme(THEMES[idx] || THEMES[0]);
   }
+  renderThemePicker();
 
-  /* --------- Нас / гарчиг ---------- */
+  /* ---------- Нас / гарчиг ---------- */
   const AGE_KEY = 'oy_age_choice';
   function updateTitleFromAge(){
     const saved = localStorage.getItem(AGE_KEY);
-    el.chatTitle.textContent = saved ? ('Оюунсанаа — ' + saved) : 'Оюунсанаа — Чат';
+    if (el.chatTitle) el.chatTitle.textContent = saved ? ('Оюунсанаа — ' + saved) : 'Оюунсанаа — Чат';
   }
   $('#btnRegister')?.addEventListener('click', (e)=>{
     e.preventDefault();
@@ -67,7 +67,7 @@
   });
   updateTitleFromAge();
 
-  /* --------- Drawer ---------- */
+  /* ---------- Drawer ---------- */
   el.btnDrawer?.addEventListener('click', ()=>{
     const opened = document.body.classList.toggle('oy-drawer-open');
     if(el.overlay) el.overlay.hidden = !opened;
@@ -76,8 +76,9 @@
     document.body.classList.remove('oy-drawer-open'); if(el.overlay) el.overlay.hidden = true;
   });
 
-  /* --------- ЧАТ суурь ---------- */
-  const OY_API_BASE = window.OY_API_BASE || ""; // "https://chat.oyunsanaa.com"
+  /* ---------- ЧАТ суурь ---------- */
+  // !!! ГЛОБАЛААС нэг л удаа авна
+  const OY_API = window.OY_API_BASE || "";     // ж: "https://chat.oyunsanaa.com"
   const MSGKEY = 'oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
   const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
@@ -95,18 +96,18 @@
     const arr = loadMsgs(); arr.push({t:Date.now(), who, html, isHTML});
     localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
   }
-  function redraw(){
-    el.stream.innerHTML='';
-    const arr = loadMsgs();
+  (function redraw(){
+    if (!el.stream) return;
+    el.stream.innerHTML=''; const arr = loadMsgs();
     if (!arr.length){ bubble('Сайн уу! Оюунсанаатай ганц чат. 🌿','bot'); meta('Тавтай морилно уу'); }
     else { arr.forEach(m => bubble(m.html, m.who, m.isHTML)); }
-  }
+  })();
 
   function showTyping(){ if (el.typing) el.typing.hidden = false; }
   function hideTyping(){ if (el.typing) el.typing.hidden = true; }
 
-  // ——— data URL болгож Vision руу явуулах
-  async function fileToDataURL(file){
+  // файл -> dataURL (зураг илгээхэд)
+  function fileToDataURL(file){
     return new Promise((resolve, reject)=>{
       const fr = new FileReader();
       fr.onload = () => resolve(fr.result);
@@ -115,38 +116,39 @@
     });
   }
 
-  // ——— API: /api/chat
-  let HISTORY = []; // сервер рүү явуулах history (хүсвэл localStorage-оос сэргээж болно)
+  // Түүх
+  let HISTORY = [];
+  let CURRENT_MODULE = 'psychology';
+
+  // API дуудах ганц функц
   async function callChat({ text="", images=[] }){
     showTyping();
     try {
-      const r = await fetch(`${OY_API_BASE}/api/chat`, {
+      const r = await fetch(`${OY_API}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           moduleId: CURRENT_MODULE,
-          text,
-          images,           // data:... URL жагсаалт
+          text, images,
           chatHistory: HISTORY
         })
       });
       const j = await r.json();
-      const reply = j?.reply || "⚠️ Хариу авсангүй.";
+      const reply = j?.reply || "…";
       bubble(reply, 'bot'); pushMsg('bot', reply);
       HISTORY.push({ role:'assistant', content: reply });
-      meta(j?.model ? `Model: ${j.model}` : '');
-    } catch (e) {
+      if (j?.model) meta(`Model: ${j.model}`);
+    } catch {
       bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
     } finally { hideTyping(); }
   }
 
-  // ——— Илгээх (send товч, Enter)
+  // Илгээх (инпут эсвэл Send)
   async function sendCurrent(){
-    const t = (el.input.value || "").trim();
+    const t = (el.input?.value || "").trim();
     const files = Array.from(el.file?.files || []);
     if (!t && !files.length) return;
 
-    // UI тал
     if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
     const dataURLs = [];
     for (const f of files) {
@@ -159,94 +161,46 @@
         bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
       }
     }
-    el.input.value = ""; if (el.file) el.file.value = "";
-
+    if (el.input) el.input.value = ""; if (el.file) el.file.value = "";
     await callChat({ text: t, images: dataURLs });
   }
-
   el.send?.addEventListener('click', sendCurrent);
-  el.input?.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCurrent(); }
-  });
-
-  // Файл сонгосон даруйд preview гаргах (илгээх үед бодит илгээнэ)
-  el.file?.addEventListener('change', async (e)=>{
+  el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
+  el.file?.addEventListener('change', async (e)=>{ // preview
     const files = Array.from(e.target.files||[]);
-    for (const f of files) {
-      if (!f.type.startsWith('image/')) {
-        bubble('📎 '+f.name, 'user'); pushMsg('user', f.name);
-      } else {
-        const d = await fileToDataURL(f);
-        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-        pushMsg('user', `<img src="${d}">`, true);
-      }
+    for (const f of files) if (f.type.startsWith('image/')){
+      const d = await fileToDataURL(f);
+      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+      pushMsg('user', `<img src="${d}">`, true);
     }
   });
 
-  /* --------- Меню (JSON → sidebar) ---------- */
-// API суурь домэйн
-const OY_API_BASE = window.OY_API_BASE || "https://chat.oyunsanaa.com";
+  /* ---------- ЗҮҮН МЕНЮ: товч → oySend ---------- */
+  // HTML дээр: onclick="oySend('mental-edu','intro')"
+  window.oySend = async function(moduleId, action){
+    CURRENT_MODULE = moduleId || CURRENT_MODULE;
+    const text = `User selected: ${moduleId} / ${action}`;
+    bubble(text, 'user'); pushMsg('user', text);
+    HISTORY.push({ role:'user', content: text });
 
-// ——— Sidebar динамик меню
-const mount = document.querySelector('#oyMenuDyn');  // index.html дотор байгаа хоосон div
-let CURRENT_MODULE = "psychology";
-let HISTORY = [];
+    // Хэрэв одоо зураг сонгосон бол хамт явуулна
+    const files = Array.from(el.file?.files || []);
+    const images = [];
+    for (const f of files) if (f.type.startsWith('image/')) images.push(await fileToDataURL(f));
+    if (el.file) el.file.value = "";
 
-async function getMenu(){
-  const r = await fetch(`${OY_API_BASE}/api/menu`);
-  const j = await r.json();              // <— Одооноос 404 биш JSON буцна
-  return j.menu || [];
-}
+    await callChat({ text, images });
+  };
 
-function renderSixMenus(menu){
-  if (!mount) return;
-  mount.innerHTML = "";
-  menu.forEach(cat => {
-    const sec = document.createElement('section');
-    sec.className = 'oy-pane';   // яг “Сэтгэлийн боловсрол” шиг хүрээтэй
-    sec.innerHTML = `
-      <h4 style="margin:6px 0">${cat.label}</h4>
-      <ul class="oy-list">
-        ${cat.items.map(it => `
-          <li>
-            <span>${it.label}</span>
-            <button class="oy-mini" data-mid="${cat.id}" data-bid="${it.id}">Орох</button>
-          </li>
-        `).join('')}
-      </ul>
-    `;
-    mount.appendChild(sec);
-  });
-
-  mount.querySelectorAll('button[data-mid]').forEach(btn=>{
+  /* ---------- Sidebar товч → дотоод pane нээх ---------- */
+  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const mid = btn.getAttribute('data-mid');
-      const bid = btn.getAttribute('data-bid');
-      CURRENT_MODULE = mid;
-      // UI-д мессеж нэмээд API-гаа дуудна
-      bubble(`${mid} → ${bid}`, 'user'); pushMsg('user', `${mid} → ${bid}`);
-      HISTORY.push({ role:'user', content:`User selected: ${mid}/${bid}` });
-      callChat({ text:`User selected: ${mid}/${bid}`, images:[] });
+      const key = btn.dataset.menu;
+      const target = Array.from(document.querySelectorAll('.oy-pane')).find(p=>p.dataset.pane===key);
+      if (!target) return;
+      if (!target.hidden) { target.hidden = true; return; }
+      document.querySelectorAll('.oy-pane').forEach(p=>p.hidden = p!==target);
     });
   });
-}
 
-async function callChat({ text="", images=[] }){
-  showTyping();
-  try{
-    const r = await fetch(`${OY_API_BASE}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY }),
-    });
-    const j = await r.json();
-    bubble(j.reply || "…", 'bot'); pushMsg('bot', j.reply || "…");
-    HISTORY.push({ role:'assistant', content: j.reply || "" });
-    meta(j.model ? `Model: ${j.model}` : "");
-  } catch(e){
-    bubble("⚠️ API холболт амжилтгүй.", 'bot');
-  } finally { hideTyping(); }
-}
-
-// Ачаалмагц меню татаж зурна
-getMenu().then(renderSixMenus).catch(()=>bubble("⚠️ Меню ачаалсангүй.", "bot"));
+})();
