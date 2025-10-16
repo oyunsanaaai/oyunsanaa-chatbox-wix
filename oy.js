@@ -146,26 +146,30 @@
   }
 
   // Илгээх (инпут эсвэл Send)
-  async function sendCurrent(){
-    const t = (el.input?.value || "").trim();
-    const files = Array.from(el.file?.files || []);
-    if (!t && !files.length) return;
+async function sendCurrent(){
+  const t = (el.input?.value || "").trim();
+  const files = Array.from(el.file?.files || []);
+  if (!t && !files.length) return;
 
-    if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
-    const dataURLs = [];
-    for (const f of files) {
-      if (f.type.startsWith('image/')) {
-        const d = await fileToDataURL(f);
-        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-        pushMsg('user', `<img src="${d}">`, true);
-        dataURLs.push(d);
-      } else {
-        bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
-      }
+  if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
+
+  // ↓↓↓ Зураг дээр ДАХИН preview хийхгүй, зөвхөн сервер рүү явуулах dataURLs бэлдэнэ
+  const dataURLs = [];
+  for (const f of files) {
+    if (f.type.startsWith('image/')) {
+      const d = await fileToDataURL(f);
+      // ⛔️ Давхар bubble/push хийхгүй
+      dataURLs.push(d);
+    } else {
+      // хүсвэл файл нэрийг нэг удаа харуулж болно
+      bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
     }
-    if (el.input) el.input.value = ""; if (el.file) el.file.value = "";
-    await callChat({ text: t, images: dataURLs });
   }
+
+  if (el.input) el.input.value = ""; 
+  if (el.file)  el.file.value = "";  // сонголтыг цэвэрлэнэ
+  await callChat({ text: t, images: dataURLs });
+}
   el.send?.addEventListener('click', sendCurrent);
   el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
   el.file?.addEventListener('change', async (e)=>{ // preview
