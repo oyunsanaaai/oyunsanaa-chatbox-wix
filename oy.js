@@ -77,8 +77,7 @@
   });
 
   /* ---------- ЧАТ суурь ---------- */
-  // !!! ГЛОБАЛААС нэг л удаа авна
-  const OY_API = window.OY_API_BASE || "";     // ж: "https://chat.oyunsanaa.com"
+  const OY_API = window.OY_API_BASE || "";     // ж: "https://<project>.vercel.app"
   const MSGKEY = 'oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
   const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
@@ -124,13 +123,17 @@
   async function callChat({ text="", images=[] }){
     showTyping();
     try {
+      // ⬇️ НЭМЭЛТ 1: хэрэглэгчийн хэл (Wix -> window.OY_LANG, эсвэл browser)
+      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
+
       const r = await fetch(`${OY_API}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           moduleId: CURRENT_MODULE,
           text, images,
-          chatHistory: HISTORY
+          chatHistory: HISTORY,
+          userLang: USER_LANG   // ⬅️ НЭМЭЛТ 2: сервер рүү дамжуулж байна
         })
       });
       const j = await r.json();
