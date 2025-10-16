@@ -1,16 +1,19 @@
 import { CORS, ok, err, hashPass, sign } from "../../_utils.js";
 
-export async function onRequestOptions(){ return new Response(null, { status:204, headers: CORS }); }
+export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS });
+
 export async function onRequestPost({ request, env }) {
-  const { email, password } = await request.json().catch(()=> ({}));
-  if (!email || !password) return err(400, { error:"email/password required" });
+  const { email, password } = await request.json().catch(() => ({}));
+  if (!email || !password) return err(400, { error: "Имэйл/нууц үг дутуу" });
 
-  const db = env.OY_DB;
-  const row = await db.prepare("SELECT id, pass_hash FROM users WHERE email=?").bind(email).first();
-  if (!row) return err(401, { error:"invalid credentials" });
-  const okPass = (await hashPass(password)) === row.pass_hash;
-  if (!okPass) return err(401, { error:"invalid credentials" });
+  const kv = env.OY_KV;
+  const key = "user:" + email.toLowerCase();
+  const user = await kv.get(key, { type: "json" });
+  if (!user) return err(401, { error: "И-мэйл бүртгэлгүй" });
 
-  const token = await sign({ uid: row.id, email }, env.APP_SECRET);
-  return ok({ token, uid: row.id });
+  const okPass = (await hashPass(password)) === user.pass;
+  if (!okPass) return err(401, { error: "Нууц үг буруу" });
+
+  const token = await sign({ uid: user.id, email: user.email }, env.APP_SECRET);
+  return ok({ token, uid: user.id, name: user.name, ageBand: user.ageBand });
 }
