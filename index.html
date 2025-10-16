@@ -1,209 +1,189 @@
-// oy.js — цэвэрлэсэн, нэгтгэсэн хувилбар
-(() => {
-  if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
-  const $ = (s, r=document) => r.querySelector(s);
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Оюунсанаа · чат</title>
 
-  const el = {
-    overlay:   $('#oyOverlay'),
-    drawer:    $('#oyDrawer'),
-    btnDrawer: $('#btnDrawer'),
-    stream:    $('#oyStream'),
-    input:     $('#oyInput'),
-    send:      $('#btnSend'),
-    file:      $('#oyFile'),
-    typing:    $('#typing'),
-    panes:     document.querySelectorAll('.oy-pane'),
-    themePicker: $('#themePicker'),
-    chatTitle: $('#chatTitle'),
-  };
+  <!-- Styles -->
+  <link rel="stylesheet" href="oy.css" />
 
-  /* ---------- ТЕМА ---------- */
-  const THEMES = [
-    { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
-    { name:'Calm Green',   brand:'#155E1A', bg1:'#0f2027', bg2:'#203a43', user:'#C2C4B9', bot:'#EEF3F4' },
-    { name:'Warm Neutral', brand:'#BC9B5D', bg1:'#2b1d11', bg2:'#3d2a18', user:'#F1E3D5', bot:'#FAF7F2' },
-    { name:'Soft Gray',    brand:'#666660', bg1:'#141414', bg2:'#2a2a2a', user:'#C2C4B9', bot:'#EDEDED' },
-    { name:'Teal Mist',    brand:'#2E6F6C', bg1:'#0d2627', bg2:'#14383a', user:'#B6D0CD', bot:'#EAF2F1' },
-  ];
-  const THEME_KEY = 'oy_theme_idx_v1';
-  function applyTheme(t){
-    const r = document.documentElement.style;
-    r.setProperty('--brand', t.brand);
-    r.setProperty('--bg1', t.bg1);
-    r.setProperty('--bg2', t.bg2);
-    r.setProperty('--user-bg', t.user);
-    r.setProperty('--bot-bg', t.bot);
-  }
-  function renderThemePicker(){
-    if (!el.themePicker) return;
-    el.themePicker.innerHTML = '';
-    THEMES.forEach((t, i)=>{
-      const b = document.createElement('button');
-      b.className = 'oy-swatch';
-      b.title = t.name;
-      b.innerHTML = `<i style="background:linear-gradient(135deg, ${t.bg1}, ${t.bg2})"></i>`;
-      b.addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY, String(i)); applyTheme(t); });
-      el.themePicker.appendChild(b);
-    });
-    const idx = +localStorage.getItem(THEME_KEY) || 0; applyTheme(THEMES[idx] || THEMES[0]);
-  }
-  renderThemePicker();
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0b1022">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/icons/192.png">
 
-  /* ---------- Нас / гарчиг ---------- */
-  const AGE_KEY = 'oy_age_choice';
-  function updateTitleFromAge(){
-    const saved = localStorage.getItem(AGE_KEY);
-    if (el.chatTitle) el.chatTitle.textContent = saved ? ('Оюунсанаа — ' + saved) : 'Оюунсанаа — Чат';
-  }
-  $('#btnRegister')?.addEventListener('click', (e)=>{
-    e.preventDefault();
-    const form = $('#ageForm'); if(!form) return;
-    const sel = form.querySelector('input[name="age"]:checked');
-    if(!sel) { alert('Эхлээд насны ангилал сонгоно уу.'); return; }
-    const label = sel.parentElement.textContent.trim();
-    localStorage.setItem(AGE_KEY, label);
-    updateTitleFromAge();
-    alert('Сонголт хадгалагдлаа.');
-  });
-  updateTitleFromAge();
+  <!-- ✅ API-ийн суурь домэйн: ЭНЭГИЙГ ӨӨРИЙН Vercel URL-р СОЛИХ -->
+  <script>window.OY_API_BASE = "https://<tanai-project>.vercel.app";</script>
 
-  /* ---------- Drawer ---------- */
-  el.btnDrawer?.addEventListener('click', ()=>{
-    const opened = document.body.classList.toggle('oy-drawer-open');
-    if(el.overlay) el.overlay.hidden = !opened;
-  });
-  el.overlay?.addEventListener('click', ()=>{
-    document.body.classList.remove('oy-drawer-open'); if(el.overlay) el.overlay.hidden = true;
-  });
+  <!-- App JS -->
+  <script defer src="oy.js"></script>
+</head>
+<body>
+  <div id="oyOverlay" class="oy-overlay" hidden></div>
 
-  /* ---------- ЧАТ суурь ---------- */
-  const OY_API = window.OY_API_BASE || "";     // ж: "https://<project>.vercel.app"
-  const MSGKEY = 'oy_msgs_one';
-  const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-  const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
+  <!-- HEADER -->
+  <header class="oy-header">
+    <button id="btnDrawer" class="oy-iconbtn" aria-label="Меню">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>
+      </svg>
+    </button>
 
-  function bubble(html, who='bot', isHTML=false){
-    const d = document.createElement('div');
-    d.className = 'oy-bubble ' + (who === 'user' ? 'oy-user' : 'oy-bot');
-    d.innerHTML = isHTML ? html : esc(html);
-    el.stream.appendChild(d); scrollBottom(); return d;
-  }
-  function meta(t){ const m = document.createElement('div'); m.className='oy-meta'; m.textContent=t; el.stream.appendChild(m); scrollBottom(); }
+    <div class="oy-head-title">
+      <div class="oy-status"><span class="oy-dot"></span></div>
+      <div class="oy-head-text">
+        <div id="chatTitle" class="oy-title">Оюунсанаа — Чат</div>
+      </div>
+    </div>
 
-  function loadMsgs(){ try{ return JSON.parse(localStorage.getItem(MSGKEY)||'[]'); }catch(_){ return []; } }
-  function pushMsg(who, html, isHTML=false){
-    const arr = loadMsgs(); arr.push({t:Date.now(), who, html, isHTML});
-    localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
-  }
-  (function redraw(){
-    if (!el.stream) return;
-    el.stream.innerHTML=''; const arr = loadMsgs();
-    if (!arr.length){ bubble('Сайн уу! Оюунсанаатай ганц чат. 🌿','bot'); meta('Тавтай морилно уу'); }
-    else { arr.forEach(m => bubble(m.html, m.who, m.isHTML)); }
-  })();
+    <div id="themePicker" class="oy-themes" aria-label="Өнгө сонгох"></div>
+  </header>
 
-  function showTyping(){ if (el.typing) el.typing.hidden = false; }
-  function hideTyping(){ if (el.typing) el.typing.hidden = true; }
+  <div class="oy-shell">
+    <!-- SIDEBAR -->
+    <aside id="oyDrawer" class="oy-drawer" aria-label="Меню">
+      <div class="oy-side">
+        <div class="oy-side-title">Меню</div>
 
-  // файл -> dataURL (зураг илгээхэд)
-  function fileToDataURL(file){
-    return new Promise((resolve, reject)=>{
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = reject;
-      fr.readAsDataURL(file);
-    });
-  }
+        <!-- 🧷 WIX холбоосууд (хүрэх ёстой) -->
+        <a class="oy-item" href="https://YOUR-WIX-SITE.com/register" target="_blank" rel="noopener">Бүртгэл</a>
+        <a class="oy-item" href="https://YOUR-WIX-SITE.com/my-program" target="_blank" rel="noopener">Миний хөтөлбөр</a>
+        <a class="oy-item" href="https://YOUR-WIX-SITE.com/guides" target="_blank" rel="noopener">Сэтгэлийн хөтөч</a>
 
-  // Түүх
-  let HISTORY = [];
-  let CURRENT_MODULE = 'psychology';
+        <!-- 8 КАТЕГОРИ — товч → доорх pane нээгдэнэ -->
+        <!-- 1) Сэтгэлзүй -->
+        <button class="oy-item" data-menu="psychology">Сэтгэлзүй</button>
+        <section class="oy-pane" data-pane="psychology" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('psychology','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('psychology','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('psychology','report')">Орох</button></li>
+          </ul>
+        </section>
 
-  // API дуудах ганц функц
-  async function callChat({ text="", images=[] }){
-    showTyping();
-    try {
-      // ⬇️ НЭМЭЛТ 1: хэрэглэгчийн хэл (Wix -> window.OY_LANG, эсвэл browser)
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
+        <!-- 2) Эрүүл мэнд -->
+        <button class="oy-item" data-menu="health">Эрүүл мэнд</button>
+        <section class="oy-pane" data-pane="health" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('health','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('health','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('health','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('health','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('health','report')">Орох</button></li>
+          </ul>
+        </section>
 
-      const r = await fetch(`${OY_API}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          moduleId: CURRENT_MODULE,
-          text, images,
-          chatHistory: HISTORY,
-          userLang: USER_LANG   // ⬅️ НЭМЭЛТ 2: сервер рүү дамжуулж байна
-        })
+        <!-- 3) Санхүү -->
+        <button class="oy-item" data-menu="finance">Санхүү</button>
+        <section class="oy-pane" data-pane="finance" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('finance','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('finance','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('finance','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('finance','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('finance','report')">Орох</button></li>
+          </ul>
+        </section>
+
+        <!-- 4) Зорилго -->
+        <button class="oy-item" data-menu="goals">Зорилго</button>
+        <section class="oy-pane" data-pane="goals" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('goals','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('goals','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('goals','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('goals','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('goals','report')">Орох</button></li>
+          </ul>
+        </section>
+
+        <!-- 5) Харилцаа -->
+        <button class="oy-item" data-menu="relations">Харилцаа</button>
+        <section class="oy-pane" data-pane="relations" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('relations','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('relations','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('relations','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('relations','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('relations','report')">Орох</button></li>
+          </ul>
+        </section>
+
+        <!-- 6) Орчин -->
+        <button class="oy-item" data-menu="environment">Орчин</button>
+        <section class="oy-pane" data-pane="environment" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('environment','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('environment','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('environment','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('environment','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('environment','report')">Орох</button></li>
+          </ul>
+        </section>
+
+        <!-- 7) Сануулга -->
+        <button class="oy-item" data-menu="reminders">Сануулга</button>
+        <section class="oy-pane" data-pane="reminders" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('reminders','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('reminders','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('reminders','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('reminders','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('reminders','report')">Орох</button></li>
+          </ul>
+        </section>
+
+        <!-- 8) Тэмдэглэл -->
+        <button class="oy-item" data-menu="journal">Тэмдэглэл</button>
+        <section class="oy-pane" data-pane="journal" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('journal','intro')">Орох</button></li>
+            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('journal','course')">Орох</button></li>
+            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('journal','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('journal','quiz')">Орох</button></li>
+            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('journal','report')">Орох</button></li>
+          </ul>
+        </section>
+      </div>
+    </aside>
+
+    <!-- CHAT -->
+    <main class="oy-main">
+      <div id="oyStream" class="oy-stream"></div>
+
+      <div class="oy-composer">
+        <label for="oyFile" class="oy-file" title="Зураг/файл нэмэх">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </label>
+        <input id="oyFile" type="file" accept="image/*" multiple hidden/>
+
+        <div class="oy-input-wrap">
+          <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
+          <div id="typing" class="oy-typing" hidden>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <button id="btnSend" class="oy-send" title="Илгээх">➤</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Service Worker (optional) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(()=>{});
       });
-      const j = await r.json();
-      const reply = j?.reply || "…";
-      bubble(reply, 'bot'); pushMsg('bot', reply);
-      HISTORY.push({ role:'assistant', content: reply });
-      if (j?.model) meta(`Model: ${j.model}`);
-    } catch {
-      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-    } finally { hideTyping(); }
-  }
-
-  // Илгээх (инпут эсвэл Send)
-  async function sendCurrent(){
-    const t = (el.input?.value || "").trim();
-    const files = Array.from(el.file?.files || []);
-    if (!t && !files.length) return;
-
-    if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
-    const dataURLs = [];
-    for (const f of files) {
-      if (f.type.startsWith('image/')) {
-        const d = await fileToDataURL(f);
-        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-        pushMsg('user', `<img src="${d}">`, true);
-        dataURLs.push(d);
-      } else {
-        bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
-      }
     }
-    if (el.input) el.input.value = ""; if (el.file) el.file.value = "";
-    await callChat({ text: t, images: dataURLs });
-  }
-  el.send?.addEventListener('click', sendCurrent);
-  el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
-  el.file?.addEventListener('change', async (e)=>{ // preview
-    const files = Array.from(e.target.files||[]);
-    for (const f of files) if (f.type.startsWith('image/')){
-      const d = await fileToDataURL(f);
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-      pushMsg('user', `<img src="${d}">`, true);
-    }
-  });
-
-  /* ---------- ЗҮҮН МЕНЮ: товч → oySend ---------- */
-  // HTML дээр: onclick="oySend('mental-edu','intro')"
-  window.oySend = async function(moduleId, action){
-    CURRENT_MODULE = moduleId || CURRENT_MODULE;
-    const text = `User selected: ${moduleId} / ${action}`;
-    bubble(text, 'user'); pushMsg('user', text);
-    HISTORY.push({ role:'user', content: text });
-
-    // Хэрэв одоо зураг сонгосон бол хамт явуулна
-    const files = Array.from(el.file?.files || []);
-    const images = [];
-    for (const f of files) if (f.type.startsWith('image/')) images.push(await fileToDataURL(f));
-    if (el.file) el.file.value = "";
-
-    await callChat({ text, images });
-  };
-
-  /* ---------- Sidebar товч → дотоод pane нээх ---------- */
-  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.dataset.menu;
-      const target = Array.from(document.querySelectorAll('.oy-pane')).find(p=>p.dataset.pane===key);
-      if (!target) return;
-      if (!target.hidden) { target.hidden = true; return; }
-      document.querySelectorAll('.oy-pane').forEach(p=>p.hidden = p!==target);
-    });
-  });
-
-})();
+  </script>
+</body>
+</html>
