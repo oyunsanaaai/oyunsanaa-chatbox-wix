@@ -1,186 +1,31 @@
 <!doctype html>
 <html lang="mn">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Оюунсанаа · чат</title>
-  <link rel="stylesheet" href="oy.css"/>
-  <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0b1022">
-<!-- iOS дэмжлэг -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="/icons/192.png">
-  <script defer src="oy.js"></script>
-</head>
-<body>
-  <div id="oyOverlay" class="oy-overlay" hidden></div>
-
-  <!-- HEADER -->
-  <header class="oy-header">
-    <!-- 3 зураас -->
-    <button id="btnDrawer" class="oy-iconbtn" aria-label="Меню">
-      <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg>
-    </button>
-
-    <!-- Лого + гарчиг (голд) -->
-    <div class="oy-head-title">
-      <div class="oy-status"><span class="oy-dot"></span></div>     
-      <div class="oy-head-text">
-        <div id="chatTitle" class="oy-title"> Оюунсанаа — Чат</div>
-      </div>
-    </div>
-
-    <!-- Өнгө сонголт (баруун дээд) -->
-    <div id="themePicker" class="oy-themes" aria-label="Өнгө сонгох"></div>
-  </header>
-
-  <div class="oy-shell">
-    <!-- SIDEBAR -->
-    <aside id="oyDrawer" class="oy-drawer" aria-label="Меню">
-      <div class="oy-side">
-        <div class="oy-side-title">Меню</div>
-
-        <!-- 1) Бүртгэл (нас сонгоод бүртгүүлэх) -->
-        <button class="oy-item" data-menu="register">Бүртгэл</button>
-        <section class="oy-pane" data-pane="register" hidden>
-          <div class="oy-note" style="margin-bottom:8px">
-            Доороос насны ангиллаа сонгоод “Бүртгүүлэх” дарна уу.
-          </div>
-          <form id="ageForm" class="oy-list">
-            <label class="reg-row"><input type="radio" name="age" value="Сэргэлэн өсвөр үе (13–18)"> Сэргэлэн өсвөр үе (13–18)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Эхлэл, мөрөөдлийн үе (19–25)"> Эхлэл,мөрөөдлийн үе (19–29)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Туршлага, бүтээлийн үе (41–55)"> Туршлага, бүтээлт үе (30–55)</label>
-            <label class="reg-row"><input type="radio" name="age" value="Ухаан, нөлөөллийн үе (56–70)"> Ухаан, нөлөөллийн үе (56+)</label>
-          </form>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <button id="btnRegister" class="oy-mini">🗝️ Бүртгүүлэх</button>
-            <a id="btnRenew" class="oy-mini" href="#" hidden>Сунгах</a>
-          </div>
-        </section>
-
-        <!-- 2) Миний хөтөлбөр (линк, хүрэхгүй) -->
-        <a class="oy-item" href="https://YOUR-WIX-SITE.com/my-program" target="_blank" rel="noopener">Миний хөтөлбөр</a>
-
-        <!-- 3) Сэтгэлийн хөтөч (танилцуулга яг дороо гарна) -->
-        <button class="oy-item" data-menu="guides">Сэтгэлийн хөтөч</button>
-        <section class="oy-pane" data-pane="guides" hidden>
-          <div class="oy-note">
-            Нас, нөхцөлд тань тохирсон чиглүүлэх, сорил, богино дасгалын ТАНИЛЦУУЛГА энд байрлана.
-          </div>
-          <a class="oy-link-card" href="https://YOUR-WIX-SITE.com/guides" target="_blank" rel="noopener">→ Дэлгэрэнгүй танилцуулга</a>
-        </section>
-
-        <!-- 4) Сэтгэлийн боловсрол (багц + нэмэлт) -->
-        <button class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
-        <section class="oy-pane" data-pane="edu" hidden>
-          <h4>Багц хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Байгууллага</span> <a class="oy-mini" target="_blank" rel="noopener">Орох</a></li>
-            <li><span>Гэр бүл</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/confidence">Орох</a></li>
-            <li><span>Урлаг,Спортын баг</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/career">Орох</a></li>
-          </ul>
-
-          <h4 style="margin-top:12px">Нэмэлт хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Ганцаардлаас гарах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/loneliness14">Орох</a></li>
-            <li><span>Айдсаа давах туулах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/anxiety">Орох</a></li>
-          </ul>
-        </section>
-         <button class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
-        <section class="oy-pane" data-pane="edu" hidden>
-          <h4>Багц хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Байгууллага</span> <a class="oy-mini" target="_blank" rel="noopener">Орох</a></li>
-            <li><span>Гэр бүл</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/confidence">Орох</a></li>
-            <li><span>Урлаг,Спортын баг</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/career">Орох</a></li>
-          </ul>
-
-          <h4 style="margin-top:12px">Нэмэлт хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Ганцаардлаас гарах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/loneliness14">Орох</a></li>
-            <li><span>Айдсаа давах туулах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/anxiety">Орох</a></li>
-          </ul>
-        </section>     
-         <button class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
-        <section class="oy-pane" data-pane="edu" hidden>
-          <h4>Багц хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Байгууллага</span> <a class="oy-mini" target="_blank" rel="noopener">Орох</a></li>
-            <li><span>Гэр бүл</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/confidence">Орох</a></li>
-            <li><span>Урлаг,Спортын баг</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/career">Орох</a></li>
-          </ul>
-
-          <h4 style="margin-top:12px">Нэмэлт хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Ганцаардлаас гарах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/loneliness14">Орох</a></li>
-            <li><span>Айдсаа давах туулах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/anxiety">Орох</a></li>
-          </ul>
-        </section>
-       <button class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
-        <section class="oy-pane" data-pane="edu" hidden>
-          <h4>Багц хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Байгууллага</span> <a class="oy-mini" target="_blank" rel="noopener">Орох</a></li>
-            <li><span>Гэр бүл</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/confidence">Орох</a></li>
-            <li><span>Урлаг,Спортын баг</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/career">Орох</a></li>
-          </ul>
-
-          <h4 style="margin-top:12px">Нэмэлт хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Ганцаардлаас гарах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/loneliness14">Орох</a></li>
-            <li><span>Айдсаа давах туулах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/anxiety">Орох</a></li>
-          </ul>
-        </section>
-       <button class="oy-item" data-menu="edu">Сэтгэлийн боловсрол</button>
-        <section class="oy-pane" data-pane="edu" hidden>
-          <h4>Багц хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Байгууллага</span> <a class="oy-mini" target="_blank" rel="noopener">Орох</a></li>
-            <li><span>Гэр бүл</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/confidence">Орох</a></li>
-            <li><span>Урлаг,Спортын баг</span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/packs/career">Орох</a></li>
-          </ul>
-
-          <h4 style="margin-top:12px">Нэмэлт хөтөлбөр</h4>
-          <ul class="oy-list">
-            <li><span>Ганцаардлаас гарах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/loneliness14">Орох</a></li>
-            <li><span>Айдсаа давах туулах </span> <a class="oy-mini" target="_blank" rel="noopener" href="https://YOUR-WIX-SITE.com/programs/anxiety">Орох</a></li>
-          </ul>
-        </section>      </div>
-    </aside>
-
-    <!-- CHAT -->
-    <main class="oy-main">
-      <div id="oyStream" class="oy-stream"></div>
-
-      <div class="oy-composer">
-        <label for="oyFile" class="oy-file" title="Зураг/файл нэмэх">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </label>
-        <input id="oyFile" type="file" accept="image/*" multiple hidden/>
-
-        <div class="oy-input-wrap">
-          <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
-          <div id="typing" class="oy-typing" hidden>
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-
-        <button id="btnSend" class="oy-send" title="Илгээх">➤</button>
-      </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Оюунсанаа · Чат (минимал)</title>
+    <style>
+      :root{--bg:#fafafa;--fg:#111;--card:#fff;--bd:#eaeaea}
+      *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,Arial}
+      header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--bd);padding:12px 16px}
+      main{max-width:820px;margin:12px auto;padding:0 16px}
+      #log{height:62vh;overflow:auto;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px}
+      .msg{margin:8px 0}
+      .msg b{display:inline-block;min-width:88px}
+      form{display:flex;gap:8px;margin-top:10px}
+      input,button{padding:10px;border-radius:8px;border:1px solid var(--bd)}
+      input{flex:1} button{background:#111;color:#fff;border:0;cursor:pointer}
+    </style>
+  </head>
+  <body>
+    <header><b>Оюунсанаа · Чат</b></header>
+    <main>
+      <div id="log" aria-live="polite"></div>
+      <form id="chatForm" autocomplete="off">
+        <input id="oyInput" placeholder="Юу асуух вэ?" />
+        <button id="btnSend" type="submit">Илгээх</button>
+      </form>
     </main>
-  </div>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(()=>{});
-    });
-  }
-</script>
-</body>
+    <script src="/oy.js"></script>
+  </body>
 </html>
-
-
