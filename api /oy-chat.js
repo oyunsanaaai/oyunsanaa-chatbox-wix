@@ -1,64 +1,78 @@
-// CommonJS — Vercel-д найдвартай
-const fetch = globalThis.fetch;
-
-module.exports = async function handler(req, res){
-  // CORS — same-origin үед ч зөрчилгүй
+// CommonJS хувилбар (Vercel дээр илүү найдвартай)
+module.exports = async function handler(req, res) {
   const allowList = [
-    "https://chat.oyunsanaa.com",
+    "https://www.oyunsanaa.com",
     "https://oyunsanaa.com",
-    "https://oyunsanaa-chatbox-wix.vercel.app"
+    "https://chat.oyunsanaa.com",
+    "https://oyunsanaa-chatbox-wix.vercel.app",
   ];
   const origin = req.headers.origin || "";
   const allowOrigin = allowList.includes(origin) ? origin : allowList[0];
+
   res.setHeader("Access-Control-Allow-Origin", allowOrigin);
-  res.setHeader("Vary","Origin");
-  res.setHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");
-  if(req.method==="OPTIONS") return res.status(204).end();
-  if(req.method!=="POST") return res.status(405).json({ error:"Method Not Allowed" });
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
-  try{
-    const body = typeof req.body==="string" ? JSON.parse(req.body) : (req.body||{});
-    const msg   = String(body.msg||"");
-    const model = String(body.model||"gpt-4o-mini").trim(); // анхдагч хурдан
-    const persona = String(body.persona||"soft").trim();
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method Not Allowed" });
 
-    const CORE = "Чи 'Оюунсанаа' нэртэй зөөлөн, бодлоготой туслах. Богино тод, эелдэг хариул.";
-    const PERSONA = persona==="wise"
-      ? "Аминч биш, ухаалаг, тайван өнгө аяс баримтал."
-      : persona==="parent"
-      ? "Дулаан, асран хамгаалах өнгө аяс баримтал."
-      : "Зөөлөн, урам өгч, чиглүүл.";
+  try {
+    const body =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+    const msg = body.msg || "";
+    const img = body.img || "";
+    const persona = String(body.persona || "soft").trim();
+    const model = String(body.model || "gpt-4o-mini").trim();
 
-    const key = process.env.OPENAI_API_KEY;
-    if(!key) return res.status(500).json({ error:"OPENAI_API_KEY алга" });
+    const CORE_ID =
+      "Та 'Оюунсанаа' — сэтгэлийн боловсрол, өдөр тутмын туслагч AI...";
+    const PERSONA_MAP = {
+      soft: "Чи зөөлөн, халамжтай өнгөөр ярь.",
+      wise: "Чи нам гүм, ухаалаг тайван өнгөөр ярь.",
+      parent: "Чи дулаан, ээж шиг дэмжих өнгөөр ярь.",
+    };
+    const PERSONA = PERSONA_MAP[persona] || PERSONA_MAP.soft;
 
-    // OpenAI Responses API (JSON)
-    const resp = await fetch("https://api.openai.com/v1/responses", {
-      method:"POST",
-      headers:{
-        "Authorization":`Bearer ${key}`,
-        "Content-Type":"application/json"
+    const messages = [
+      { role: "system", content: `${CORE_ID}\n${PERSONA}` },
+      { role: "user", content: msg || "Сайн уу" },
+    ];
+    const input = img
+      ? [{ role: "user", content: [{ type: "image_url", image_url: { url: img } }] }]
+      : [];
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
+
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model,                  // "gpt-4o" эсвэл "gpt-4o-mini"
-        input: [
-          { role:"system", content:[{type:"text", text:`${CORE} ${PERSONA}`}] },
-          { role:"user",   content:[{type:"text", text: msg}] }
-        ]
-      })
+        model,
+        temperature: 0.6,
+        top_p: 0.85,
+        presence_penalty: 0.2,
+        frequency_penalty: 0.8,
+        max_tokens: 250,
+        messages: [...messages, ...input],
+      }),
     });
 
-    if(!resp.ok){
-      const t = await resp.text();
-      return res.status(500).json({ error:`OpenAI ${resp.status}: ${t}` });
-    }
-    const data = await resp.json();
-    const reply = data.output_text
-               || data.choices?.[0]?.message?.content
-               || "(хоосон)";
+    const data = await r.json();
+    if (!r.ok) return res.status(r.status).json(data);
+
+    const reply = data.choices?.[0]?.message?.content || "";
     return res.status(200).json({ reply });
-  }catch(e){
-    return res.status(500).json({ error: String(e?.message||e) });
+  } catch (err) {
+    console.error("API error:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
