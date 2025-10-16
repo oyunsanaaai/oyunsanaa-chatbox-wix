@@ -134,54 +134,109 @@
   });
 
   // Илгээх
-  async function send(){
-    const t = (el.input.value||'').trim(); if(!t) return;
-    bubble(t,'user'); pushMsg('user', t); el.input.value=''; showTyping(); el.send.disabled=true;
+/* oy.js — зүүн меню динамик рендэр, товч → /api/chat */
 
-    try{
-      const history = loadMsgs().slice(-12);
-     // файлын дээд талд нэг мөр нэмж өг
-const API_BASE = "https://chat.oyunsanaa.com";
+const OY_API_BASE = window.OY_API_BASE || ""; // ж: "https://chat.oyunsanaa.com" эсвэл хоосон
 
-// дараа нь fetch ийм болно
-const r = await fetch(`${API_BASE}/api/oy-chat`, {
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body: JSON.stringify({
-    model: (t.length>220?'gpt-4o':'gpt-4o-mini'),
-    persona:'soft',
-    msg:t,
-    chatSlug:'one-chat',
-    history
-  })
-});
-      const {reply,error} = await r.json().catch(()=>({error:'Invalid JSON'}));
-      hideTyping(); el.send.disabled=false;
-      if (error) throw new Error(error);
-      bubble(reply||'...','bot'); pushMsg('bot', reply||'...');
-    }catch(e){
-      hideTyping(); el.send.disabled=false;
-      bubble('⚠️ Холболт эсвэл API тохиргоо дутуу байна.','bot');
-    }
+let OY_STATE = {
+  moduleId: "psychology",
+  history: []
+};
+
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else el.setAttribute(k, v);
+  });
+  kids.flat().forEach(c => el.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return el;
+}
+
+async function fetchMenu() {
+  const r = await fetch(`${OY_API_BASE}/api/menu`);
+  const j = await r.json();
+  return j.menu || [];
+}
+
+function notify(msg) {
+  let n = document.getElementById("oy-toast");
+  if (!n) {
+    n = h("div", { id:"oy-toast", class:"oy-toast" });
+    document.body.appendChild(n);
   }
-  el.send?.addEventListener('click', send);
-  el.input?.addEventListener('keydown', e=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  n.textContent = msg;
+  n.classList.add("show");
+  setTimeout(()=>n.classList.remove("show"), 1800);
+}
+
+// Эндээс л чат руу дуудна
+async function callChat({ text = "", images = [] }) {
+  const payload = {
+    moduleId: OY_STATE.moduleId,
+    text,
+    images,
+    chatHistory: OY_STATE.history
+  };
+
+  const r = await fetch(`${OY_API_BASE}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
 
-  /* ---------- BOOT ---------- */
-  renderThemePicker();
-  redraw();
-})();
-// middleware.js  (хэрэв /chat замыг хамгаалах бол matcher-аа өөрчилнө)
+  const data = await r.json();
+  if (data.ok) {
+    // UI талын чатын талбар луу түр харуулчихъя
+    appendChat("assistant", data.reply);
+    notify(`✅ ${data.model} хариуллаа`);
+  } else {
+    notify("⚠️ Алдаа. Дахин оролдоно уу.");
+  }
+}
 
+function appendChat(role, text) {
+  OY_STATE.history.push({ role, content: text });
+  const box = document.getElementById("oy-chat-box");
+  if (!box) return;
+  const item = h("div", { class: `oy-msg ${role}` }, text);
+  box.appendChild(item);
+  box.scrollTop = box.scrollHeight;
+}
 
+function renderMenu(menu) {
+  const root = document.getElementById("oy-menu");
+  if (!root) return;
+  root.innerHTML = "";
 
+  menu.forEach(cat => {
+    const card = h("div", { class:"oy-card" },
+      h("div", { class:"oy-card-title" }, cat.label),
+      h("div", { class:"oy-buttons" },
+        ...cat.buttons.map((b,idx)=>
+          h("button", {
+            class: "oy-btn",
+            onclick: () => {
+              OY_STATE.moduleId = cat.id;
+              appendChat("user", `${cat.label} → ${b}`);
+              // "товч дарсан" гэсэн богино текст илгээж холбоо амьд эсэхийг тестлэнэ
+              callChat({ text: `User selected: ${cat.id} / ${b}` });
+            }
+          }, b)
+        )
+      )
+    );
+    root.appendChild(card);
+  });
+}
 
-
-
-
-
-
-
-
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const menu = await fetchMenu();
+    renderMenu(menu);
+  } catch (e) {
+    console.error(e);
+    notify("Меню ачаалагдсангүй");
+  }
+});
