@@ -21,18 +21,16 @@ form.addEventListener("submit", async (e)=>{
   add("Та", q);
   input.value = "";
 
-  const model = (q.length>220) ? "gpt-4o" : "gpt-4o-mini"; // урт бол гүн, бусад нь хурдан
-  try{
-    const r = await fetch(API, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ msg:q, model, persona:"soft" })
-    });
-    if(!r.ok){ add("Сервер", `Алдаа: ${r.status}`); return; }
-    const j = await r.json();
-    add("Оюунсанаа", j.reply || "(хоосон)");
-  }catch(err){
-    add("Сервер", "Холболтын алдаа (API эсвэл сүлжээ).");
-    console.error(err);
-  }
+  // хуучин: const API_BASE = "https://api-.....vercel.app";
+const API_BASE = ""; // same-origin -> chat.oyunsanaa.com
+const r = await fetch(`${API_BASE}/api/oy-chat`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: t.length >= 220 ? "gpt-4o" : "gpt-4o-mini",
+    persona: "soft",
+    msg: t,
+    chatSlug: "one-chat",
+    history
+  })
 });
