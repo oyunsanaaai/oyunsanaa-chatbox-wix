@@ -1,3 +1,4 @@
+// oy.js — нэгтгэсэн хувилбар
 (()=> {
   if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
   const $ = (s, r=document) => r.querySelector(s);
@@ -14,9 +15,10 @@
     panes:     document.querySelectorAll('.oy-pane'),
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
+    menuMount: $('#oyMenuDyn')
   };
 
-  /* ---------- THEME (5 өнгө) ---------- */
+  /* --------- ТЕМА ---------- */
   const THEMES = [
     { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
     { name:'Calm Green',   brand:'#155E1A', bg1:'#0f2027', bg2:'#203a43', user:'#C2C4B9', bot:'#EEF3F4' },
@@ -34,6 +36,7 @@
     r.setProperty('--bot-bg', t.bot);
   }
   function renderThemePicker(){
+    if (!el.themePicker) return;
     el.themePicker.innerHTML = '';
     THEMES.forEach((t, i)=>{
       const b = document.createElement('button');
@@ -46,41 +49,25 @@
     const idx = +localStorage.getItem(THEME_KEY) || 0; applyTheme(THEMES[idx] || THEMES[0]);
   }
 
-  /* ---------- Насны ангилал / Бүртгэл ---------- */
+  /* --------- Нас / гарчиг ---------- */
   const AGE_KEY = 'oy_age_choice';
   function updateTitleFromAge(){
     const saved = localStorage.getItem(AGE_KEY);
-    if(saved){ el.chatTitle.textContent = 'Оюунсанаа — ' + saved; }
-    else{ el.chatTitle.textContent = 'Оюунсанаа — Чат'; }
+    el.chatTitle.textContent = saved ? ('Оюунсанаа — ' + saved) : 'Оюунсанаа — Чат';
   }
   $('#btnRegister')?.addEventListener('click', (e)=>{
     e.preventDefault();
-    const form = $('#ageForm'); if(!form){ return; }
+    const form = $('#ageForm'); if(!form) return;
     const sel = form.querySelector('input[name="age"]:checked');
-    if(!sel){ alert('Эхлээд насны ангилал сонгоно уу.'); return; }
+    if(!sel) { alert('Эхлээд насны ангилал сонгоно уу.'); return; }
     const label = sel.parentElement.textContent.trim();
     localStorage.setItem(AGE_KEY, label);
     updateTitleFromAge();
-    // Хэрвээ Wix рүү чиглүүлэх бол энд линкээ тавина:
-    // location.href = 'https://YOUR-WIX-SITE.com/checkout?age=' + encodeURIComponent(label);
-    alert('Сонголт хадгалагдлаа. Бүртгэл рүү шилжүүлж болно.');
+    alert('Сонголт хадгалагдлаа.');
   });
   updateTitleFromAge();
 
-  /* ---------- Меню toggle (pane нь яг дороо гарна) ---------- */
-  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.dataset.menu;
-      const target = Array.from(el.panes).find(p=>p.dataset.pane===key);
-      if(!target) return;
-      // ижил товчийг дахин дарвал хаана
-      if (!target.hidden) { target.hidden = true; return; }
-      // бусдыг хааж зөвхөн өөрийг нь нээнэ
-      el.panes.forEach(p=>p.hidden = p!==target)
-    });
-  });
-
-  /* ---------- Drawer (mobile) ---------- */
+  /* --------- Drawer ---------- */
   el.btnDrawer?.addEventListener('click', ()=>{
     const opened = document.body.classList.toggle('oy-drawer-open');
     if(el.overlay) el.overlay.hidden = !opened;
@@ -89,7 +76,8 @@
     document.body.classList.remove('oy-drawer-open'); if(el.overlay) el.overlay.hidden = true;
   });
 
-  /* ---------- ЧАТ ---------- */
+  /* --------- ЧАТ суурь ---------- */
+  const OY_API_BASE = window.OY_API_BASE || ""; // "https://chat.oyunsanaa.com"
   const MSGKEY = 'oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
   const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
@@ -114,129 +102,141 @@
     else { arr.forEach(m => bubble(m.html, m.who, m.isHTML)); }
   }
 
-  function showTyping(){ el.typing.hidden = false; }
-  function hideTyping(){ el.typing.hidden = true; }
+  function showTyping(){ if (el.typing) el.typing.hidden = false; }
+  function hideTyping(){ if (el.typing) el.typing.hidden = true; }
 
-  // Зураг preview
-  $('#oyFile')?.addEventListener('change', e=>{
-    const files = Array.from(e.target.files||[]);
-    if (!files.length) return;
-    files.forEach(f=>{
-      if (!f.type.startsWith('image/')){
-        bubble('📎 '+f.name+' (зураг биш тул нэрийг илгээв)','user'); pushMsg('user', f.name); return;
-      }
-      const url = URL.createObjectURL(f);
-      bubble(`<div class="oy-imgwrap"><img src="${url}" alt=""></div>`,'user',true);
-      pushMsg('user', `<img src="${url}">`, true);
-      setTimeout(()=>URL.revokeObjectURL(url),4000);
+  // ——— data URL болгож Vision руу явуулах
+  async function fileToDataURL(file){
+    return new Promise((resolve, reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
     });
-    e.target.value='';
-  });
-
-  // Илгээх
-/* oy.js — зүүн меню динамик рендэр, товч → /api/chat */
-
-const OY_API_BASE = window.OY_API_BASE || ""; // ж: "https://chat.oyunsanaa.com" эсвэл хоосон
-
-let OY_STATE = {
-  moduleId: "psychology",
-  history: []
-};
-
-function h(tag, attrs = {}, ...kids) {
-  const el = document.createElement(tag);
-  Object.entries(attrs).forEach(([k,v])=>{
-    if (k === "class") el.className = v;
-    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
-    else el.setAttribute(k, v);
-  });
-  kids.flat().forEach(c => el.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
-  return el;
-}
-
-async function fetchMenu() {
-  const r = await fetch(`${OY_API_BASE}/api/menu`);
-  const j = await r.json();
-  return j.menu || [];
-}
-
-function notify(msg) {
-  let n = document.getElementById("oy-toast");
-  if (!n) {
-    n = h("div", { id:"oy-toast", class:"oy-toast" });
-    document.body.appendChild(n);
   }
-  n.textContent = msg;
-  n.classList.add("show");
-  setTimeout(()=>n.classList.remove("show"), 1800);
-}
 
-// Эндээс л чат руу дуудна
-async function callChat({ text = "", images = [] }) {
-  const payload = {
-    moduleId: OY_STATE.moduleId,
-    text,
-    images,
-    chatHistory: OY_STATE.history
-  };
+  // ——— API: /api/chat
+  let HISTORY = []; // сервер рүү явуулах history (хүсвэл localStorage-оос сэргээж болно)
+  async function callChat({ text="", images=[] }){
+    showTyping();
+    try {
+      const r = await fetch(`${OY_API_BASE}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: CURRENT_MODULE,
+          text,
+          images,           // data:... URL жагсаалт
+          chatHistory: HISTORY
+        })
+      });
+      const j = await r.json();
+      const reply = j?.reply || "⚠️ Хариу авсангүй.";
+      bubble(reply, 'bot'); pushMsg('bot', reply);
+      HISTORY.push({ role:'assistant', content: reply });
+      meta(j?.model ? `Model: ${j.model}` : '');
+    } catch (e) {
+      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
+    } finally { hideTyping(); }
+  }
 
-  const r = await fetch(`${OY_API_BASE}/api/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+  // ——— Илгээх (send товч, Enter)
+  async function sendCurrent(){
+    const t = (el.input.value || "").trim();
+    const files = Array.from(el.file?.files || []);
+    if (!t && !files.length) return;
+
+    // UI тал
+    if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
+    const dataURLs = [];
+    for (const f of files) {
+      if (f.type.startsWith('image/')) {
+        const d = await fileToDataURL(f);
+        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+        pushMsg('user', `<img src="${d}">`, true);
+        dataURLs.push(d);
+      } else {
+        bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
+      }
+    }
+    el.input.value = ""; if (el.file) el.file.value = "";
+
+    await callChat({ text: t, images: dataURLs });
+  }
+
+  el.send?.addEventListener('click', sendCurrent);
+  el.input?.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCurrent(); }
   });
 
-  const data = await r.json();
-  if (data.ok) {
-    // UI талын чатын талбар луу түр харуулчихъя
-    appendChat("assistant", data.reply);
-    notify(`✅ ${data.model} хариуллаа`);
-  } else {
-    notify("⚠️ Алдаа. Дахин оролдоно уу.");
-  }
-}
-
-function appendChat(role, text) {
-  OY_STATE.history.push({ role, content: text });
-  const box = document.getElementById("oy-chat-box");
-  if (!box) return;
-  const item = h("div", { class: `oy-msg ${role}` }, text);
-  box.appendChild(item);
-  box.scrollTop = box.scrollHeight;
-}
-
-function renderMenu(menu) {
-  const root = document.getElementById("oy-menu");
-  if (!root) return;
-  root.innerHTML = "";
-
-  menu.forEach(cat => {
-    const card = h("div", { class:"oy-card" },
-      h("div", { class:"oy-card-title" }, cat.label),
-      h("div", { class:"oy-buttons" },
-        ...cat.buttons.map((b,idx)=>
-          h("button", {
-            class: "oy-btn",
-            onclick: () => {
-              OY_STATE.moduleId = cat.id;
-              appendChat("user", `${cat.label} → ${b}`);
-              // "товч дарсан" гэсэн богино текст илгээж холбоо амьд эсэхийг тестлэнэ
-              callChat({ text: `User selected: ${cat.id} / ${b}` });
-            }
-          }, b)
-        )
-      )
-    );
-    root.appendChild(card);
+  // Файл сонгосон даруйд preview гаргах (илгээх үед бодит илгээнэ)
+  el.file?.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files||[]);
+    for (const f of files) {
+      if (!f.type.startsWith('image/')) {
+        bubble('📎 '+f.name, 'user'); pushMsg('user', f.name);
+      } else {
+        const d = await fileToDataURL(f);
+        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+        pushMsg('user', `<img src="${d}">`, true);
+      }
+    }
   });
-}
 
-window.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const menu = await fetchMenu();
-    renderMenu(menu);
-  } catch (e) {
-    console.error(e);
-    notify("Меню ачаалагдсангүй");
+  /* --------- Меню (JSON → sidebar) ---------- */
+  const CURRENT = { id:"psychology" };
+  let CURRENT_MODULE = CURRENT.id;
+
+  async function fetchMenu(){
+    const r = await fetch(`${OY_API_BASE}/api/menu`);
+    const j = await r.json();
+    return j.menu || [];
   }
-});
+
+  function renderMenu(menu){
+    if (!el.menuMount) return;
+    el.menuMount.innerHTML = "";
+    menu.forEach(cat => {
+      const card = document.createElement('div');
+      card.className = 'oy-card';
+      card.innerHTML = `
+        <div class="oy-card-title">${cat.label}</div>
+        <div class="oy-buttons">
+          ${cat.buttons.map(b => `<button class="oy-btn" data-mid="${cat.id}">${b}</button>`).join('')}
+        </div>
+      `;
+      el.menuMount.appendChild(card);
+    });
+    el.menuMount.querySelectorAll('.oy-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const mid = btn.getAttribute('data-mid');
+        CURRENT_MODULE = mid || 'psychology';
+        const txt = `${btn.parentElement.previousElementSibling.textContent.trim()} → ${btn.textContent.trim()}`;
+        bubble(txt, 'user'); pushMsg('user', txt); HISTORY.push({ role:'user', content: txt });
+        // богино пинг — API амьтай эсэхийг баталгаажуулна
+        callChat({ text: `User selected: ${CURRENT_MODULE} / ${btn.textContent.trim()}` });
+      });
+    });
+  }
+
+  /* --------- Pane toggle (register / guides / edu) ---------- */
+  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.menu;
+      const target = Array.from(el.panes).find(p => p.dataset.pane === key);
+      if (!target) return;
+      if (!target.hidden) { target.hidden = true; return; }
+      el.panes.forEach(p => p.hidden = p !== target);
+    });
+  });
+
+  /* --------- Boot ---------- */
+  (async ()=>{
+    renderThemePicker();
+    redraw();
+    try {
+      const menu = await fetchMenu();
+      renderMenu(menu);
+    } catch(e){ console.error(e); }
+  })();
+})();
