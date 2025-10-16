@@ -1,70 +1,43 @@
-// Cloudflare Pages Functions — /api/chat
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+// functions/api/chat.js
+import { CORS, ok, err } from "../_utils.js";
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS });
-}
-
-export async function onRequestGet() {
-  return new Response("Use POST /api/chat", { status: 405, headers: CORS });
-}
+export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS });
 
 export async function onRequestPost({ request, env }) {
+  const key = env.OPENAI_API_KEY;
+  if (!key) return err(500, { error: "OPENAI_API_KEY missing" });
+
+  let body = await request.json().catch(()=> ({}));
+  const text    = body?.text || "";
+  const images  = Array.isArray(body?.images) ? body.images : [];
+  const history = Array.isArray(body?.chatHistory) ? body.chatHistory : [];
+  const userLang = (body?.userLang || "mn").split("-")[0];
+
+  if (!text && images.length === 0) return err(400, { error: "empty message" });
+
+  // OpenAI messages формат болгож бэлдье
+  const messages = [
+    { role: "system", content: `You are Oyunsanaa, a helpful assistant. Reply in ${userLang}.` },
+    ...history.map(h => ({ role: h.role, content: h.content })),
+    { role: "user", content: text || " " }
+  ];
+
+  // Зураг ирвэл 4o, эс бөгөөс 4o-mini
+  const model = images.length ? "gpt-4o" : "gpt-4o-mini-2024-07-18";
+
   try {
-    const key = env.OPENAI_API_KEY;
-    if (!key)
-      return new Response(JSON.stringify({ error: "OPENAI_API_KEY missing" }), {
-        status: 500, headers: { ...CORS, "Content-Type": "application/json" }
-      });
-
-    const body = await request.json().catch(()=> ({}));
-    const text       = body?.text ?? "";
-    const images     = Array.isArray(body?.images) ? body.images : [];
-    const chatHistory= Array.isArray(body?.chatHistory) ? body.chatHistory : [];
-    const userLang   = body?.userLang || "mn";
-
-    const needsVision = images.length > 0;
-    const model = needsVision ? "gpt-4o" : "gpt-4o-mini";
-
-    const userContent = [
-      { type: "text", text },
-      ...images.map(u => ({ type: "image_url", image_url: { url: u } }))
-    ];
-
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: `You are Oyunsanaa. User language: ${userLang}.` },
-          ...chatHistory,
-          { role: "user", content: userContent }
-        ]
-      })
+      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, messages })
     });
-
     const data = await r.json();
-    if (!r.ok) {
-      return new Response(JSON.stringify({ error: "Upstream error", detail: data }), {
-        status: 500, headers: { ...CORS, "Content-Type": "application/json" }
-      });
-    }
+
+    if (!r.ok) return err(502, { error: "Upstream error", detail: data });
 
     const reply = data?.choices?.[0]?.message?.content || "…";
-    return new Response(JSON.stringify({ reply, model: data?.model || model }), {
-      headers: { ...CORS, "Content-Type": "application/json" }
-    });
+    return ok({ reply, model });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500, headers: { ...CORS, "Content-Type": "application/json" }
-    });
+    return err(500, { error: String(e) });
   }
 }
