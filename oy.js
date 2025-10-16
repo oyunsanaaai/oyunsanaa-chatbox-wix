@@ -184,59 +184,69 @@
   });
 
   /* --------- Меню (JSON → sidebar) ---------- */
-  const CURRENT = { id:"psychology" };
-  let CURRENT_MODULE = CURRENT.id;
+// API суурь домэйн
+const OY_API_BASE = window.OY_API_BASE || "https://chat.oyunsanaa.com";
 
-  async function fetchMenu(){
-    const r = await fetch(`${OY_API_BASE}/api/menu`);
-    const j = await r.json();
-    return j.menu || [];
-  }
+// ——— Sidebar динамик меню
+const mount = document.querySelector('#oyMenuDyn');  // index.html дотор байгаа хоосон div
+let CURRENT_MODULE = "psychology";
+let HISTORY = [];
 
-  function renderMenu(menu){
-    if (!el.menuMount) return;
-    el.menuMount.innerHTML = "";
-    menu.forEach(cat => {
-      const card = document.createElement('div');
-      card.className = 'oy-card';
-      card.innerHTML = `
-        <div class="oy-card-title">${cat.label}</div>
-        <div class="oy-buttons">
-          ${cat.buttons.map(b => `<button class="oy-btn" data-mid="${cat.id}">${b}</button>`).join('')}
-        </div>
-      `;
-      el.menuMount.appendChild(card);
-    });
-    el.menuMount.querySelectorAll('.oy-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const mid = btn.getAttribute('data-mid');
-        CURRENT_MODULE = mid || 'psychology';
-        const txt = `${btn.parentElement.previousElementSibling.textContent.trim()} → ${btn.textContent.trim()}`;
-        bubble(txt, 'user'); pushMsg('user', txt); HISTORY.push({ role:'user', content: txt });
-        // богино пинг — API амьтай эсэхийг баталгаажуулна
-        callChat({ text: `User selected: ${CURRENT_MODULE} / ${btn.textContent.trim()}` });
-      });
-    });
-  }
+async function getMenu(){
+  const r = await fetch(`${OY_API_BASE}/api/menu`);
+  const j = await r.json();              // <— Одооноос 404 биш JSON буцна
+  return j.menu || [];
+}
 
-  /* --------- Pane toggle (register / guides / edu) ---------- */
-  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.dataset.menu;
-      const target = Array.from(el.panes).find(p => p.dataset.pane === key);
-      if (!target) return;
-      if (!target.hidden) { target.hidden = true; return; }
-      el.panes.forEach(p => p.hidden = p !== target);
-    });
+function renderSixMenus(menu){
+  if (!mount) return;
+  mount.innerHTML = "";
+  menu.forEach(cat => {
+    const sec = document.createElement('section');
+    sec.className = 'oy-pane';   // яг “Сэтгэлийн боловсрол” шиг хүрээтэй
+    sec.innerHTML = `
+      <h4 style="margin:6px 0">${cat.label}</h4>
+      <ul class="oy-list">
+        ${cat.items.map(it => `
+          <li>
+            <span>${it.label}</span>
+            <button class="oy-mini" data-mid="${cat.id}" data-bid="${it.id}">Орох</button>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+    mount.appendChild(sec);
   });
 
-  /* --------- Boot ---------- */
-  (async ()=>{
-    renderThemePicker();
-    redraw();
-    try {
-      const menu = await fetchMenu();
-      renderMenu(menu);
-    } catch(e){ console.error(e); }
-  })();
-})();
+  mount.querySelectorAll('button[data-mid]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const mid = btn.getAttribute('data-mid');
+      const bid = btn.getAttribute('data-bid');
+      CURRENT_MODULE = mid;
+      // UI-д мессеж нэмээд API-гаа дуудна
+      bubble(`${mid} → ${bid}`, 'user'); pushMsg('user', `${mid} → ${bid}`);
+      HISTORY.push({ role:'user', content:`User selected: ${mid}/${bid}` });
+      callChat({ text:`User selected: ${mid}/${bid}`, images:[] });
+    });
+  });
+}
+
+async function callChat({ text="", images=[] }){
+  showTyping();
+  try{
+    const r = await fetch(`${OY_API_BASE}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY }),
+    });
+    const j = await r.json();
+    bubble(j.reply || "…", 'bot'); pushMsg('bot', j.reply || "…");
+    HISTORY.push({ role:'assistant', content: j.reply || "" });
+    meta(j.model ? `Model: ${j.model}` : "");
+  } catch(e){
+    bubble("⚠️ API холболт амжилтгүй.", 'bot');
+  } finally { hideTyping(); }
+}
+
+// Ачаалмагц меню татаж зурна
+getMenu().then(renderSixMenus).catch(()=>bubble("⚠️ Меню ачаалсангүй.", "bot"));
