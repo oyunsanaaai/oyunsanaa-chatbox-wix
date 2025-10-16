@@ -185,13 +185,37 @@
 
   <!-- Зөвхөн JS: энд HTML бүү оруул -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(()=>{});
-      });
-    }
-  </script>
-  <!-- B: товч → API дуудлага хийх богино скрипт (service worker-ийн дараа, </body>-ийн өмнө) -->
+  function fileToDataURL(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
+
+async function oySend(moduleId, action){
+  const text = `User selected: ${moduleId} / ${action}`;
+  addBubble(text, 'user');
+
+  // зурагнуудыг цуглуулах
+  const fileInput = document.getElementById('oyFile');
+  let images = [];
+  if (fileInput?.files?.length) {
+    const imgs = [...fileInput.files].filter(f => f.type.startsWith('image/'));
+    images = await Promise.all(imgs.map(fileToDataURL));
+    fileInput.value = "";
+  }
+
+  const r = await fetch((window.OY_API_BASE||"") + "/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ moduleId, text, images, chatHistory: [] })
+  });
+  const j = await r.json();
+  addBubble(j.reply || "…", "oy-bot");
+  if (j.model) addMeta('Model: ' + j.model);
+}
 <script>
   // чатанд мессеж нэмэх жижиг туслах
   function oy__bubble(text, who){
