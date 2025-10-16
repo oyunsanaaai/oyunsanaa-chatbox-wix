@@ -191,5 +191,43 @@
       });
     }
   </script>
+  <!-- B: товч → API дуудлага хийх богино скрипт (service worker-ийн дараа, </body>-ийн өмнө) -->
+<script>
+  // чатанд мессеж нэмэх жижиг туслах
+  function oy__bubble(text, who){
+    var box = document.getElementById('oyStream');
+    var d = document.createElement('div');
+    d.className = 'oy-bubble ' + (who==='user' ? 'oy-user' : 'oy-bot');
+    d.textContent = text;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight + 999;
+  }
+
+  async function oySend(moduleId, action){
+    var text = `User selected: ${moduleId} / ${action}`;
+    oy__bubble(text, 'user');
+
+    try {
+      const r = await fetch((window.OY_API_BASE||"") + "/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId, text,
+          images: [],           // зурагтай бол dataURL-уудыг энд оруулж болно
+          chatHistory: []       // хүсвэл түүхээ дамжуулж болно
+        })
+      });
+      const j = await r.json();
+      oy__bubble(j.reply || "…", 'bot');
+      if (j.model) {
+        var m = document.createElement('div');
+        m.className = 'oy-meta'; m.textContent = 'Model: ' + j.model;
+        document.getElementById('oyStream').appendChild(m);
+      }
+    } catch (e) {
+      oy__bubble("⚠️ API холболт амжилтгүй.", 'bot');
+    }
+  }
+</script>
 </body>
 </html>
