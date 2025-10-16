@@ -140,7 +140,6 @@
       const reply = j?.reply || "…";
       bubble(reply, 'bot'); pushMsg('bot', reply);
       HISTORY.push({ role:'assistant', content: reply });
-      if (j?.model) meta(`Model: ${j.model}`);
     } catch {
       bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
     } finally { hideTyping(); }
