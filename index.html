@@ -1,31 +1,95 @@
+<!-- /index.html -->
 <!doctype html>
 <html lang="mn">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Оюунсанаа · Чат (минимал)</title>
-    <style>
-      :root{--bg:#fafafa;--fg:#111;--card:#fff;--bd:#eaeaea}
-      *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,Arial}
-      header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--bd);padding:12px 16px}
-      main{max-width:820px;margin:12px auto;padding:0 16px}
-      #log{height:62vh;overflow:auto;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px}
-      .msg{margin:8px 0}
-      .msg b{display:inline-block;min-width:88px}
-      form{display:flex;gap:8px;margin-top:10px}
-      input,button{padding:10px;border-radius:8px;border:1px solid var(--bd)}
-      input{flex:1} button{background:#111;color:#fff;border:0;cursor:pointer}
-    </style>
-  </head>
-  <body>
-    <header><b>Оюунсанаа · Чат</b></header>
-    <main>
-      <div id="log" aria-live="polite"></div>
-      <form id="chatForm" autocomplete="off">
-        <input id="oyInput" placeholder="Юу асуух вэ?" />
-        <button id="btnSend" type="submit">Илгээх</button>
-      </form>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Оюунсанаа — Чат</title>
+  <link rel="stylesheet" href="/public/style.css"/>
+</head>
+<body>
+  <div id="app" class="layout">
+    <!-- Sidebar (10 меню) -->
+    <aside class="sidebar">
+      <!-- 2 Wix холбоос (URL-аа солино) -->
+      <a class="nav-item ext" href="https://oyunsanaa.com/register" target="_blank" rel="noopener">Бүртгэл (Wix)</a>
+      <a class="nav-item ext" href="https://oyunsanaa.com" target="_blank" rel="noopener">Нүүр (Wix)</a>
+
+      <!-- Дотоод 8 меню -->
+      <button class="nav-item" data-menu="health">Эрүүл мэнд</button>
+      <button class="nav-item" data-menu="finance">Санхүү</button>
+      <button class="nav-item" data-menu="goals">Зорилго</button>
+      <button class="nav-item" data-menu="reminders">Сануулга</button>
+      <button class="nav-item" data-menu="journal">Тэмдэглэл</button>
+      <button class="nav-item" data-menu="mind">Сэтгэл зүй</button>
+      <button class="nav-item" data-menu="relations">Харилцаа</button>
+      <button class="nav-item" data-menu="environment">Орчин</button>
+
+      <!-- Theme сонголт -->
+      <div class="theme-card glass">
+        <div class="theme-row">
+          <button class="theme-dot" data-theme="ocean" title="Ocean"></button>
+          <button class="theme-dot" data-theme="forest" title="Forest"></button>
+          <button class="theme-dot" data-theme="sunset" title="Sunset"></button>
+          <button class="theme-dot" data-theme="purple" title="Purple"></button>
+          <button class="theme-dot" data-theme="mono" title="Mono"></button>
+        </div>
+        <div class="custom-row">
+          <input id="customColor" type="color" value="#0ea5a3" />
+          <span>Custom</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="main">
+      <!-- Tabs for a chosen module -->
+      <header class="module-header glass">
+        <div class="breadcrumbs">
+          <span id="crumb">Чат</span>
+        </div>
+        <div class="model-switch">
+          <button id="btnMini" class="pill active" data-model="mini">4.0 mini</button>
+          <button id="btnPro"  class="pill" data-model="pro">4.0 (гүн)</button>
+        </div>
+      </header>
+
+      <!-- Workspace split: chat + module panel -->
+      <section class="work">
+        <!-- Chat panel -->
+        <div class="chat glass">
+          <div id="thread" class="thread"></div>
+          <div class="composer">
+            <label class="file-btn">
+              <input id="imgInput" type="file" accept="image/*"/>
+              📷
+            </label>
+            <textarea id="msg" rows="1" placeholder="Мессеж бичнэ үү..."></textarea>
+            <button id="send">Илгээх</button>
+          </div>
+        </div>
+
+        <!-- Module panel (router panes) -->
+        <div class="panel">
+          <section class="pane glass" data-pane="health" hidden></section>
+          <section class="pane glass" data-pane="finance" hidden></section>
+          <section class="pane glass" data-pane="goals" hidden></section>
+          <section class="pane glass" data-pane="reminders" hidden></section>
+          <section class="pane glass" data-pane="journal" hidden></section>
+          <section class="pane glass" data-pane="mind" hidden></section>
+          <section class="pane glass" data-pane="relations" hidden></section>
+          <section class="pane glass" data-pane="environment" hidden></section>
+          <section class="pane glass" data-pane="blank">
+            <div class="empty">
+              <h3>Меню сонгоод дотоод модулиа нээнэ үү.</h3>
+              <p>Чат баруун талд үргэлж бэлэн.</p>
+            </div>
+          </section>
+        </div>
+      </section>
     </main>
-    <script src="/oy.js"></script>
-  </body>
+  </div>
+
+  <script src="/public/app.js" defer></script>
+</body>
 </html>
