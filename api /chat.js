@@ -1,4 +1,5 @@
-// /api/chat.js  — Node runtime, CORS + body parse, oy.js-д таарах хэлбэрээр хариулна
+export const config = { runtime: 'nodejs20' };
+/ /api/chat.js  — Node runtime, CORS + body parse, oy.js-д таарах хэлбэрээр хариулна
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
