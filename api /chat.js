@@ -1,73 +1,49 @@
-// /api/chat.js  — Vercel serverless function (Node.js)
-// Node runtime:
-export const config = { runtime: 'nodejs18.x' };
-
-function pickModel({ text = '', images = [] }) {
-  // Урт яриа эсвэл зурагтай бол 4.0, бусад нь 4.0-mini
-  const long = (text || '').trim().length > 400 || images.length > 0;
-  return long ? 'gpt-4.0' : 'gpt-4.0-mini';
-}
-
+// /api/chat.js  ← файл НЭРИЙГ яг ингэж хадгал!
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    return res.status(200).json({ ok: true, ping: 'pong' });
+  }
+
   if (req.method !== 'POST') {
-    return res.status(200).json({ ok: true, tip: 'POST /api/chat' });
+    return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
   }
 
   try {
-    const { moduleId, text = '', images = [], chatHistory = [], userLang = 'mn' } =
-      typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const model = pickModel({ text, images });
+    // Vercel Node functions-д req.body шууд бэлэн ирнэ
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const { moduleId = 'psychology', text = '', images = [], chatHistory = [], userLang } = body;
 
-    const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_BETA;
-    if (!apiKey) {
-      // Ключ тохируулаагүй бол түр зуурын stub
-      return res.status(200).json({
-        ok: true,
-        model,
-        reply: `[stub] (${model}) «${moduleId}» дээр ирсэн текст: ${text || '(хоосон)'}`
-      });
-    }
+    const use4o = images?.length > 0 || (text && text.length > 300);
+    const model = use4o ? 'gpt-4o' : 'gpt-4o-mini';
 
-    // --- Жинхэнэ дуудлага (JSON-mode) ---
     const messages = [
-      { role: 'system', content: `You are Oyunsanaa assistant. Reply in ${userLang}. Module=${moduleId}.` },
-      ...chatHistory,
-      { role: 'user', content: text || '(no text)' }
-    ];
-
-    // Хэрэв зургууд байвал multimodal оруулах
-    if (images.length) {
-      messages.push({
+      { role: 'system', content: `You are OY assistant for module: ${moduleId}. Answer in ${userLang || 'mn'}.` },
+      {
         role: 'user',
         content: [
-          { type: 'text', text: '(see attached images)' },
-          ...images.map(u => ({ type: 'input_image', image_url: u }))
-        ]
-      });
-    }
+          { type: 'text', text },
+          ...images.map((d) => ({ type: 'image_url', image_url: { url: d } })),
+        ],
+      },
+    ];
 
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.5
-      })
+      body: JSON.stringify({ model, messages, temperature: 0.7 }),
     });
 
     if (!r.ok) {
-      const errText = await r.text();
-      return res.status(500).json({ ok: false, error: 'openai_failed', detail: errText });
+      const t = await r.text();
+      return res.status(500).json({ ok: false, error: 'openai_error', detail: t });
     }
-    const data = await r.json();
-    const reply = data?.choices?.[0]?.message?.content || '…';
-
-    return res.status(200).json({ ok: true, model, reply });
+    const j = await r.json();
+    const reply = j.choices?.[0]?.message?.content?.trim() || '…';
+    return res.status(200).json({ ok: true, reply, model });
   } catch (e) {
-    return res.status(500).json({ ok: false, error: 'server_error', detail: String(e) });
+    return res.status(500).json({ ok: false, error: String(e) });
   }
 }
