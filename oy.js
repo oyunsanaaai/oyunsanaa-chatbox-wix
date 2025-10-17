@@ -141,39 +141,24 @@
     });
   }
 function extractReply(j) {
-  // 1) OpenAI/Custom: { output: [ { role, content: [ {type, text}, ... ] } ] }
   if (Array.isArray(j?.output)) {
     const chunks = [];
-    for (const msg of j.output) {
-      const items = msg?.content || [];
-      for (const c of items) {
-        if (!c) continue;
-        // ✅ аль алиныг нь дэмжинэ
-        if (c.type === "text" || c.type === "output_text" || c.type === "input_text") {
-          if (typeof c.text === "string") chunks.push(c.text);
-        } else if (typeof c === "string") {
-          chunks.push(c);
-        }
+    for (const m of j.output) {
+      for (const c of (m?.content || [])) {
+        if ((c?.type === "text" || c?.type === "output_text" || c?.type === "input_text") && typeof c.text === "string") {
+          chunks.push(c.text);
+        } else if (typeof c === "string") chunks.push(c);
       }
     }
     if (chunks.length) return chunks.join("");
   }
-
-  // 2) { message: { content: [ {type:'text', text: '...'} ] } }
   if (j?.message?.content) {
-    const t = (j.message.content || [])
-      .map(c => (typeof c === "string" ? c : (c?.text || "")))
-      .join("");
+    const t = (j.message.content || []).map(c => (typeof c === "string" ? c : (c?.text || ""))).join("");
     if (t) return t;
   }
-
-  // 3) OpenAI chat-completions хэлбэр
   if (j?.choices?.[0]?.message?.content) return j.choices[0].message.content;
-
-  // 4) Энгийн хэлбэрүүд
   if (typeof j?.text === "string") return j.text;
   if (typeof j?.reply === "string") return j.reply;
-
   return "";
 }
   /* ---------- State ---------- */
@@ -191,11 +176,9 @@ async function callChat({ text = "", images = [] }) {
   try {
     const USER_LANG = (window.OY_LANG || navigator.language || "mn").split("-")[0] || "mn";
     const payload = { moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG };
-
-    // Заримдаа backend чинь өөр замтай байж магадгүй → уян хатан жагсаалт
     const endpoints = [`${OY_API}/v1/chat`, `${OY_API}/api/chat`, `${OY_API}/chat`];
 
-    let lastErr = null, reply = "";
+    let reply = "", lastErr = null;
 
     for (const url of endpoints) {
       try {
@@ -205,21 +188,19 @@ async function callChat({ text = "", images = [] }) {
           body: JSON.stringify(payload),
         });
 
-        // 404 эсвэл 405 бол дараагийн endpoint руу шилжинэ
         if (!res.ok && (res.status === 404 || res.status === 405)) continue;
 
-        const ctype = (res.headers.get("content-type") || "").toLowerCase();
+        const ct = (res.headers.get("content-type") || "").toLowerCase();
 
-        // ✅ SSE stream
-        if (ctype.includes("text/event-stream") && res.body) {
+        if (ct.includes("text/event-stream") && res.body) {
+          // STREAM
           const reader = res.body.getReader();
-          const decoder = new TextDecoder();
+          const dec = new TextDecoder();
           let acc = "";
-
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
+            const chunk = dec.decode(value, { stream: true });
             for (const line of chunk.split("\n")) {
               const t = line.trim();
               if (!t.startsWith("data:")) continue;
@@ -227,43 +208,30 @@ async function callChat({ text = "", images = [] }) {
               if (dataStr === "[DONE]") break;
               try {
                 const evt = JSON.parse(dataStr);
-                const piece =
-                  evt?.delta?.text ??
-                  extractReply(evt) ??
-                  "";
-                if (piece) {
-                  acc += piece;
-                }
+                const piece = evt?.delta?.text ?? extractReply(evt) ?? "";
+                if (piece) acc += piece;
               } catch {}
             }
           }
           reply = acc.trim();
-        }
-        // ✅ JSON one-shot
-        else {
+        } else {
+          // JSON
           const j = await res.json();
-          reply = extractReply(j)?.trim() || "";
-          if (!reply && j?.model) reply = `(${j.model})`; // хоосон ирвэл ямар нэг юм харуулчихъя
+          reply = (extractReply(j) || "").trim();
         }
 
-        // Амжилттай уншсан бол давталтаас гарна
-        if (reply) break;
-
-      } catch (e) {
-        lastErr = e;
-        // дараагийн endpoint руу оролдоно
-      }
+        if (reply) break; // амжилттай авсан бол зогсоно
+      } catch (e) { lastErr = e; }
     }
 
     if (!reply) {
       if (lastErr) console.error(lastErr);
-      reply = "⚠️ Хариу формат ойлгогдсонгүй. Backend-ийн JSON `content[].type` нь `text` эсвэл `output_text` эсэхийг шалгана уу.";
+      reply = "⚠️ Хариу формат ойлгогдсонгүй. Backend-ийн JSON-д content[].type='text' (эсвэл 'output_text') байгаа эсэхээ шалгаарай.";
     }
 
     bubble(reply, "bot");
     pushMsg("bot", reply);
     HISTORY.push({ role: "assistant", content: reply });
-
   } catch (e) {
     console.error(e);
     bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалга.", "bot");
