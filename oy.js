@@ -166,6 +166,19 @@ async function sendCurrent() {
 
   await callChat({ text: t, images: dataURLs });
 }
+  /* ---- SEND товчны event listeners ---- */
+el.send?.addEventListener('click', sendCurrent);
+
+el.input?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendCurrent();
+  }
+});
+
+el.file?.addEventListener('change', async e => {
+  // Хэрвээ хүсвэл зөвхөн preview хийх хэсэг энд бичиж болно
+});
   /* ---------- ЗҮҮН МЕНЮ: товч → oySend ---------- */
   // HTML дээр: onclick="oySend('mental-edu','intro')"
   window.oySend = async function(moduleId, action){
