@@ -119,24 +119,19 @@
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
 // --- file → compressed dataURL (for API upload) ---
-
-  // --- file → dataURL (энд шахалт хэрэггүй, баталгаатай уншуулъя)
-async function fileToDataURL(file) {
+// --- file -> compressed dataURL (for API upload) ---
+async function fileToDataURL(file, maxSide = 1024, quality = 0.78) {
   return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => resolve(fr.result);
-    fr.onerror = reject;
-    fr.readAsDataURL(file);
-  });
-}
+    const img = new Image();
+    const url = URL.createObjectURL(file);
     img.onload = () => {
       const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width * scale;
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.width  * scale;
       canvas.height = img.height * scale;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const out = canvas.toDataURL("image/webp", quality);
+      const out = canvas.toDataURL('image/webp', quality);
       URL.revokeObjectURL(url);
       resolve(out);
     };
@@ -144,29 +139,25 @@ async function fileToDataURL(file) {
     img.src = url;
   });
 }
-  
 async function sendCurrent() {
   const t = (el.input?.value || "").trim();
   const files = Array.from(el.file?.files || []);
   if (!t && !files.length) return;
 
-  if (t) {
-    bubble(t, 'user');
-    pushMsg('user', t);
-    HISTORY.push({ role:'user', content: t });
-  }
+  // chat урсгалд хэрэглэгчийн текстийг нэг л удаа харуулна
+  if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({role:'user', content:t}); }
 
+  // сервер рүү зөвхөн dataURL массив явуулна (давхар preview хийгдэхгүй)
   const dataURLs = [];
   for (const f of files) {
     if (f.type.startsWith('image/')) {
       const d = await fileToDataURL(f);
-      // 👇 preview-ийг түр болиулж давхардлыг зогсооно
-      // bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
-      // pushMsg('user', `<img src="${d}">`, true);
+      // Хэрэглэгчид харагдах жижиг preview (нэг л удаа)
+      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
+      pushMsg('user', `<img src="${d}">`, true);
       dataURLs.push(d);
     } else {
-      bubble('📎 ' + f.name, 'user');
-      pushMsg('user', f.name);
+      bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
     }
   }
 
@@ -174,7 +165,7 @@ async function sendCurrent() {
   if (el.file)  el.file.value  = "";
 
   await callChat({ text: t, images: dataURLs });
-} // ← хаалт яг энд байх ёстой!!!
+}
   /* ---------- ЗҮҮН МЕНЮ: товч → oySend ---------- */
   // HTML дээр: onclick="oySend('mental-edu','intro')"
   window.oySend = async function(moduleId, action){
