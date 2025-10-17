@@ -154,8 +154,6 @@ async function sendCurrent() {
     bubble(t, 'user');
     pushMsg('user', t);
     HISTORY.push({ role:'user', content: t });
-  }
-
   const dataURLs = [];
   for (const f of files) {
     if (f.type.startsWith('image/')) {
