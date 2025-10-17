@@ -120,7 +120,8 @@
   let CURRENT_MODULE = 'psychology';
 // --- file → compressed dataURL (for API upload) ---
 
-  async function fileToDataURL(file) {
+  // --- file → dataURL (энд шахалт хэрэггүй, баталгаатай уншуулъя)
+async function fileToDataURL(file) {
   return new Promise((resolve, reject) => {
     const fr = new FileReader();
     fr.onload = () => resolve(fr.result);
@@ -149,17 +150,19 @@ async function sendCurrent() {
   const files = Array.from(el.file?.files || []);
   if (!t && !files.length) return;
 
-  if (t) { 
-    bubble(t, 'user'); 
-    pushMsg('user', t); 
-    HISTORY.push({ role: 'user', content: t }); 
+  if (t) {
+    bubble(t, 'user');
+    pushMsg('user', t);
+    HISTORY.push({ role:'user', content: t });
   }
 
   const dataURLs = [];
   for (const f of files) {
     if (f.type.startsWith('image/')) {
-      const d = await fileToDataURL(f); // зураг шахаж хөрвүүлж байна
-      pushMsg('user', `<img src="${d}">`, true);
+      const d = await fileToDataURL(f);
+      // 👇 preview-ийг түр болиулж давхардлыг зогсооно
+      // bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
+      // pushMsg('user', `<img src="${d}">`, true);
       dataURLs.push(d);
     } else {
       bubble('📎 ' + f.name, 'user');
@@ -167,9 +170,8 @@ async function sendCurrent() {
     }
   }
 
-  console.log('🖼 sending images:', dataURLs.length); // ← энэ логийг шалга
   if (el.input) el.input.value = "";
-  if (el.file) el.file.value = "";
+  if (el.file)  el.file.value  = "";
 
   await callChat({ text: t, images: dataURLs });
 }
