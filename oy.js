@@ -154,6 +154,8 @@ async function sendCurrent() {
     bubble(t, 'user');
     pushMsg('user', t);
     HISTORY.push({ role:'user', content: t });
+  }
+
   const dataURLs = [];
   for (const f of files) {
     if (f.type.startsWith('image/')) {
@@ -172,8 +174,7 @@ async function sendCurrent() {
   if (el.file)  el.file.value  = "";
 
   await callChat({ text: t, images: dataURLs });
-}
-  
+} // ← хаалт яг энд байх ёстой!!!
   /* ---------- ЗҮҮН МЕНЮ: товч → oySend ---------- */
   // HTML дээр: onclick="oySend('mental-edu','intro')"
   window.oySend = async function(moduleId, action){
