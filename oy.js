@@ -74,8 +74,64 @@
 
   // JSON -> reply text (олон формат дэмжинэ)
   function pickReply(j){
-    return (
-      j?.reply ??
-      j?.message ??
-      j?.choices?.[0]?.message?.content ??
-      j?.output?.[0]?.content?.
+  return (
+    j?.reply ??
+    j?.message ??
+    j?.choices?.[0]?.message?.content ??
+    j?.output?.[0]?.content?.find?.(c => c.type === "output_text")?.text ??
+    j?.content ??
+    ""
+  );
+}
+async function callChat({ text = "", images = [] } = {}){
+  if (!CHAT_URL){
+    bubble("⚠️ API тохируулаагүй байна (OY_API_BASE).", "bot");
+    return;
+  }
+  showTyping();
+  try {
+    const USER_LANG = (window.OY_LANG || navigator.language || "mn").split("-")[0];
+    const r = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        moduleId: CURRENT_MODULE,
+        text,
+        images,
+        chatHistory: HISTORY,
+        userLang: USER_LANG
+      })
+    });
+
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    const reply = pickReply(data).trim();
+
+    if (!reply){
+      bubble("… (хоосон хариу ирлээ)", "bot");
+    } else {
+      bubble(reply, "bot");
+      HISTORY.push({ role: "assistant", content: reply });
+    }
+    if (data?.model) bubble(`🧠 Model: ${data.model}`, "bot");
+  } catch(e){
+    console.error(e);
+    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", "bot");
+  } finally {
+    hideTyping();
+  }
+}
+async function sendCurrent(){
+  const t = (el.input?.value || "").trim();
+  if (!t) return;
+  bubble(t, "user");
+  HISTORY.push({ role:"user", content:t });
+  el.input.value = "";
+  await callChat({ text:t });
+}
+
+el.send && (el.send.onclick = sendCurrent);
+el.input?.addEventListener("keydown", e=>{
+  if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendCurrent(); }
+});
+})();
