@@ -77,7 +77,7 @@
   });
 
   /* ---------- ЧАТ суурь ---------- */
-  const OY_API = window.OY_API_BASE || "";     // ж: "https://<project>.vercel.app"
+const OY_API = window.OY_API_BASE || "https://chat.oyunsanaa.com";
   const MSGKEY = 'oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
   const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
