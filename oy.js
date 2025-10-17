@@ -160,30 +160,44 @@ async function fileToDataURL(file, maxSide = 1200, quality = 0.8) {
   });
 }
 
-// --- API руу илгээх ганц функц ---
-async function callChat({ text = "", images = [], chatHistory = [], userLang = 'mn' }) {
+// Түүх ба идэвхтэй модел
+let HISTORY = [];
+let CURRENT_MODEL = 'mini'; // эсвэл '4o'
+
+// === API руу илгээх ганц функц ===
+async function callChat({ text = "", images = [] } = {}) {
   showTyping?.();
+
   try {
-    const r = await fetch(`${window.OY_API_BASE}/chat`, {
+    // Хэрэглэгчийн хэл
+    const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0];
+
+    // ⚠️ ЭНЭ URL-ийг worker-ийнхаа домайнтай тааруул
+    const r = await fetch(`${OY_API}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text, images, chatHistory, userLang,
-        model: CURRENT_MODEL   // ← ЭНЭ ЧУХАЛ!
+        text,
+        images,
+        chatHistory: HISTORY,
+        userLang: USER_LANG,
+        mode: CURRENT_MODEL
       })
     });
+
     const j = await r.json();
     const reply = j?.reply || j?.message || "…";
-    bubble?.(reply, 'bot'); pushMsg?.('bot', reply);
+    bubble?.(reply, 'bot');
+    pushMsg?.('bot', reply);
     HISTORY?.push?.({ role: 'assistant', content: reply });
+
   } catch (e) {
     console.error(e);
-    bubble?.("⚠️ API-д холбогдож чадсангүй. Дараад дахин оролдоно уу.", "bot");
+    bubble?.("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
   } finally {
     hideTyping?.();
   }
 }
-
 // --- Send товч / Enter дарахад ---
 async function sendCurrent() {
   const t = (el.input?.value || "").trim();
