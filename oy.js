@@ -186,13 +186,24 @@ async function callChat({ text = "", images = [] }){
   }
   el.send?.addEventListener('click', sendCurrent);
   el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
- el.file?.addEventListener('change', async (e)=>{ 
-  const files = Array.from(e.target.files||[]);
-  for (const f of files) if (f.type.startsWith('image/')){
-    const d = await fileToDataURL(f);
-    // зөвхөн preview харуулна, хадгалахгүй
-    bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+// --- Зураг сонгох (preview л хийнэ, илгээхгүй) ---
+el.file?.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+
+  // preview харуулах
+  for (const f of files) {
+    if (f.type.startsWith('image/')) {
+      const d = await fileToDataURL(f);
+      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
+      // preview үед pushMsg хийж болохгүй — sendCurrent дараа нь хийх болно
+    } else {
+      bubble('📎 ' + f.name, 'user');
+    }
   }
+
+  // input-д зураг байгаа үед Enter дарж илгээдэг логик руу шилжих
+  el.input?.focus();
 });
 
   // Зүүн меню → oySend
