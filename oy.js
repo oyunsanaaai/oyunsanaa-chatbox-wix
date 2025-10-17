@@ -125,16 +125,17 @@ const OY_API = "https://oyunsanaa-api.oyunsanaa-ai.workers.dev";  const MSGKEY =
       // ⬇️ НЭМЭЛТ 1: хэрэглэгчийн хэл (Wix -> window.OY_LANG, эсвэл browser)
       const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
 
-      const r = await fetch(`${OY_API}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          moduleId: CURRENT_MODULE,
-          text, images,
-          chatHistory: HISTORY,
-          userLang: USER_LANG   // ⬅️ НЭМЭЛТ 2: сервер рүү дамжуулж байна
-        })
-      });
+      - const r = await fetch(`${OY_API}/api/chat`, {
++ const r = await fetch(`${OY_API}/chat`, {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify({
+-    moduleId: CURRENT_MODULE,   // (энэ талд байж болно, алдаа биш)
++    moduleId: CURRENT_MODULE,
+     text, images, chatHistory: HISTORY, userLang: USER_LANG,
++    mode: CURRENT_MODEL         // 2 model-ын товчлуураас (“mini”/“4o”) ирнэ
+   })
+});
       const j = await r.json();
       const reply = j?.reply || "…";
       bubble(reply, 'bot'); pushMsg('bot', reply);
