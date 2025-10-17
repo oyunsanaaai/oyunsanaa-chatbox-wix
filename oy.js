@@ -163,31 +163,25 @@ async function fileToDataURL(file, maxSide = 1200, quality = 0.8) {
 // Түүх ба идэвхтэй модел
 let HISTORY = [];
 let CURRENT_MODEL = 'mini'; // эсвэл '4o'
-
-// === API руу илгээх ганц функц ===
-async function callChat({ text = "", images = [] } = {}) {
+// === API дуудах жинхэнэ функц ===
+async function callChat() {
   showTyping?.();
   try {
-    const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0];
-    const r = await fetch(`${OY_API}/chat`, {
+    const r = await fetch("https://oyunsanaa-api.oyunsanaa-ai.workers.dev/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text,
-        images,
-        chatHistory: HISTORY,
-        userLang: USER_LANG,
-        mode: CURRENT_MODEL
-      })
+      body: JSON.stringify({ text: "Сайн байна уу?" })
     });
+
     const j = await r.json();
     const reply = j?.reply || j?.message || "…";
-    bubble?.(reply, "bot");
-    pushMsg?.("bot", reply);
-    HISTORY.push({ role: "assistant", content: reply });
+    bubble(reply, 'bot');
+    pushMsg('bot', reply);
+    HISTORY.push({ role: 'assistant', content: reply });
+
   } catch (e) {
     console.error(e);
-    bubble?.("⚠️ Холболт амжилтгүй байна.", "bot");
+    bubble("⚠️ Холболт амжилтгүй байна. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
   } finally {
     hideTyping?.();
   }
