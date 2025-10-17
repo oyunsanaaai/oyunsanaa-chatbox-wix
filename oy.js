@@ -141,28 +141,31 @@ async function callChat({ text = "", images = [] }) {
     hideTyping();
   }
 }
- 
-async function sendCurrent() {
-  const t = (el.input?.value || "").trim();
-  const files = Array.from(el.file?.files || []);
-  if (!t && !files.length) return;
+ // --- API руу POST хийх ганц функц ---
+const OY_API = window.OY_API_BASE || "";  // ж: "" = same origin
 
-  // chat урсгалд хэрэглэгчийн текстийг нэг л удаа харуулна
-  if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({role:'user', content:t}); }
+async function callChat({ text = "", images = [] }) {
+  try {
+    const r = await fetch(`${OY_API}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        images,
+        chatHistory: HISTORY,   // байгаа түүхээ явуулна (хийсвэр)
+      })
+    });
 
-  // сервер рүү зөвхөн dataURL массив явуулна (давхар preview хийгдэхгүй)
-  const dataURLs = [];
-  for (const f of files) {
-    if (f.type.startsWith('image/')) {
-      const d = await fileToDataURL(f);
-      // Хэрэглэгчид харагдах жижиг preview (нэг л удаа)
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
-      pushMsg('user', `<img src="${d}">`, true);
-      dataURLs.push(d);
-    } else {
-      bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
-    }
+    const j = await r.json();
+    const reply = j?.reply || j?.message || "…";
+    bubble(reply, 'bot');            // дэлгэцэнд харуулах
+    pushMsg('bot', reply);           // localStorage-д хадгалах
+    HISTORY.push({ role: 'assistant', content: reply });
+  } catch (e) {
+    console.error(e);
+    bubble("⚠️ API-д холбогдож чадсангүй. Дараад дахин оролдоно уу.", "bot");
   }
+}
 
   if (el.input) el.input.value = "";
   if (el.file)  el.file.value  = "";
