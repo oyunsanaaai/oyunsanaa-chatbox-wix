@@ -118,69 +118,58 @@
   // Түүх
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
-
-  // API дуудах ганц функц
-  async function callChat({ text="", images=[] }){
-    showTyping();
-    try {
-      // ⬇️ НЭМЭЛТ 1: хэрэглэгчийн хэл (Wix -> window.OY_LANG, эсвэл browser)
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
-
-      const r = await fetch(`${OY_API}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          moduleId: CURRENT_MODULE,
-          text, images,
-          chatHistory: HISTORY,
-          userLang: USER_LANG   // ⬅️ НЭМЭЛТ 2: сервер рүү дамжуулж байна
-        })
-      });
-      const j = await r.json();
-      const reply = j?.reply || "…";
-      bubble(reply, 'bot'); pushMsg('bot', reply);
-      HISTORY.push({ role:'assistant', content: reply });
-    } catch {
-      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-    } finally { hideTyping(); }
-  }
-
-  // Илгээх (инпут эсвэл Send)
-async function sendCurrent(){
+// --- file → compressed dataURL (for API upload) ---
+async function fileToDataURL(file, maxSide = 1024, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const out = canvas.toDataURL("image/webp", quality);
+      URL.revokeObjectURL(url);
+      resolve(out);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+  
+async function sendCurrent() {
   const t = (el.input?.value || "").trim();
   const files = Array.from(el.file?.files || []);
   if (!t && !files.length) return;
 
-  if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
+  if (t) { 
+    bubble(t, 'user'); 
+    pushMsg('user', t); 
+    HISTORY.push({ role: 'user', content: t }); 
+  }
 
-  // ↓↓↓ Зураг дээр ДАХИН preview хийхгүй, зөвхөн сервер рүү явуулах dataURLs бэлдэнэ
   const dataURLs = [];
   for (const f of files) {
     if (f.type.startsWith('image/')) {
-      const d = await fileToDataURL(f);
-      // ⛔️ Давхар bubble/push хийхгүй
+      const d = await fileToDataURL(f); // зураг шахаж хөрвүүлж байна
+      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
+      pushMsg('user', `<img src="${d}">`, true);
       dataURLs.push(d);
     } else {
-      // хүсвэл файл нэрийг нэг удаа харуулж болно
-      bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
+      bubble('📎 ' + f.name, 'user');
+      pushMsg('user', f.name);
     }
   }
 
-  if (el.input) el.input.value = ""; 
-  if (el.file)  el.file.value = "";  // сонголтыг цэвэрлэнэ
+  console.log('🖼 sending images:', dataURLs.length); // ← энэ логийг шалга
+  if (el.input) el.input.value = "";
+  if (el.file) el.file.value = "";
+
   await callChat({ text: t, images: dataURLs });
 }
-  el.send?.addEventListener('click', sendCurrent);
-  el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
-  el.file?.addEventListener('change', async (e)=>{ // preview
-    const files = Array.from(e.target.files||[]);
-    for (const f of files) if (f.type.startsWith('image/')){
-      const d = await fileToDataURL(f);
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-      pushMsg('user', `<img src="${d}">`, true);
-    }
-  });
-
+  
   /* ---------- ЗҮҮН МЕНЮ: товч → oySend ---------- */
   // HTML дээр: onclick="oySend('mental-edu','intro')"
   window.oySend = async function(moduleId, action){
