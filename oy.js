@@ -224,9 +224,6 @@ el.file?.addEventListener('change', async (e)=>{
   // Зураг сонгосны дараа текст бичихэд бэлэн болгох
   el.input?.focus();
 });
-  // input-д зураг байгаа үед Enter дарж илгээдэг логик руу шилжих
-  el.input?.focus();
-});
 
   // Зүүн меню → oySend
   window.oySend = async function(moduleId, action){
