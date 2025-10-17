@@ -110,3 +110,68 @@ body{
 :root[data-t="2"]{--brand:#bc9b5d; --bg1:#1b140b; --bg2:#332515}
 :root[data-t="3"]{--brand:#8b8f96; --bg1:#0f1114; --bg2:#191b22}
 :root[data-t="4"]{--brand:#2e6f6c; --bg1:#0a2021; --bg2:#143638}
+/* === БҮХДЭЭ box-sizing === */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* === Chat stream контейнер === */
+#oyStream {
+  height: 100dvh;                /* mobile-с илүү найдвартай */
+  padding-bottom: 96px;          /* composer-ийн өндрөөс арай их */
+  overflow:auto;
+}
+
+/* === Доод composer (input + send) === */
+.oy-composer {
+  position: fixed; left: 0; right: 0;
+  bottom: env(safe-area-inset-bottom);
+  z-index: 9999;                 /* overlay-оос дээр */
+  display: flex; align-items: flex-end; gap: 8px;
+  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+  background: rgba(12,12,14,.85); backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* === INPUT wrap === */
+.oy-inputwrap {
+  flex: 1 1 auto; min-width: 0;  /* 🔑 Send-ийг шахахгүй */
+  display: flex; align-items: center; gap: 8px;
+  background: #0f1116; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px; padding: 8px 10px;
+}
+
+/* === TEXTAREA === */
+#oyInput {
+  flex: 1 1 auto; min-width: 0; width: 100%;
+  max-height: 32vh;              /* landscape дээр хэт өндөршихгүй */
+  overflow: auto;
+  resize: none;
+  line-height: 1.25;
+  background: transparent; color: #fff; border: 0; outline: 0;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* === SEND товч === */
+#btnSend {
+  flex: 0 0 auto;                /* 🔑 агшихгүй */
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 40px;  /* tap target */
+  padding: 0 12px;
+  border-radius: 12px; border: 0;
+  background: #4b9cff; color: #fff; font-weight: 600;
+}
+
+/* === Хэт урт input үед Send үргэлж харагдана === */
+.oy-composer { contain: layout paint; }    /* clip багасгана */
+
+/* === Хэвтээ (landscape) нарийн тохиргоо === */
+@media (orientation: landscape) {
+  .oy-composer { padding: 6px 8px max(6px, env(safe-area-inset-bottom)); }
+  #btnSend { min-width: 40px; min-height: 36px; padding: 0 10px; }
+  #oyInput { max-height: 40vh; } /* жижиг дэлгэц дээр арай өндөршиж болно */
+}
+
+/* === Заримдаа эцэг дээрх transform fixed-ийг эвддэг — хориглоё === */
+.oy-root, .oy-shell, body, html { transform: none !important; }
+
+/* === Хажуу тийш “тасрах”-ыг зогсоох === */
+html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
