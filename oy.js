@@ -1,6 +1,4 @@
-// oy.js — тогтвортой, нэгэн мөр хувилбар (FULL REPLACE)
-
-(() => {
+(()=> {
   if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
   const $ = (s, r=document) => r.querySelector(s);
 
@@ -12,47 +10,31 @@
     input:     $('#oyInput'),
     send:      $('#btnSend'),
     file:      $('#oyFile'),
+    previews:  $('#oyPreviews'),
     typing:    $('#typing'),
-    panes:     document.querySelectorAll('.oy-pane'),
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
   };
 
-  /* ---------- ТЕМА ---------- */
+  /* ---------- Themes ---------- */
   const THEMES = [
-    { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
-    { name:'Calm Green',   brand:'#155E1A', bg1:'#0f2027', bg2:'#203a43', user:'#C2C4B9', bot:'#EEF3F4' },
-    { name:'Warm Neutral', brand:'#BC9B5D', bg1:'#2b1d11', bg2:'#3d2a18', user:'#F1E3D5', bot:'#FAF7F2' },
-    { name:'Soft Gray',    brand:'#666660', bg1:'#141414', bg2:'#2a2a2a', user:'#C2C4B9', bot:'#EDEDED' },
-    { name:'Teal Mist',    brand:'#2E6F6C', bg1:'#0d2627', bg2:'#14383a', user:'#B6D0CD', bot:'#EAF2F1' },
+    {name:'Blue',   grad:['#0d1726','#1d2740']},
+    {name:'Green',  grad:['#081a16','#12322b']},
+    {name:'Gold',   grad:['#1b140b','#332515']},
+    {name:'Gray',   grad:['#0f1114','#191b22']},
+    {name:'Teal',   grad:['#0a2021','#143638']},
   ];
   const THEME_KEY = 'oy_theme_idx_v1';
-  function applyTheme(t){
-    const r = document.documentElement.style;
-    r.setProperty('--brand', t.brand); r.setProperty('--bg1', t.bg1);
-    r.setProperty('--bg2', t.bg2); r.setProperty('--user-bg', t.user);
-    r.setProperty('--bot-bg', t.bot);
-  }
+  function applyTheme(i){ document.documentElement.setAttribute('data-t', i); }
   (function renderThemePicker(){
-    if (!el.themePicker) return;
-    el.themePicker.innerHTML = '';
-    THEMES.forEach((t, i)=>{
-      const b = document.createElement('button');
-      b.className = 'oy-swatch'; b.title = t.name;
-      b.innerHTML = `<i style="background:linear-gradient(135deg, ${t.bg1}, ${t.bg2})"></i>`;
-      b.addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY, String(i)); applyTheme(t); });
+    el.themePicker.innerHTML = ''; THEMES.forEach((t,i)=>{
+      const b = document.createElement('button'); b.className='oy-swatch';
+      b.innerHTML = `<i style="background:linear-gradient(135deg, ${t.grad[0]}, ${t.grad[1]})"></i>`;
+      b.title = t.name; b.addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY, String(i)); applyTheme(i); });
       el.themePicker.appendChild(b);
     });
-    const idx = +localStorage.getItem(THEME_KEY) || 0; applyTheme(THEMES[idx] || THEMES[0]);
+    applyTheme(+localStorage.getItem(THEME_KEY)||0);
   })();
-
-  /* ---------- Гарчиг / нас ---------- */
-  const AGE_KEY = 'oy_age_choice';
-  function updateTitleFromAge(){
-    const saved = localStorage.getItem(AGE_KEY);
-    if (el.chatTitle) el.chatTitle.textContent = saved ? ('Оюунсанаа — ' + saved) : 'Оюунсанаа — Чат';
-  }
-  updateTitleFromAge();
 
   /* ---------- Drawer ---------- */
   el.btnDrawer?.addEventListener('click', ()=>{
@@ -63,11 +45,11 @@
     document.body.classList.remove('oy-drawer-open'); if (el.overlay) el.overlay.hidden = true;
   });
 
-  /* ---------- ЧАТ суурь ---------- */
+  /* ---------- Chat helpers ---------- */
   const OY_API = window.OY_API_BASE || "";
   const MSGKEY = 'oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-  const scrollBottom = () => { if (el.stream) el.stream.scrollTop = el.stream.scrollHeight + 999; };
+  const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
 
   function bubble(html, who='bot', isHTML=false){
     const d = document.createElement('div');
@@ -76,31 +58,24 @@
     el.stream.appendChild(d); scrollBottom(); return d;
   }
   function meta(t){ const m = document.createElement('div'); m.className='oy-meta'; m.textContent=t; el.stream.appendChild(m); scrollBottom(); }
-  function showTyping(){ if (el.typing) el.typing.hidden = false; }
-  function hideTyping(){ if (el.typing) el.typing.hidden = true; }
 
   function loadMsgs(){ try{ return JSON.parse(localStorage.getItem(MSGKEY)||'[]'); }catch(_){ return []; } }
-
-  // --- pushMsg (ЗӨВХӨН НЭГ ширхэг байх ёстой) ---
-  function pushMsg(who, html, isHTML = false){
-    const MAX = 2000;
-    let store = html;
+  function pushMsg(who, html, isHTML=false){
+    // localStorage-д том зураг хадгалахгүй
+    const MAX = 2000; let store = html;
     if (isHTML && /<img\s/i.test(html)) store = "[image]";
     else if (String(html).length > MAX) store = String(html).slice(0, MAX) + "…";
-
-    try {
-      const arr = loadMsgs();
-      arr.push({ t: Date.now(), who, html: store, isHTML: false });
+    try{
+      const arr = loadMsgs(); arr.push({ t: Date.now(), who, html: store, isHTML:false });
       localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
-    } catch (e) {
-      try {
+    }catch(e){
+      try{
         const arr = loadMsgs().slice(-20);
         localStorage.setItem(MSGKEY, JSON.stringify(arr));
-      } catch {}
+      }catch(_){}
     }
   }
 
-  // дэлгэц дахин зурна
   (function redraw(){
     if (!el.stream) return;
     el.stream.innerHTML=''; const arr = loadMsgs();
@@ -108,13 +83,10 @@
     else { arr.forEach(m => bubble(m.html, m.who, m.isHTML)); }
   })();
 
-  // textarea autosize
-  if (el.input){
-    const auto=()=>{ el.input.style.height='auto'; el.input.style.height = Math.min(160, el.input.scrollHeight) + 'px'; };
-    el.input.addEventListener('input', auto); queueMicrotask(auto);
-  }
+  function showTyping(){ if (el.typing) el.typing.hidden = false; }
+  function hideTyping(){ if (el.typing) el.typing.hidden = true; }
 
-  // file -> dataURL (preview + илгээхэд)
+  // file -> dataURL
   function fileToDataURL(file){
     return new Promise((resolve, reject)=>{
       const fr = new FileReader();
@@ -124,121 +96,85 @@
     });
   }
 
-  // === төлөв ===
+  // preview chips (NEVER auto-send)
+  let previewImages = []; // dataURL array
+  function renderPreviews(){
+    if (!previewImages.length){ el.previews.hidden = true; el.previews.innerHTML=''; return; }
+    el.previews.hidden = false;
+    el.previews.innerHTML = previewImages.map((d,i)=>(
+      `<div class="oy-chip"><img src="${d}" alt=""><button data-i="${i}">×</button></div>`
+    )).join('');
+    el.previews.querySelectorAll('button').forEach(btn=>{
+      btn.onclick = () => { const i = +btn.dataset.i; previewImages.splice(i,1); renderPreviews(); };
+    });
+  }
+
+  /* ---------- State ---------- */
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
 
-  // API дуудах — зурагтай/урт ярианд 4o, бусад үед 4o-mini
-async function callChat({ text = "", images = [] }){
-  showTyping();
-  try {
-    const USER_LANG = (window.OY_LANG || document.documentElement.lang || navigator.language || 'mn').split('-')[0] || 'mn';
-    const forceModel = (images.length || HISTORY.length >= 12) ? 'gpt-4o' : 'gpt-4o-mini';
+  async function callChat({ text="", images=[] }){
+    if (!OY_API){ bubble("⚠️ API тохируулга хийгдээгүй (OY_API_BASE).", 'bot'); return; }
+    showTyping();
+    try{
+      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
+      const r = await fetch(`${OY_API}/v1/chat`, {
+        method:"POST", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          moduleId: CURRENT_MODULE, text, images,
+          chatHistory: HISTORY, userLang: USER_LANG
+        })
+      });
+      const j = await r.json();
+      const reply = j?.output?.[0]?.content?.find?.(c=>c.type==='output_text')?.text || j?.reply || "…";
+      bubble(reply,'bot'); pushMsg('bot', reply);
+      HISTORY.push({ role:'assistant', content: reply });
+      if (j?.model) meta(`Model: ${j.model}`);
+    }catch(e){
+      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
+    }finally{ hideTyping(); }
+  }
 
-    const r = await fetch(`${window.OY_API_BASE.replace(/\/+$/, '')}/v1/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        moduleId: (typeof CURRENT_MODULE !== 'undefined' ? CURRENT_MODULE : 'psychology'),
-        text, images,
-        chatHistory: HISTORY,
-        userLang: USER_LANG,
-        forceModel               // <-- эндээс сервер лүү дамжина
-      })
-    });
+  // send
+  async function sendCurrent(){
+    const t = (el.input?.value || "").trim();
+    if (!t && !previewImages.length) return;
 
-    if (!r.ok) throw new Error(await r.text());
-    const j = await r.json();
-    const reply = j?.output?.[0]?.content?.[0]?.text || j?.reply || "…";
-    bubble(reply, 'bot'); pushMsg('bot', reply);
-    HISTORY.push({ role:'assistant', content: reply });
-  } catch (e) {
-    console.error(e);
-    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-  } finally { hideTyping(); }
-}
-// --- Илгээх явцын төлөв (давхар дуудагдахаас сэргийлнэ) ---
-let BUSY = false;
-
-// --- Илгээх үндсэн функц ---
-async function sendCurrent(){
-  if (BUSY) return;
-
-  const t = (el.input?.value || "").trim();
-
-  // Зургуудыг зөвхөн энд (илгээх мөчид) dataURL болгоно
-  const fileList = Array.from(el.file?.files || []);
-  const dataURLs = [];
-  for (const f of fileList) {
-    if (f.type.startsWith('image/')) {
-      dataURLs.push(await fileToDataURL(f));
+    if (t) { bubble(t,'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
+    const imgs = [...previewImages];
+    if (imgs.length){
+      // чат дээр харагдуулах
+      imgs.forEach(d=>{
+        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+        pushMsg('user', `<img src="${d}">`, true);
+      });
     }
+    el.input.value = ""; previewImages = []; renderPreviews();
+    await callChat({ text: t, images: imgs });
   }
 
-  // Текст ч үгүй, зураг ч үгүй бол юу ч хийхгүй
-  if (!t && dataURLs.length === 0) return;
-
-  // Хэрэглэгчийн текстийг одоо л хадгална (preview дээр хадгалж байгааг болиулсан)
-  if (t) { 
-    bubble(t, 'user'); 
-    pushMsg('user', t); 
-    HISTORY.push({ role:'user', content:t }); 
-  }
-
-  // Илгээхээс өмнө input-уудыг reset
-  if (el.input){ el.input.value = ""; el.input.dispatchEvent(new Event('input')); }
-  if (el.file){ el.file.value = ""; }
-
-  BUSY = true;
-  try {
-    await callChat({ text: t, images: dataURLs });
-  } finally {
-    BUSY = false;
-  }
-}
-
-// --- Товч/Enter триггер ---
-el.send?.addEventListener('click', sendCurrent);
-el.input?.addEventListener('keydown', (e)=>{
-  if (e.key === 'Enter' && !e.shiftKey) { 
-    e.preventDefault(); 
-    sendCurrent(); 
-  }
-});
-
-// --- Зураг сонгох: зөвхөн PREVIEW (хадгалж/илгээхгүй) ---
-el.file?.addEventListener('change', async (e)=>{ 
-  const files = Array.from(e.target.files || []);
-  if (!files.length) return;
-
-  for (const f of files) {
-    if (f.type.startsWith('image/')) {
-      const d = await fileToDataURL(f);
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
-      // ⛔ preview үед pushMsg хийдгүй, илгээхдээ л хадгална
-    } else {
-      bubble('📎 ' + f.name, 'user'); // дүрс биш бол нэрийг л харуулна
+  el.send?.addEventListener('click', sendCurrent);
+  el.input?.addEventListener('keydown', (e)=>{
+    if (e.key==='Enter' && !e.shiftKey){
+      e.preventDefault(); sendCurrent();
     }
-  }
+  });
 
-  // Зураг сонгосны дараа текст бичихэд бэлэн болгох
-  el.input?.focus();
-});
+  // file choose => PREVIEW only
+  el.file?.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    for (const f of files){
+      if (f.type.startsWith('image/')){
+        previewImages.push(await fileToDataURL(f));
+      }
+    }
+    e.target.value = "";
+    renderPreviews();
+    el.input?.focus();
+  });
 
-  // Зүүн меню → oySend
-  window.oySend = async function(moduleId, action){
-    CURRENT_MODULE = moduleId || CURRENT_MODULE;
-    const text = `User selected: ${moduleId} / ${action}`;
-    bubble(text, 'user'); pushMsg('user', text);
-    HISTORY.push({ role:'user', content: text });
-
-    const files = Array.from(el.file?.files || []), images = [];
-    for (const f of files) if (f.type.startsWith('image/')) images.push(await fileToDataURL(f));
-    if (el.file) el.file.value="";
-    await callChat({ text, images });
-  };
-
-  // Sidebar дотоод pane нээх
+  /* ---------- Menu open/close ---------- */
   document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const key = btn.dataset.menu;
@@ -248,5 +184,15 @@ el.file?.addEventListener('change', async (e)=>{
       document.querySelectorAll('.oy-pane').forEach(p=>p.hidden = p!==target);
     });
   });
+
+  /* ---------- Public API for menu buttons ---------- */
+  window.oySend = async function(moduleId, action){
+    CURRENT_MODULE = moduleId || CURRENT_MODULE;
+    const text = `User selected: ${moduleId} / ${action}`;
+    bubble(text,'user'); pushMsg('user', text);
+    HISTORY.push({ role:'user', content: text });
+    const imgs = [...previewImages]; previewImages = []; renderPreviews();
+    await callChat({ text, images: imgs });
+  };
 
 })();
