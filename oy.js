@@ -17,6 +17,9 @@
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
   };
+// --- API base + endpoint
+const API_BASE = window.OY_API_BASE || "";
+const CHAT_URL = `${API_BASE}/v1/chat`;
 
   /* ---------- Themes ---------- */
   const THEMES = [
@@ -175,42 +178,71 @@ HISTORY.push({ role:'assistant', content: reply });
     }finally{ hideTyping(); }
   }
 
-  async function sendCurrent(){
-    const t = (el.input?.value || "").trim();
-    if (!t && !previewImages.length) return;
+ // ---- API CALL (robust reply extractor) ----
+function pickReply(j){
+  // серверээс ямар формат ирснээс үл хамаараад текстийг нь олж авна
+  return (
+    j?.reply ??
+    j?.message ??
+    j?.choices?.[0]?.message?.content ??
+    j?.output?.[0]?.content?.find?.(c => c.type === 'output_text' || c.type === 'text')?.text ??
+    j?.content ?? ""
+  );
+}
 
-    if (t) { bubble(t,'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
-    const imgs = [...previewImages];
-    if (imgs.length){
-      imgs.forEach(d=>{
-        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-        pushMsg('user', `<img src="${d}">`, true);
-      });
-    }
-    el.input.value = ""; previewImages = []; renderPreviews();
-    await callChat({ text: t, images: imgs });
+async function callChat({ text = "", images = [] }){
+  if (!API_BASE){
+    bubble("⚠️ API тохируулга хийгдээгүй байна. (window.OY_API_BASE)", "bot");
+    return;
   }
 
-  bindOnce(el.send, 'click', sendCurrent);
-  bindOnce(el.input, 'keydown', (e)=>{
-    if (e.key==='Enter' && !e.shiftKey){
-      e.preventDefault(); sendCurrent();
-    }
-  });
+  showTyping();
+  try{
+    const USER_LANG =
+      (window.OY_LANG || document.documentElement.lang || navigator.language || "mn")
+        .split("-")[0];
 
-  // file choose => PREVIEW only
-  bindOnce(el.file, 'change', async (e)=>{
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    for (const f of files){
-      if (f.type.startsWith('image/')){
-        previewImages.push(await fileToDataURL(f));
-      }
+    // олон зураг эсвэл урт түүхтэй бол том модель руу шилжих (хэрэгтэй бол)
+    const forceModel = images.length || (HISTORY.length >= 12) ? "gpt-4o" : "gpt-4o-mini";
+
+    const r = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        moduleId: CURRENT_MODULE,
+        text,
+        images,                 // dataURL массив (чиний кодтой таарч байна)
+        chatHistory: HISTORY,
+        userLang: USER_LANG,
+        forceModel
+      }),
+    });
+
+    if (!r.ok){
+      // сервер 200 биш бол текстийг нь харуулж алдаа гэж үзнэ
+      throw new Error(await r.text());
     }
-    e.target.value = "";
-    renderPreviews();
-    el.input?.focus();
-  });
+
+    const data  = await r.json();
+    const reply = pickReply(data).trim();
+
+    if (!reply){
+      bubble("… (хоосон хариу ирлээ)", "bot");
+    }else{
+      bubble(reply, "bot");
+      pushMsg("bot", reply);
+      HISTORY.push({ role: "assistant", content: reply });
+    }
+
+    if (data?.model) meta(`Model: ${data.model}`);
+
+  }catch(e){
+    console.error(e);
+    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", "bot");
+  }finally{
+    hideTyping();
+  }
+}
 
   /* ---------- Menu open/close ---------- */
   document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
