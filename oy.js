@@ -128,25 +128,36 @@
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
 
-  // API дуудах
-  async function callChat({ text="", images=[] }){
-    showTyping();
-    try {
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
-      const r = await fetch(`${OY_API}/v1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG })
-      });
-      const j = await r.json();
-      const reply = j?.output?.[0]?.content?.[0]?.text || j?.reply || "…";
-      bubble(reply, 'bot'); pushMsg('bot', reply);
-      HISTORY.push({ role:'assistant', content: reply });
-      if (j?.model) meta(`Model: ${j.model}`);
-    } catch {
-      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-    } finally { hideTyping(); }
-  }
+  // API дуудах — зурагтай/урт ярианд 4o, бусад үед 4o-mini
+async function callChat({ text = "", images = [] }){
+  showTyping();
+  try {
+    const USER_LANG = (window.OY_LANG || document.documentElement.lang || navigator.language || 'mn').split('-')[0] || 'mn';
+    const forceModel = (images.length || HISTORY.length >= 12) ? 'gpt-4o' : 'gpt-4o-mini';
+
+    const r = await fetch(`${window.OY_API_BASE.replace(/\/+$/, '')}/v1/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        moduleId: (typeof CURRENT_MODULE !== 'undefined' ? CURRENT_MODULE : 'psychology'),
+        text, images,
+        chatHistory: HISTORY,
+        userLang: USER_LANG,
+        forceModel               // <-- эндээс сервер лүү дамжина
+      })
+    });
+
+    if (!r.ok) throw new Error(await r.text());
+    const j = await r.json();
+    const reply = j?.output?.[0]?.content?.[0]?.text || j?.reply || "…";
+    bubble(reply, 'bot'); pushMsg('bot', reply);
+    HISTORY.push({ role:'assistant', content: reply });
+    if (j?.model) meta(`Model: ${j.model}`);
+  } catch (e) {
+    console.error(e);
+    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
+  } finally { hideTyping(); }
+}
 
   // Илгээх
   async function sendCurrent(){
