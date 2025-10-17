@@ -140,31 +140,139 @@
       btn.onclick = () => { const i = +btn.dataset.i; previewImages.splice(i,1); renderPreviews(); };
     });
   }
+function extractReply(j) {
+  // 1) OpenAI/Custom: { output: [ { role, content: [ {type, text}, ... ] } ] }
+  if (Array.isArray(j?.output)) {
+    const chunks = [];
+    for (const msg of j.output) {
+      const items = msg?.content || [];
+      for (const c of items) {
+        if (!c) continue;
+        // ✅ аль алиныг нь дэмжинэ
+        if (c.type === "text" || c.type === "output_text" || c.type === "input_text") {
+          if (typeof c.text === "string") chunks.push(c.text);
+        } else if (typeof c === "string") {
+          chunks.push(c);
+        }
+      }
+    }
+    if (chunks.length) return chunks.join("");
+  }
 
+  // 2) { message: { content: [ {type:'text', text: '...'} ] } }
+  if (j?.message?.content) {
+    const t = (j.message.content || [])
+      .map(c => (typeof c === "string" ? c : (c?.text || "")))
+      .join("");
+    if (t) return t;
+  }
+
+  // 3) OpenAI chat-completions хэлбэр
+  if (j?.choices?.[0]?.message?.content) return j.choices[0].message.content;
+
+  // 4) Энгийн хэлбэрүүд
+  if (typeof j?.text === "string") return j.text;
+  if (typeof j?.reply === "string") return j.reply;
+
+  return "";
+}
   /* ---------- State ---------- */
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
 
-  async function callChat({ text="", images=[] }){
-    if (!OY_API){ bubble("⚠️ API тохируулга хийгдээгүй (OY_API_BASE).", 'bot'); return; }
-    showTyping();
-    try{
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
-      const r = await fetch(`${OY_API}/v1/chat`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG })
-      });
-      const j = await r.json();
-      const reply = j?.output?.[0]?.content?.find?.(c=>c.type==='output_text')?.text
-                 || j?.reply || "…";
-      bubble(reply,'bot'); pushMsg('bot', reply);
-      HISTORY.push({ role:'assistant', content: reply });
-      if (j?.model) meta(`Model: ${j.model}`);
-    }catch(e){
-      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-    }finally{ hideTyping(); }
+let SENDING = false;
+
+async function callChat({ text = "", images = [] }) {
+  if (!OY_API) { bubble("⚠️ API тохируулга хийгдээгүй (window.OY_API_BASE).", "bot"); return; }
+  if (SENDING) return;
+  SENDING = true;
+  showTyping();
+
+  try {
+    const USER_LANG = (window.OY_LANG || navigator.language || "mn").split("-")[0] || "mn";
+    const payload = { moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG };
+
+    // Заримдаа backend чинь өөр замтай байж магадгүй → уян хатан жагсаалт
+    const endpoints = [`${OY_API}/v1/chat`, `${OY_API}/api/chat`, `${OY_API}/chat`];
+
+    let lastErr = null, reply = "";
+
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        // 404 эсвэл 405 бол дараагийн endpoint руу шилжинэ
+        if (!res.ok && (res.status === 404 || res.status === 405)) continue;
+
+        const ctype = (res.headers.get("content-type") || "").toLowerCase();
+
+        // ✅ SSE stream
+        if (ctype.includes("text/event-stream") && res.body) {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let acc = "";
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            for (const line of chunk.split("\n")) {
+              const t = line.trim();
+              if (!t.startsWith("data:")) continue;
+              const dataStr = t.slice(5).trim();
+              if (dataStr === "[DONE]") break;
+              try {
+                const evt = JSON.parse(dataStr);
+                const piece =
+                  evt?.delta?.text ??
+                  extractReply(evt) ??
+                  "";
+                if (piece) {
+                  acc += piece;
+                }
+              } catch {}
+            }
+          }
+          reply = acc.trim();
+        }
+        // ✅ JSON one-shot
+        else {
+          const j = await res.json();
+          reply = extractReply(j)?.trim() || "";
+          if (!reply && j?.model) reply = `(${j.model})`; // хоосон ирвэл ямар нэг юм харуулчихъя
+        }
+
+        // Амжилттай уншсан бол давталтаас гарна
+        if (reply) break;
+
+      } catch (e) {
+        lastErr = e;
+        // дараагийн endpoint руу оролдоно
+      }
+    }
+
+    if (!reply) {
+      if (lastErr) console.error(lastErr);
+      reply = "⚠️ Хариу формат ойлгогдсонгүй. Backend-ийн JSON `content[].type` нь `text` эсвэл `output_text` эсэхийг шалгана уу.";
+    }
+
+    bubble(reply, "bot");
+    pushMsg("bot", reply);
+    HISTORY.push({ role: "assistant", content: reply });
+
+  } catch (e) {
+    console.error(e);
+    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалга.", "bot");
+  } finally {
+    hideTyping();
+    SENDING = false;
   }
+}
+
 
   async function sendCurrent(){
     const t = (el.input?.value || "").trim();
