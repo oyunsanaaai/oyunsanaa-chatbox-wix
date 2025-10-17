@@ -114,28 +114,11 @@ const OY_API = "https://oyunsanaa-api.oyunsanaa-ai.workers.dev";  const MSGKEY =
     });
   }
 
-  // Түүх
-  let HISTORY = [];
-  let CURRENT_MODULE = 'psychology';
-
-  // API дуудах ганц функц
-  async function callChat({ text="", images=[] }){
-    showTyping();
-    try {
-      // ⬇️ НЭМЭЛТ 1: хэрэглэгчийн хэл (Wix -> window.OY_LANG, эсвэл browser)
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
-
-      - const r = await fetch(`${OY_API}/api/chat`, {
-+ const r = await fetch(`${OY_API}/chat`, {
-   method: "POST",
-   headers: { "Content-Type": "application/json" },
-   body: JSON.stringify({
--    moduleId: CURRENT_MODULE,   // (энэ талд байж болно, алдаа биш)
-+    moduleId: CURRENT_MODULE,
-     text, images, chatHistory: HISTORY, userLang: USER_LANG,
-+    mode: CURRENT_MODEL         // 2 model-ын товчлуураас (“mini”/“4o”) ирнэ
-   })
-});
+ fetch("https://oyunsanaa-api.oyunsanaa-ai.workers.dev/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: "Сайн байна уу?" })
+}).then(r=>r.json()).then(console.log)
       const j = await r.json();
       const reply = j?.reply || "…";
       bubble(reply, 'bot'); pushMsg('bot', reply);
