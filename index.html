@@ -35,17 +35,17 @@
         <button class="oy-item oy-link" data-menu="wix1">Бүртгэл</button>
         <button class="oy-item oy-link" data-menu="wix2">Миний хөтөлбөр</button>
         <button class="oy-item oy-link" data-menu="wix3">Сэтгэлийн хөтөч</button>
-
-        <div class="oy-pane" data-pane="wix1" hidden>
-          Wix-тэй холбоотой линк/заавар энд…
-        </div>
-        <div class="oy-pane" data-pane="wix2" hidden>
-          Хувийн хөтөлбөрийн товч тайлбар…
-        </div>
-        <div class="oy-pane" data-pane="wix3" hidden>
-          Сэтгэлийн хөтөчийн хэсэг…
-        </div>
-
+  <!-- Дотоод бүлгүүд -->
+        <button class="oy-item" data-menu="psychology">Сэтгэлзүй</button>
+        <section class="oy-pane" data-pane="psychology" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span><button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
+            <li><span>Сургалт</span><button class="oy-mini" onclick="oySend('psychology','course')">Орох</button></li>
+            <li><span>Дасгал</span><button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span><button class="oy-mini" onclick="oySend('psychology','quiz')">Орох</button></li>
+            <li><span>Тайлан</span><button class="oy-mini" onclick="oySend('psychology','report')">Орох</button></li>
+          </ul>
+        </section>
         <div class="oy-side-title" style="margin-top:18px">Өдөр тутмын хэсгүүд</div>
         <ul class="oy-list">
           <li>Танилцуулга <button class="oy-mini" onclick="oySend('intro','open')">Орох</button></li>
