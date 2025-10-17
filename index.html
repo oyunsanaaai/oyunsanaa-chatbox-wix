@@ -16,13 +16,12 @@
   <link rel="apple-touch-icon" href="/icons/192.png">
 
   <!-- ✅ API-ийн суурь домэйн: ЭНЭГИЙГ ӨӨРИЙН Vercel URL-р СОЛИХ -->
-  <script>window.OY_API_BASE = "https://<tanai-project>.vercel.app";</script>
+ <script>window.OY_API_BASE = "https://chat.oyunsanaa.com";</script>
 
   <!-- App JS -->
   <script defer src="oy.js"></script>
 </head>
 <body>
-  
   <div id="oyOverlay" class="oy-overlay" hidden></div>
 
   <!-- HEADER -->
@@ -186,58 +185,5 @@
       });
     }
   </script>
-  <script>
-  // Login товчнууд
-  document.getElementById('new')?.addEventListener('click',()=>location.href='https://oyunsanaa.com/register?src=chat');
-  document.getElementById('go')?.addEventListener('click',()=>{ document.body.classList.remove('login-open'); document.getElementById('inp')?.focus(); });
-  document.getElementById('openLogin')?.addEventListener('click',()=>document.body.classList.add('login-open'));
-
-  // Энгийн чат демо (API-г дараа холбоно)
-  const S = document.getElementById('stream'), I = document.getElementById('inp'), B = document.getElementById('send');
-  const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-  function bubble(t,who){ const d=document.createElement('div'); d.className='b '+(who==='u'?'u':'g'); d.innerHTML=esc(t); S.appendChild(d); S.scrollTop=S.scrollHeight+999; }
-  function init(){ bubble('Сайн уу! Нэвтэрмэгц чат ажиллана. 🌿'); }
-  init();
-  async function send(){ const t=(I.value||'').trim(); if(!t) return; bubble(t,'u'); I.value='';
-    // ↓ Энд жинхэнэ API дуудлагаа холбоно:
-    // const r=await fetch('https://tanai-api.vercel.app/api/oy-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({msg:t})});
-    // const {reply}=await r.json(); bubble(reply||'...', 'g');
-    setTimeout(()=>bubble('Таныг ойлголоо (демо хариу). 🤝','g'),400);
-  }
-  B?.addEventListener('click',send);
-  I?.addEventListener('keydown',e=>{ if(e.key==='Enter'&& !e.shiftKey){ e.preventDefault(); send(); }});
-</script></body>
+</body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
