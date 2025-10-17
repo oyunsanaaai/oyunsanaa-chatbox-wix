@@ -167,12 +167,8 @@ let CURRENT_MODEL = 'mini'; // эсвэл '4o'
 // === API руу илгээх ганц функц ===
 async function callChat({ text = "", images = [] } = {}) {
   showTyping?.();
-
   try {
-    // Хэрэглэгчийн хэл
     const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0];
-
-    // ⚠️ ЭНЭ URL-ийг worker-ийнхаа домайнтай тааруул
     const r = await fetch(`${OY_API}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -184,16 +180,14 @@ async function callChat({ text = "", images = [] } = {}) {
         mode: CURRENT_MODEL
       })
     });
-
     const j = await r.json();
     const reply = j?.reply || j?.message || "…";
-    bubble?.(reply, 'bot');
-    pushMsg?.('bot', reply);
-    HISTORY?.push?.({ role: 'assistant', content: reply });
-
+    bubble?.(reply, "bot");
+    pushMsg?.("bot", reply);
+    HISTORY.push({ role: "assistant", content: reply });
   } catch (e) {
     console.error(e);
-    bubble?.("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
+    bubble?.("⚠️ Холболт амжилтгүй байна.", "bot");
   } finally {
     hideTyping?.();
   }
