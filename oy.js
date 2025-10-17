@@ -182,12 +182,12 @@
   el.input?.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
   el.file?.addEventListener('change', async (e)=>{
     const files=Array.from(e.target.files||[]);
-    for(const f of files) if(f.type?.startsWith('image/')){
-      const d=await fileToDataURL(f);
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-      pushMsg('user', `<img src="${d}">`, true);
-    }
-  });
+      for (const f of files) if (f.type.startsWith('image/')){
+  const d = await fileToDataURL(f);
+  bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+  pushMsg('user', `<img src="${d}">`, true);
+}
+if (el.file) el.file.value = ""; // ⬅️ зураг сонгосны дараа reset
 
   /* ===== Зүүн меню → oySend(module, action) ===== */
   window.oySend = async function(moduleId, action){
