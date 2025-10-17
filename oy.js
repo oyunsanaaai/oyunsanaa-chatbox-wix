@@ -117,15 +117,44 @@
   }
   function hideTyping(){ if (el.typing) el.typing.style.display='none'; }
 
-  // file -> dataURL
-  function fileToDataURL(file){
-    return new Promise((resolve, reject)=>{
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = reject;
-      fr.readAsDataURL(file);
+ // Файлыг canvas-аар багасгаад JPEG/WebP dataURL болгож буцаана
+async function fileToDataURL(file, { maxSide = 1280, quality = 0.75 } = {}) {
+  // зураг унших
+  const blobUrl = URL.createObjectURL(file);
+  let bmp, imgW, imgH;
+  try {
+    // хурдан, бага санах ой: createImageBitmap
+    bmp = await createImageBitmap(file);
+    imgW = bmp.width; imgH = bmp.height;
+  } catch {
+    // fallback
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = blobUrl;
     });
+    imgW = img.width; imgH = img.height;
+    bmp = img; // drawImage-д шууд ашиглая
   }
+
+  // хэмжээг бууруулах
+  const scale = Math.min(1, maxSide / Math.max(imgW, imgH));
+  const w = Math.round(imgW * scale);
+  const h = Math.round(imgH * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.drawImage(bmp, 0, 0, w, h);
+
+  // webp → амжилтгүй бол jpeg
+  let out = canvas.toDataURL('image/webp', quality);
+  if (out.length < 16) out = canvas.toDataURL('image/jpeg', quality);
+
+  try { URL.revokeObjectURL(blobUrl); } catch {}
+  return out;
+}
 
   // preview chips (NEVER auto-send)
   let previewImages = []; // dataURL array
@@ -265,19 +294,31 @@ async function callChat({ text = "", images = [] }) {
     }
   });
 
-  // file choose => PREVIEW only
   bindOnce(el.file, 'change', async (e)=>{
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    for (const f of files){
-      if (f.type.startsWith('image/')){
-        previewImages.push(await fileToDataURL(f));
-      }
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+
+  for (const f of files){
+    if (!f.type.startsWith('image/')) continue;
+
+    const durl = await fileToDataURL(f, { maxSide: 1280, quality: 0.75 });
+
+    // ~байтын ойролцоо тооцоолол
+    const base64 = (durl.split(',')[1]||"");
+    const bytes = Math.floor(base64.length * 3 / 4);
+
+    if (bytes > 1.2 * 1024 * 1024) { // > ~1.2MB бол хая
+      bubble("⚠️ Зураг хэт том байна. Бага хэмжээтэй зураг сонгоорой.", "bot");
+      continue;
     }
-    e.target.value = "";
-    renderPreviews();
-    el.input?.focus();
-  });
+
+    previewImages.push(durl);
+  }
+
+  e.target.value = "";
+  renderPreviews();
+  el.input?.focus();
+});
 
   /* ---------- Menu open/close ---------- */
   document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
