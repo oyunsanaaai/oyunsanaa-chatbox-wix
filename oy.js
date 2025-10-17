@@ -145,26 +145,57 @@
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
 
-  async function callChat({ text="", images=[] }){
-    if (!OY_API){ bubble("⚠️ API тохируулга хийгдээгүй (OY_API_BASE).", 'bot'); return; }
-    showTyping();
-    try{
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
-      const r = await fetch(`${OY_API}/v1/chat`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG })
-      });
-      const j = await r.json();
-      const reply = j?.output?.[0]?.content?.find?.(c=>c.type==='output_text')?.text
-                 || j?.reply || "…";
-      bubble(reply,'bot'); pushMsg('bot', reply);
-      HISTORY.push({ role:'assistant', content: reply });
-      if (j?.model) meta(`Model: ${j.model}`);
-    }catch(e){
-      bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-    }finally{ hideTyping(); }
+  async function callChat({ text = "", images = [] }) {
+  if (!window.OY_API_BASE) {
+    bubble("⚠️ API тохируулга хийгдээгүй байна. (window.OY_API_BASE)", "bot");
+    return;
   }
+
+  showTyping();
+
+  try {
+    const USER_LANG = (window.OY_LANG || navigator.language || "mn").split("-")[0];
+
+    const r = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        moduleId: CURRENT_MODULE,
+        text,
+        images,
+        chatHistory: HISTORY,
+        userLang: USER_LANG
+      })
+    });
+
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+
+    // reply-г зөв замаар гаргаж авах
+    const reply =
+      data?.output?.[0]?.content?.find?.(c => c.type === "text")?.text ||
+      data?.output?.[0]?.content?.[0]?.text ||
+      data?.reply ||
+      data?.message ||
+      "…";
+
+    if (!reply) {
+      bubble("… (хоосон хариу ирлээ)", "bot");
+    } else {
+      bubble(reply, "bot");
+      pushMsg("bot", reply);
+      HISTORY.push({ role: "assistant", content: reply });
+    }
+
+    if (data?.model) meta(`Model: ${data.model}`);
+  } catch (e) {
+    console.error(e);
+    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", "bot");
+  } finally {
+    hideTyping();
+  }
+}
+  
 
   async function sendCurrent(){
     const t = (el.input?.value || "").trim();
