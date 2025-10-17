@@ -186,14 +186,14 @@ async function callChat({ text = "", images = [] }){
   }
   el.send?.addEventListener('click', sendCurrent);
   el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
-  el.file?.addEventListener('change', async (e)=>{ // preview харагдуулна, хадгалахгүй
-    const files = Array.from(e.target.files||[]);
-    for (const f of files) if (f.type.startsWith('image/')){
-      const d = await fileToDataURL(f);
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
-      pushMsg('user', `<img src="${d}">`, true);
-    }
-  });
+ el.file?.addEventListener('change', async (e)=>{ 
+  const files = Array.from(e.target.files||[]);
+  for (const f of files) if (f.type.startsWith('image/')){
+    const d = await fileToDataURL(f);
+    // зөвхөн preview харуулна, хадгалахгүй
+    bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+  }
+});
 
   // Зүүн меню → oySend
   window.oySend = async function(moduleId, action){
