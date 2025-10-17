@@ -141,31 +141,6 @@ async function callChat({ text = "", images = [] }) {
     hideTyping();
   }
 }
- // --- API руу POST хийх ганц функц ---
-const OY_API = window.OY_API_BASE || "";  // ж: "" = same origin
-
-async function callChat({ text = "", images = [] }) {
-  try {
-    const r = await fetch(`${OY_API}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text,
-        images,
-        chatHistory: HISTORY,   // байгаа түүхээ явуулна (хийсвэр)
-      })
-    });
-
-    const j = await r.json();
-    const reply = j?.reply || j?.message || "…";
-    bubble(reply, 'bot');            // дэлгэцэнд харуулах
-    pushMsg('bot', reply);           // localStorage-д хадгалах
-    HISTORY.push({ role: 'assistant', content: reply });
-  } catch (e) {
-    console.error(e);
-    bubble("⚠️ API-д холбогдож чадсангүй. Дараад дахин оролдоно уу.", "bot");
-  }
-}
 
   if (el.input) el.input.value = "";
   if (el.file)  el.file.value  = "";
