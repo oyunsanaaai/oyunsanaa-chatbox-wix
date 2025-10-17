@@ -119,10 +119,15 @@
   let HISTORY = [];
   let CURRENT_MODULE = 'psychology';
 // --- file → compressed dataURL (for API upload) ---
-async function fileToDataURL(file, maxSide = 1024, quality = 0.78) {
+
+  async function fileToDataURL(file) {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
     img.onload = () => {
       const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
       const canvas = document.createElement("canvas");
@@ -154,7 +159,6 @@ async function sendCurrent() {
   for (const f of files) {
     if (f.type.startsWith('image/')) {
       const d = await fileToDataURL(f); // зураг шахаж хөрвүүлж байна
-      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
       pushMsg('user', `<img src="${d}">`, true);
       dataURLs.push(d);
     } else {
