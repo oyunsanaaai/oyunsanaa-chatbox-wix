@@ -46,9 +46,24 @@ body{
 .oy-drawer{border-right:1px solid var(--stroke); background:linear-gradient(180deg,#0002,#0000)}
 .oy-side{padding:16px}
 .oy-side-title{opacity:.8; margin-bottom:12px}
+/* sidebar items – давхарлахыг зогсооно */
 .oy-item{
-  width:100%; text-align:left; padding:14px 16px; margin:10px 0; border-radius:16px;
-  background:var(--glass); border:1px solid var(--stroke); color:var(--text); cursor:pointer;
+  display:block;              /* ⬅️ заавал */
+  width:100%;
+  text-align:left;
+  padding:14px 16px;
+  margin:10px 0;
+  border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--stroke);
+  color:var(--text);
+  cursor:pointer;
+  text-decoration:none;       /* доогуур зураас арилна */
+  line-height:1.3;
+  white-space:nowrap;         /* урт бол нэг мөрт байлгана */
+  overflow:hidden;
+  text-overflow:ellipsis;     /* урт бол … хийнэ */
+}
 }
 .oy-pane{margin:6px 0 14px 0; padding:12px; border-radius:16px; background:var(--glass); border:1px dashed var(--stroke)}
 .oy-list{margin:0; padding:0; list-style:none}
