@@ -1,9 +1,9 @@
-(()=> {
-  if (window.__OY_BOOTED__) return;  // дахин ачаалтад давхар бүү ажилла
-  window.__OY_BOOTED__ = true;
+// oy.js — бүтцийг эвдэхгүй, API /v1/chat руу шууд холбогдоно
+(() => {
+  if (window.__OY_BOOTED__) return; window.__OY_BOOTED__ = true;
+  const $ = (s, r=document)=>r.querySelector(s);
 
-  const $ = (s, r=document) => r.querySelector(s);
-
+  /* ===== DOM ===== */
   const el = {
     overlay:   $('#oyOverlay'),
     drawer:    $('#oyDrawer'),
@@ -12,257 +12,195 @@
     input:     $('#oyInput'),
     send:      $('#btnSend'),
     file:      $('#oyFile'),
-    previews:  $('#oyPreviews'),
     typing:    $('#typing'),
+    panes:     Array.from(document.querySelectorAll('.oy-pane')),
     themePicker: $('#themePicker'),
     chatTitle: $('#chatTitle'),
   };
-// --- API base + endpoint
-const API_BASE = window.OY_API_BASE || "";
-const CHAT_URL = `${API_BASE}/v1/chat`;
 
-  /* ---------- Themes ---------- */
+  /* ===== Config (API base = ardaa "/" БИШ!) ===== */
+  const API_BASE = String(window.OY_API_BASE || '').replace(/\/+$/,''); // ← trailing "/" авч хаяна
+  const CHAT_URL = `${API_BASE}/v1/chat`;
+
+  /* ===== Theme ===== */
   const THEMES = [
-    {name:'Blue',  grad:['#0d1726','#1d2740']},
-    {name:'Green', grad:['#081a16','#12322b']},
-    {name:'Gold',  grad:['#1b140b','#332515']},
-    {name:'Gray',  grad:['#0f1114','#191b22']},
-    {name:'Teal',  grad:['#0a2021','#143638']},
+    { name:'Slate Blue',   brand:'#486573', bg1:'#0e1630', bg2:'#301a40', user:'#9BB8B9', bot:'#F1E3D5' },
+    { name:'Calm Green',   brand:'#155E1A', bg1:'#0f2027', bg2:'#203a43', user:'#C2C4B9', bot:'#EEF3F4' },
+    { name:'Warm Neutral', brand:'#BC9B5D', bg1:'#2b1d11', bg2:'#3d2a18', user:'#F1E3D5', bot:'#FAF7F2' },
+    { name:'Soft Gray',    brand:'#666660', bg1:'#141414', bg2:'#2a2a2a', user:'#C2C4B9', bot:'#EDEDED' },
+    { name:'Teal Mist',    brand:'#2E6F6C', bg1:'#0d2627', bg2:'#14383a', user:'#B6D0CD', bot:'#EAF2F1' },
   ];
   const THEME_KEY = 'oy_theme_idx_v1';
-  function applyTheme(i){ document.documentElement.setAttribute('data-t', i); }
-
+  function applyTheme(t){
+    const r=document.documentElement.style;
+    r.setProperty('--brand', t.brand);
+    r.setProperty('--bg1', t.bg1);
+    r.setProperty('--bg2', t.bg2);
+    r.setProperty('--user-bg', t.user);
+    r.setProperty('--bot-bg', t.bot);
+  }
   (function renderThemePicker(){
     if (!el.themePicker) return;
-    el.themePicker.innerHTML = '';
+    el.themePicker.innerHTML='';
     THEMES.forEach((t,i)=>{
-      const b = document.createElement('button');
-      b.className = 'oy-swatch';
-      b.innerHTML = `<i style="background:linear-gradient(135deg, ${t.grad[0]}, ${t.grad[1]})"></i>`;
-      b.title = t.name;
-      b.addEventListener('click', ()=>{
-        localStorage.setItem(THEME_KEY, String(i));
-        applyTheme(i);
-      });
+      const b=document.createElement('button');
+      b.className='oy-swatch';
+      b.title=t.name;
+      b.innerHTML=`<i style="background:linear-gradient(135deg, ${t.bg1}, ${t.bg2})"></i>`;
+      b.addEventListener('click',()=>{ localStorage.setItem(THEME_KEY,String(i)); applyTheme(t); });
       el.themePicker.appendChild(b);
     });
-    applyTheme(+localStorage.getItem(THEME_KEY)||0);
+    const idx=+localStorage.getItem(THEME_KEY)||0; applyTheme(THEMES[idx]||THEMES[0]);
   })();
 
-  /* ---------- Drawer (single bind) ---------- */
-  function bindOnce(target, evt, fn) {
-    if (!target) return;
-    target.__oybind = target.__oybind || {};
-    const old = target.__oybind[evt];
-    if (old) target.removeEventListener(evt, old);
-    target.addEventListener(evt, fn);
-    target.__oybind[evt] = fn;
+  /* ===== Нас/гарчиг ===== */
+  const AGE_KEY='oy_age_choice';
+  function updateTitleFromAge(){
+    const saved=localStorage.getItem(AGE_KEY);
+    if (el.chatTitle) el.chatTitle.textContent = saved ? ('Оюунсанаа — ' + saved) : 'Оюунсанаа — Чат';
   }
+  updateTitleFromAge();
 
-  bindOnce(el.btnDrawer, 'click', ()=>{
-    const opened = document.body.classList.toggle('oy-drawer-open');
-    if (el.overlay) el.overlay.hidden = !opened;
+  /* ===== Drawer ===== */
+  el.btnDrawer?.addEventListener('click', ()=>{
+    const opened=document.body.classList.toggle('oy-drawer-open');
+    if (el.overlay) el.overlay.hidden=!opened;
   });
-
-  bindOnce(el.overlay, 'click', ()=>{
+  el.overlay?.addEventListener('click', ()=>{
     document.body.classList.remove('oy-drawer-open');
-    if (el.overlay) el.overlay.hidden = true;
+    if (el.overlay) el.overlay.hidden=true;
   });
 
-  /* ---------- Helpers ---------- */
-  const OY_API = window.OY_API_BASE || "";
-  const MSGKEY = 'oy_msgs_one';
+  /* ===== Pane toggle (sidebar) ===== */
+  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key=btn.dataset.menu;
+      const target=el.panes.find(p=>p.dataset.pane===key);
+      if(!target) return;
+      if(!target.hidden){ target.hidden=true; return; }
+      el.panes.forEach(p=>p.hidden = p!==target);
+    });
+  });
 
+  /* ===== Chat basics ===== */
+  const MSGKEY='oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-  const scrollBottom = () => { el.stream.scrollTop = el.stream.scrollHeight + 999; };
-
+  const scrollBottom=()=>{ if(!el.stream)return; el.stream.scrollTop=el.stream.scrollHeight+999; };
   function bubble(html, who='bot', isHTML=false){
-    const d = document.createElement('div');
-    d.className = 'oy-bubble ' + (who === 'user' ? 'oy-user' : 'oy-bot');
+    const d=document.createElement('div');
+    d.className='oy-bubble '+(who==='user'?'oy-user':'oy-bot');
     d.innerHTML = isHTML ? html : esc(html);
-    el.stream.appendChild(d); scrollBottom(); return d;
+    el.stream?.appendChild(d); scrollBottom(); return d;
   }
-  function meta(t){
-    const m = document.createElement('div');
-    m.className='oy-meta'; m.textContent=t;
-    el.stream.appendChild(m); scrollBottom();
-  }
-
+  function meta(t){ const m=document.createElement('div'); m.className='oy-meta'; m.textContent=t; el.stream?.appendChild(m); scrollBottom(); }
   function loadMsgs(){ try{ return JSON.parse(localStorage.getItem(MSGKEY)||'[]'); }catch(_){ return []; } }
   function pushMsg(who, html, isHTML=false){
-    // localStorage-д том DataURL хадгалахгүй
-    const MAX = 2000; let store = html;
-    if (isHTML && /<img\s/i.test(html)) store = "[image]";
-    else if (String(html).length > MAX) store = String(html).slice(0, MAX) + "…";
-    try{
-      const arr = loadMsgs(); arr.push({ t: Date.now(), who, html: store, isHTML:false });
-      localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
-    }catch(e){
-      try{
-        const arr = loadMsgs().slice(-20);
-        localStorage.setItem(MSGKEY, JSON.stringify(arr));
-      }catch(_){}
-    }
+    const arr=loadMsgs(); arr.push({t:Date.now(), who, html, isHTML});
+    localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
   }
-
   (function redraw(){
-    if (!el.stream) return;
-    el.stream.innerHTML=''; const arr = loadMsgs();
-    if (!arr.length){ bubble('Сайн уу! Оюунсанаатай ярилцъя. 🌿','bot'); meta('Тавтай морилно уу'); }
-    else { arr.forEach(m => bubble(m.html, m.who, m.isHTML)); }
+    if(!el.stream) return;
+    el.stream.innerHTML='';
+    const arr=loadMsgs();
+    if(!arr.length){ bubble('Сайн уу! Оюунсанаатай ярилцъя. 🌿','bot'); meta('Тавтай морилно уу'); }
+    else { arr.forEach(m=>bubble(m.html, m.who, m.isHTML)); }
   })();
 
-  function showTyping(){
-    if (!el.typing) return;
-    el.typing.style.display = 'flex';
-    clearTimeout(window.__oyTypingTimer);
-    window.__oyTypingTimer = setTimeout(()=>{ el.typing.style.display='none'; }, 1600);
+  function showTyping(){ el.typing && (el.typing.hidden=false); }
+  function hideTyping(){ el.typing && (el.typing.hidden=true); }
+
+  // textarea autosize
+  if (el.input){
+    const auto = ()=>{ el.input.style.height='auto'; el.input.style.height=Math.min(el.input.scrollHeight,180)+'px'; };
+    el.input.addEventListener('input', auto); queueMicrotask(auto);
   }
-  function hideTyping(){ if (el.typing) el.typing.style.display='none'; }
 
   // file -> dataURL
   function fileToDataURL(file){
-    return new Promise((resolve, reject)=>{
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = reject;
-      fr.readAsDataURL(file);
+    return new Promise((resolve,reject)=>{
+      const fr=new FileReader(); fr.onload=()=>resolve(fr.result); fr.onerror=reject; fr.readAsDataURL(file);
     });
   }
 
-  // preview chips (NEVER auto-send)
-  let previewImages = []; // dataURL array
-  function renderPreviews(){
-    if (!el.previews) return;
-    if (!previewImages.length){ el.previews.hidden = true; el.previews.innerHTML=''; return; }
-    el.previews.hidden = false;
-    el.previews.innerHTML = previewImages.map((d,i)=>(
-      `<div class="oy-chip"><img src="${d}" alt=""><button data-i="${i}">×</button></div>`
-    )).join('');
-    el.previews.querySelectorAll('button').forEach(btn=>{
-      btn.onclick = () => { const i = +btn.dataset.i; previewImages.splice(i,1); renderPreviews(); };
-    });
-  }
+  let HISTORY=[];               // server рүү дамжуулна
+  let CURRENT_MODULE='psychology';
 
-  /* ---------- State ---------- */
-  let HISTORY = [];
-  let CURRENT_MODULE = 'psychology';
-
+  /* ===== API call (/v1/chat) ===== */
   async function callChat({ text="", images=[] }){
-    if (!OY_API){ bubble("⚠️ API тохируулга хийгдээгүй (OY_API_BASE).", 'bot'); return; }
+    if (!API_BASE){ bubble("⚠️ API тохируулаагүй байна. window.OY_API_BASE-г зөв URL болгоно уу.", 'bot'); return; }
     showTyping();
     try{
-      const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0] || 'mn';
-      const r = await fetch(`${OY_API}/v1/chat`, {
+      const USER_LANG = (window.OY_LANG || document.documentElement.lang || navigator.language || 'mn').split('-')[0] || 'mn';
+      const forceModel = images.length || (HISTORY.length >= 12) ? "gpt-4o" : "gpt-4o-mini";
+
+      const r = await fetch(CHAT_URL, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG })
+        body: JSON.stringify({
+          moduleId: CURRENT_MODULE,
+          text, images,
+          chatHistory: HISTORY,
+          userLang: USER_LANG,
+          forceModel
+        })
       });
-      const j = await r.json();
-     let reply = "…";
-if (j) {
-  // 1) шинэ формат (GPT structured)
-  const maybe = j.output?.[0]?.content?.find?.(c=>c.type==='output_text')?.text;
-  // 2) хуучин формат (reply key)
-  const fallback = j.reply || j.message || j.answer || j.output_text;
-  reply = maybe || fallback || "⚠️ Хоосон хариу ирлээ.";
-}
-bubble(reply, 'bot');
-pushMsg('bot', reply);
-HISTORY.push({ role:'assistant', content: reply });
+      if(!r.ok) throw new Error(await r.text());
+      const data = await r.json();
+
+      const reply = data?.output?.[0]?.content?.[0]?.text ?? "…";
       bubble(reply,'bot'); pushMsg('bot', reply);
       HISTORY.push({ role:'assistant', content: reply });
-      if (j?.model) meta(`Model: ${j.model}`);
+      if (data?.model) meta(`Model: ${data.model}`);
     }catch(e){
+      console.error(e);
       bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
     }finally{ hideTyping(); }
   }
 
- // ---- API CALL (robust reply extractor) ----
-function pickReply(j){
-  // серверээс ямар формат ирснээс үл хамаараад текстийг нь олж авна
-  return (
-    j?.reply ??
-    j?.message ??
-    j?.choices?.[0]?.message?.content ??
-    j?.output?.[0]?.content?.find?.(c => c.type === 'output_text' || c.type === 'text')?.text ??
-    j?.content ?? ""
-  );
-}
+  /* ===== Илгээх ===== */
+  async function sendCurrent(){
+    const t=(el.input?.value||"").trim();
+    const files=Array.from(el.file?.files||[]);
+    if(!t && !files.length) return;
 
-async function callChat({ text = "", images = [] }){
-  if (!API_BASE){
-    bubble("⚠️ API тохируулга хийгдээгүй байна. (window.OY_API_BASE)", "bot");
-    return;
-  }
-
-  showTyping();
-  try{
-    const USER_LANG =
-      (window.OY_LANG || document.documentElement.lang || navigator.language || "mn")
-        .split("-")[0];
-
-    // олон зураг эсвэл урт түүхтэй бол том модель руу шилжих (хэрэгтэй бол)
-    const forceModel = images.length || (HISTORY.length >= 12) ? "gpt-4o" : "gpt-4o-mini";
-
-    const r = await fetch(CHAT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        moduleId: CURRENT_MODULE,
-        text,
-        images,                 // dataURL массив (чиний кодтой таарч байна)
-        chatHistory: HISTORY,
-        userLang: USER_LANG,
-        forceModel
-      }),
-    });
-
-    if (!r.ok){
-      // сервер 200 биш бол текстийг нь харуулж алдаа гэж үзнэ
-      throw new Error(await r.text());
+    if(t){ bubble(t,'user'); pushMsg('user', t); HISTORY.push({ role:'user', content:t }); el.input.value=""; el.input.dispatchEvent(new Event('input')); }
+    const dataURLs=[];
+    for(const f of files){
+      if (f.type?.startsWith('image/')){
+        const d=await fileToDataURL(f);
+        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+        pushMsg('user', `<img src="${d}">`, true);
+        dataURLs.push(d);
+      } else {
+        bubble('📎 '+f.name, 'user'); pushMsg('user', f.name);
+      }
     }
-
-    const data  = await r.json();
-    const reply = pickReply(data).trim();
-
-    if (!reply){
-      bubble("… (хоосон хариу ирлээ)", "bot");
-    }else{
-      bubble(reply, "bot");
-      pushMsg("bot", reply);
-      HISTORY.push({ role: "assistant", content: reply });
-    }
-
-    if (data?.model) meta(`Model: ${data.model}`);
-
-  }catch(e){
-    console.error(e);
-    bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", "bot");
-  }finally{
-    hideTyping();
+    if(el.file) el.file.value="";
+    await callChat({ text:t, images:dataURLs });
   }
-}
-
-  /* ---------- Menu open/close ---------- */
-  document.querySelectorAll('.oy-item[data-menu]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.dataset.menu;
-      const target = Array.from(document.querySelectorAll('.oy-pane')).find(p=>p.dataset.pane===key);
-      if (!target) return;
-      if (!target.hidden) { target.hidden = true; return; }
-      document.querySelectorAll('.oy-pane').forEach(p=>p.hidden = p!==target);
-    });
+  el.send?.addEventListener('click', sendCurrent);
+  el.input?.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
+  el.file?.addEventListener('change', async (e)=>{
+    const files=Array.from(e.target.files||[]);
+    for(const f of files) if(f.type?.startsWith('image/')){
+      const d=await fileToDataURL(f);
+      bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`,'user',true);
+      pushMsg('user', `<img src="${d}">`, true);
+    }
   });
 
-  /* ---------- Public API for menu buttons ---------- */
+  /* ===== Зүүн меню → oySend(module, action) ===== */
   window.oySend = async function(moduleId, action){
     CURRENT_MODULE = moduleId || CURRENT_MODULE;
     const text = `User selected: ${moduleId} / ${action}`;
     bubble(text,'user'); pushMsg('user', text);
-    HISTORY.push({ role:'user', content: text });
-    const imgs = [...previewImages]; previewImages = []; renderPreviews();
-    await callChat({ text, images: imgs });
+    HISTORY.push({ role:'user', content:text });
+
+    const files=Array.from(el.file?.files||[]);
+    const images=[];
+    for(const f of files) if(f.type?.startsWith('image/')) images.push(await fileToDataURL(f));
+    if(el.file) el.file.value="";
+    await callChat({ text, images });
   };
 
 })();
