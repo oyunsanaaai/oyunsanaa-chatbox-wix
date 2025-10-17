@@ -114,31 +114,34 @@
       fr.readAsDataURL(file);
     });
   }
+async function callChat({ text = "", images = [] }) {
+  showTyping();
+  try {
+    const USER_LANG = (window.OY_LANG || navigator.language || 'mn').split('-')[0];
+    const r = await fetch(`${OY_API}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        moduleId: CURRENT_MODULE,
+        text,
+        images,
+        chatHistory: HISTORY,
+        userLang: USER_LANG
+      })
+    });
 
-  // Түүх
-  let HISTORY = [];
-  let CURRENT_MODULE = 'psychology';
-// --- file → compressed dataURL (for API upload) ---
-// --- file -> compressed dataURL (for API upload) ---
-async function fileToDataURL(file, maxSide = 1024, quality = 0.78) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-      const canvas = document.createElement('canvas');
-      canvas.width  = img.width  * scale;
-      canvas.height = img.height * scale;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const out = canvas.toDataURL('image/webp', quality);
-      URL.revokeObjectURL(url);
-      resolve(out);
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+    const j = await r.json();
+    const reply = j?.reply || "…";
+    bubble(reply, 'bot');
+    pushMsg('bot', reply);
+    HISTORY.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    bubble("⚠️ Холболт амжилтгүй байна. API шалгана уу.", 'bot');
+  } finally {
+    hideTyping();
+  }
 }
+ 
 async function sendCurrent() {
   const t = (el.input?.value || "").trim();
   const files = Array.from(el.file?.files || []);
