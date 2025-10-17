@@ -105,10 +105,35 @@ body{
 .oy-chip button{position:absolute; top:4px; right:4px; all:unset; width:18px;height:18px; border-radius:10px; background:#0008; color:#fff; font-size:12px; text-align:center; line-height:18px; cursor:pointer}
 
 /* themes (5 загвар) */
-:root[data-t="0"]{--brand:#4e7dd8; --bg1:#0d1726; --bg2:#1d2740}
-:root[data-t="1"]{--brand:#1aa86e; --bg1:#081a16; --bg2:#12322b}
-:root[data-t="2"]{--brand:#bc9b5d; --bg1:#1b140b; --bg2:#332515}
-:root[data-t="3"]{--brand:#8b8f96; --bg1:#0f1114; --bg2:#191b22}
-:root[data-t="4"]{--brand:#2e6f6c; --bg1:#0a2021; --bg2:#143638}
+/* === Oyunsanaa New Color Themes === */
+:root[data-t="0"] {
+  --brand: #4e7dd8; /* blue */
+  --bg1: #0d1726;
+  --bg2: #1d2740;
+}
+
+:root[data-t="1"] {
+  --brand: #1dbf73; /* mint green */
+  --bg1: #062a1c;
+  --bg2: #104132;
+}
+
+:root[data-t="2"] {
+  --brand: #f1b24a; /* warm gold */
+  --bg1: #2b1800;
+  --bg2: #402a0a;
+}
+
+:root[data-t="3"] {
+  --brand: #c765e5; /* violet / purple */
+  --bg1: #1a0e1f;
+  --bg2: #321a40;
+}
+
+:root[data-t="4"] {
+  --brand: #ff6b6b; /* coral / red-pink */
+  --bg1: #250b0b;
+  --bg2: #3b1111;
+}
 /* === БҮХДЭЭ box-sizing === */
 *, *::before, *::after { box-sizing: border-box; }
