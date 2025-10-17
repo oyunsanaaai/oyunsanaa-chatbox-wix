@@ -44,8 +44,57 @@
   el.overlay?.addEventListener('click', ()=>{
     document.body.classList.remove('oy-drawer-open'); if (el.overlay) el.overlay.hidden = true;
   });
-
+/* ----------- Drawer ---------- */
+el.btnDrawer?.addEventListener('click', () => { ... });
+el.overlay?.addEventListener('click', () => { ... });
   /* ---------- Chat helpers ---------- */
+  /* -------- Chat send + typing -------- */
+function bindOnce(target, evt, fn) {
+  if (!target) return;
+  target.__oybind = target.__oybind || {};
+  const old = target.__oybind[evt];
+  if (old) target.removeEventListener(evt, old);
+  target.addEventListener(evt, fn);
+  target.__oybind[evt] = fn;
+}
+
+function showTyping() {
+  if (!el.typing) return;
+  el.typing.style.display = 'flex';
+  clearTimeout(window.__oyTypingTimer);
+  window.__oyTypingTimer = setTimeout(() => {
+    el.typing.style.display = 'none';
+  }, 2000);
+}
+
+function sendMessage() {
+  const text = el.input.value.trim();
+  if (!text) return;
+  const bubble = document.createElement('div');
+  bubble.className = 'oy-bubble user';
+  bubble.textContent = text;
+  el.stream.appendChild(bubble);
+  el.input.value = '';
+  el.stream.scrollTo({ top: el.stream.scrollHeight, behavior: 'smooth' });
+  showTyping();
+
+  setTimeout(() => {
+    const reply = document.createElement('div');
+    reply.className = 'oy-bubble bot';
+    reply.textContent = 'Ойлголоо 😊';
+    el.stream.appendChild(reply);
+    el.stream.scrollTo({ top: el.stream.scrollHeight, behavior: 'smooth' });
+  }, 1200);
+}
+
+bindOnce(el.send, 'click', sendMessage);
+bindOnce(el.input, 'keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+/* -------- Chat send + typing END -------- */
   const OY_API = window.OY_API_BASE || "";
   const MSGKEY = 'oy_msgs_one';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
