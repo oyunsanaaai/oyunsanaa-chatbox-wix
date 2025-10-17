@@ -31,7 +31,7 @@
     <aside id="oyDrawer" class="oy-drawer" aria-label="Хажуу цэс">
       <div class="oy-side">
         <div class="oy-side-title">Меню</div>
-<a class="oy-item" href="https://YOUR-WIX-SITE.com/register" target="_blank" rel="noopener">Бүртгэл</a>    
+ 
         <button class="oy-item "https://YOUR-WIX-SITE.com/register">Бүртгэл</button>
         <button class="oy-item oy-link" data-menu="wix2">Миний хөтөлбөр</button>
         <button class="oy-item oy-link" data-menu="wix3">Сэтгэлийн хөтөч</button>
@@ -46,14 +46,26 @@
             <li><span>Тайлан</span><button class="oy-mini" onclick="oySend('psychology','report')">Орох</button></li>
           </ul>
         </section>
-        <div class="oy-side-title" style="margin-top:18px">Өдөр тутмын хэсгүүд</div>
-        <ul class="oy-list">
-          <li>Танилцуулга <button class="oy-mini" onclick="oySend('intro','open')">Орох</button></li>
-          <li>Сургалт <button class="oy-mini" onclick="oySend('training','open')">Орох</button></li>
-          <li>Дасгал <button class="oy-mini" onclick="oySend('exercise','open')">Орох</button></li>
-          <li>Шалгалт <button class="oy-mini" onclick="oySend('quiz','open')">Орох</button></li>
-          <li>Тайлан <button class="oy-mini" onclick="oySend('report','open')">Орох</button></li>
-        </ul>
+         <button class="oy-item" data-menu="psychology">Сэтгэлзүй</button>
+        <section class="oy-pane" data-pane="psychology" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span><button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
+            <li><span>Сургалт</span><button class="oy-mini" onclick="oySend('psychology','course')">Орох</button></li>
+            <li><span>Дасгал</span><button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span><button class="oy-mini" onclick="oySend('psychology','quiz')">Орох</button></li>
+            <li><span>Тайлан</span><button class="oy-mini" onclick="oySend('psychology','report')">Орох</button></li>
+          </ul>
+        </section>
+          <button class="oy-item" data-menu="psychology">Сэтгэлзүй</button>
+        <section class="oy-pane" data-pane="psychology" hidden>
+          <ul class="oy-list">
+            <li><span>Танилцуулга</span><button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
+            <li><span>Сургалт</span><button class="oy-mini" onclick="oySend('psychology','course')">Орох</button></li>
+            <li><span>Дасгал</span><button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
+            <li><span>Шалгалт</span><button class="oy-mini" onclick="oySend('psychology','quiz')">Орох</button></li>
+            <li><span>Тайлан</span><button class="oy-mini" onclick="oySend('psychology','report')">Орох</button></li>
+          </ul>
+        </section>      </ul>
       </div>
     </aside>
 
