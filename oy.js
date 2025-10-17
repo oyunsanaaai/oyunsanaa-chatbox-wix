@@ -157,51 +157,73 @@ async function callChat({ text = "", images = [] }){
     bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
   } finally { hideTyping(); }
 }
+// --- Илгээх явцын төлөв (давхар дуудагдахаас сэргийлнэ) ---
+let BUSY = false;
 
-  // Илгээх
-  async function sendCurrent(){
-    const t = (el.input?.value || "").trim();
-    const files = Array.from(el.file?.files || []);
-    if (!t && !files.length) return;
+// --- Илгээх үндсэн функц ---
+async function sendCurrent(){
+  if (BUSY) return;
 
-    if (t) { bubble(t, 'user'); pushMsg('user', t); HISTORY.push({ role:'user', content: t }); }
+  const t = (el.input?.value || "").trim();
 
-    const dataURLs = [];
-    for (const f of files) {
-      if (f.type.startsWith('image/')) {
-        const d = await fileToDataURL(f);
-        bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
-        pushMsg('user', `<img src="${d}">`, true);
-        dataURLs.push(d);
-      } else {
-        bubble('📎 ' + f.name, 'user'); pushMsg('user', f.name);
-      }
+  // Зургуудыг зөвхөн энд (илгээх мөчид) dataURL болгоно
+  const fileList = Array.from(el.file?.files || []);
+  const dataURLs = [];
+  for (const f of fileList) {
+    if (f.type.startsWith('image/')) {
+      dataURLs.push(await fileToDataURL(f));
     }
-
-    await callChat({ text: t, images: dataURLs }); // ЭХЛЭЭД API
-
-    // ДАРАА НЬ RESET — зураг дараагийн мессежинд дагахгүй
-    if (el.input){ el.input.value = ""; el.input.dispatchEvent(new Event('input')); }
-    if (el.file) el.file.value = "";
   }
-  el.send?.addEventListener('click', sendCurrent);
-  el.input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); }});
-// --- Зураг сонгох (preview л хийнэ, илгээхгүй) ---
-el.file?.addEventListener('change', async (e) => {
+
+  // Текст ч үгүй, зураг ч үгүй бол юу ч хийхгүй
+  if (!t && dataURLs.length === 0) return;
+
+  // Хэрэглэгчийн текстийг одоо л хадгална (preview дээр хадгалж байгааг болиулсан)
+  if (t) { 
+    bubble(t, 'user'); 
+    pushMsg('user', t); 
+    HISTORY.push({ role:'user', content:t }); 
+  }
+
+  // Илгээхээс өмнө input-уудыг reset
+  if (el.input){ el.input.value = ""; el.input.dispatchEvent(new Event('input')); }
+  if (el.file){ el.file.value = ""; }
+
+  BUSY = true;
+  try {
+    await callChat({ text: t, images: dataURLs });
+  } finally {
+    BUSY = false;
+  }
+}
+
+// --- Товч/Enter триггер ---
+el.send?.addEventListener('click', sendCurrent);
+el.input?.addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter' && !e.shiftKey) { 
+    e.preventDefault(); 
+    sendCurrent(); 
+  }
+});
+
+// --- Зураг сонгох: зөвхөн PREVIEW (хадгалж/илгээхгүй) ---
+el.file?.addEventListener('change', async (e)=>{ 
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
 
-  // preview харуулах
   for (const f of files) {
     if (f.type.startsWith('image/')) {
       const d = await fileToDataURL(f);
       bubble(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
-      // preview үед pushMsg хийж болохгүй — sendCurrent дараа нь хийх болно
+      // ⛔ preview үед pushMsg хийдгүй, илгээхдээ л хадгална
     } else {
-      bubble('📎 ' + f.name, 'user');
+      bubble('📎 ' + f.name, 'user'); // дүрс биш бол нэрийг л харуулна
     }
   }
 
+  // Зураг сонгосны дараа текст бичихэд бэлэн болгох
+  el.input?.focus();
+});
   // input-д зураг байгаа үед Enter дарж илгээдэг логик руу шилжих
   el.input?.focus();
 });
