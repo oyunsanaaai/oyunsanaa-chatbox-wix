@@ -152,7 +152,6 @@ async function callChat({ text = "", images = [] }){
     const reply = j?.output?.[0]?.content?.[0]?.text || j?.reply || "…";
     bubble(reply, 'bot'); pushMsg('bot', reply);
     HISTORY.push({ role:'assistant', content: reply });
-    if (j?.model) meta(`Model: ${j.model}`);
   } catch (e) {
     console.error(e);
     bubble("⚠️ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
