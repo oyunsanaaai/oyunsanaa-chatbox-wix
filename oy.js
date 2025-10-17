@@ -159,58 +159,43 @@ async function fileToDataURL(file, maxSide = 1200, quality = 0.8) {
     img.src = url;
   });
 }
-
-// Түүх ба идэвхтэй модел
 let HISTORY = [];
-let CURRENT_MODEL = 'mini'; // эсвэл '4o'
-// === API дуудах жинхэнэ функц ===
-async function callChat() {
-  showTyping?.();
+let CURRENT_MODEL = 'gpt-4o-mini';
+
+async function callChat({ text="", images=[], chatHistory=[], userLang="mn", forceModel="" }) {
+  showTyping();
   try {
-    const r = await fetch("https://oyunsanaa-api.oyunsanaa-ai.workers.dev/chat", {
+    const res = await fetch(OY_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: "Сайн байна уу?" })
+      body: JSON.stringify({ text, images, chatHistory, userLang, forceModel })
     });
-
-    const j = await r.json();
-    const reply = j?.reply || j?.message || "…";
-    bubble(reply, 'bot');
-    pushMsg('bot', reply);
-    HISTORY.push({ role: 'assistant', content: reply });
-
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    const reply = data?.output?.[0]?.content?.[0]?.text ?? "-";
+    bubble(reply, 'bot'); pushMsg('bot', reply);
+    HISTORY.push({ role:'assistant', content: reply });
   } catch (e) {
     console.error(e);
-    bubble("⚠️ Холболт амжилтгүй байна. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
-  } finally {
-    hideTyping?.();
-  }
+    bubble("^ Холболт амжилтгүй. Сүлжээ эсвэл API-г шалгана уу.", 'bot');
+  } finally { hideTyping(); }
 }
-// --- Send товч / Enter дарахад ---
+
 async function sendCurrent() {
   const t = (el.input?.value || "").trim();
   const files = Array.from(el.file?.files || []);
   if (!t && !files.length) return;
 
-  if (t) { bubble?.(t, 'user'); pushMsg?.('user', t); HISTORY?.push?.({ role: 'user', content: t }); }
+  const imgs = [];
+  for (const f of files) if (f.type.startsWith('image/')) imgs.push(await fileToDataURL(f));
+  if (el.file) el.file.value = "";
 
-  const dataURLs = [];
-  for (const f of files) {
-    if (f.type.startsWith('image/')) {
-      const d = await fileToDataURL(f);
-      // хүсвэл preview харуулж болно:
-      bubble?.(`<div class="oy-imgwrap"><img src="${d}" alt=""></div>`, 'user', true);
-      pushMsg?.('user', `<img src="${d}">`, true);
-      dataURLs.push(d);
-    }
-  }
+  if (t) { bubble(t,'user'); pushMsg('user', t); HISTORY.push({ role:'user', content:t }); }
 
-  if (el.input) el.input.value = "";
-  if (el.file)  el.file.value = "";
-
-  await callChat({ text: t, images: dataURLs, chatHistory: (HISTORY || []), userLang: (window.OY_LANG || navigator.language || 'mn').split('-')[0] });
+  const forceModel = imgs.length ? 'gpt-4o' : CURRENT_MODEL;
+  await callChat({ text: t, images: imgs, chatHistory: HISTORY.slice(-20),
+                   userLang: (navigator.language||'mn').split('-')[0], forceModel });
 }
-
 // Listeners (аль хэдийн байгаа бол давхардуулалгүй байршуулаарай)
 el.send?.addEventListener('click', sendCurrent);
 el.input?.addEventListener('keydown', e => {
