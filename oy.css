@@ -113,65 +113,39 @@ body{
 /* === БҮХДЭЭ box-sizing === */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* === Chat stream контейнер === */
-#oyStream {
-  height: 100dvh;                /* mobile-с илүү найдвартай */
-  padding-bottom: 96px;          /* composer-ийн өндрөөс арай их */
-  overflow:auto;
+/* 0) Ерөнхий: хэвтээ гулсалтыг хаах, хэмжээг хайрцагт тооцоолох */
+html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+*, *::before, *::after { box-sizing: border-box; }
+
+/* 1) Дотоод контейнерууд viewport-оос хэтрэхгүй */
+.oy-root, .oy-shell, #oyApp, #oyStream { max-width: 100%; overflow-x: hidden; }
+
+/* 2) Чатны бөмбөлөг, доторх текст/зураг яг дэлгэцэнд багтана */
+.oy-bubble { 
+  max-width: min(92vw, 720px);
+  overflow-wrap: anywhere;     /* урт үг, урт URL-ууд мөр хагална */
+  word-break: break-word;
+}
+.oy-bubble img, .oy-imgwrap img {
+  display: block;
+  max-width: 100%; 
+  height: auto;
 }
 
-/* === Доод composer (input + send) === */
-.oy-composer {
+/* 3) Доод composer-ийн мөр — Send шахагдахгүй */
+.oy-composer { 
   position: fixed; left: 0; right: 0;
   bottom: env(safe-area-inset-bottom);
-  z-index: 9999;                 /* overlay-оос дээр */
-  display: flex; align-items: flex-end; gap: 8px;
-  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+  display: flex; gap: 8px; z-index: 9999;
   background: rgba(12,12,14,.85); backdrop-filter: blur(6px);
-  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
 }
+.oy-inputwrap { flex: 1 1 auto; min-width: 0; display: flex; gap: 8px; }
+#oyInput     { flex: 1 1 auto; min-width: 0; width: 100%; }
+#btnSend     { flex: 0 0 auto; }
 
-/* === INPUT wrap === */
-.oy-inputwrap {
-  flex: 1 1 auto; min-width: 0;  /* 🔑 Send-ийг шахахгүй */
-  display: flex; align-items: center; gap: 8px;
-  background: #0f1116; border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px; padding: 8px 10px;
-}
-
-/* === TEXTAREA === */
-#oyInput {
-  flex: 1 1 auto; min-width: 0; width: 100%;
-  max-height: 32vh;              /* landscape дээр хэт өндөршихгүй */
-  overflow: auto;
-  resize: none;
-  line-height: 1.25;
-  background: transparent; color: #fff; border: 0; outline: 0;
-  white-space: pre-wrap; word-break: break-word;
-}
-
-/* === SEND товч === */
-#btnSend {
-  flex: 0 0 auto;                /* 🔑 агшихгүй */
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 44px; min-height: 40px;  /* tap target */
-  padding: 0 12px;
-  border-radius: 12px; border: 0;
-  background: #4b9cff; color: #fff; font-weight: 600;
-}
-
-/* === Хэт урт input үед Send үргэлж харагдана === */
-.oy-composer { contain: layout paint; }    /* clip багасгана */
-
-/* === Хэвтээ (landscape) нарийн тохиргоо === */
+/* 4) Дэлгэц хэвтээ үед илүү шахаж багтаах */
 @media (orientation: landscape) {
-  .oy-composer { padding: 6px 8px max(6px, env(safe-area-inset-bottom)); }
-  #btnSend { min-width: 40px; min-height: 36px; padding: 0 10px; }
-  #oyInput { max-height: 40vh; } /* жижиг дэлгэц дээр арай өндөршиж болно */
+  .oy-bubble { max-width: 92vw; }
+  #oyInput { max-height: 40vh; }
 }
-
-/* === Заримдаа эцэг дээрх transform fixed-ийг эвддэг — хориглоё === */
-.oy-root, .oy-shell, body, html { transform: none !important; }
-
-/* === Хажуу тийш “тасрах”-ыг зогсоох === */
-html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
