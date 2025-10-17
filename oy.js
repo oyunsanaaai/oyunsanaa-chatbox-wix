@@ -156,8 +156,17 @@
         body: JSON.stringify({ moduleId: CURRENT_MODULE, text, images, chatHistory: HISTORY, userLang: USER_LANG })
       });
       const j = await r.json();
-      const reply = j?.output?.[0]?.content?.find?.(c=>c.type==='output_text')?.text
-                 || j?.reply || "…";
+     let reply = "…";
+if (j) {
+  // 1) шинэ формат (GPT structured)
+  const maybe = j.output?.[0]?.content?.find?.(c=>c.type==='output_text')?.text;
+  // 2) хуучин формат (reply key)
+  const fallback = j.reply || j.message || j.answer || j.output_text;
+  reply = maybe || fallback || "⚠️ Хоосон хариу ирлээ.";
+}
+bubble(reply, 'bot');
+pushMsg('bot', reply);
+HISTORY.push({ role:'assistant', content: reply });
       bubble(reply,'bot'); pushMsg('bot', reply);
       HISTORY.push({ role:'assistant', content: reply });
       if (j?.model) meta(`Model: ${j.model}`);
