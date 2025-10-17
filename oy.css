@@ -1,269 +1,84 @@
 :root{
-  --brand:#486573;
-  --bg1:#0e1630;
-  --bg2:#301a40;
-  --glass:rgba(255,255,255,.12);
-  --glass-strong:rgba(255,255,255,.18);
-  --line:rgba(255,255,255,.25);
-  --text:#ffffff;
-  --user-bg:#155E1A;
-  --bot-bg:#C2C4B9;
+  --brand:#4e7dd8; --bg1:#0d1726; --bg2:#1d2740;
+  --glass:rgba(255,255,255,.08); --stroke:rgba(255,255,255,.18);
+  --text:#e9eef6; --muted:#9fb2c7; --chip:#ffffff0f; --accent:#aefb57;
+  --user:#d9f4ff; --bot:#ffffff;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0; color:var(--text);
-  font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  margin:0; color:var(--text); background:radial-gradient(1200px 800px at 20% 20%, var(--bg2), var(--bg1));
+  font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;
 }
 
-/* HEADER */
+/* header */
 .oy-header{
-  position:sticky; top:0; z-index:20;
-  display:flex; align-items:center; gap:12px;
-  padding:10px 14px;
-  background:linear-gradient(0deg,transparent,rgba(0,0,0,.35));
-  backdrop-filter:saturate(140%) blur(6px);
-  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:12px;
+  padding:10px 14px; backdrop-filter:saturate(140%) blur(12px);
+  background:linear-gradient(90deg, #0000, #0003); border-bottom:1px solid var(--stroke);
 }
-.oy-iconbtn{
-  width:38px;height:38px;border-radius:10px;border:1px solid var(--line);
-  background:var(--glass); color:#fff; display:grid; place-items:center; cursor:pointer;
-}
+.oy-iconbtn{all:unset; cursor:pointer; padding:8px; border-radius:10px; background:var(--glass)}
 .oy-iconbtn svg{width:22px;height:22px;fill:currentColor}
-.oy-head-title{display:flex;align-items:center;gap:10px;margin-inline:auto}
-.oy-logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center;font-weight:800}
+.oy-head-title{display:flex; align-items:center; gap:10px}
+.oy-status .dot{display:inline-block;width:8px;height:8px;border-radius:999px;background:#2ecc71;box-shadow:0 0 6px #2ecc71aa}
 .oy-title{font-weight:700}
-.oy-status{font-size:12px;color:#ffffffcc}
-.oy-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2aff86;margin-right:6px}
-.oy-themes{display:flex;gap:8px;margin-left:auto}
-.oy-swatch{width:22px;height:22px;border-radius:6px;border:1px solid var(--line);cursor:pointer;position:relative;overflow:hidden}
-.oy-swatch i{position:absolute;inset:0;opacity:.9}
-/* LAYOUT */
-.oy-shell{display:grid;grid-template-columns:280px 1fr; gap:14px; padding:14px; height:calc(100vh - 64px);}
-@media (max-width:960px){ .oy-shell{grid-template-columns:1fr} }
 
-.oy-drawer{position:relative}
-@media (max-width:960px){
-  .oy-drawer{
-    position:fixed; top:64px; left:0; width:280px; height:calc(100vh - 64px);
-    transform:translateX(-105%); transition:.25s; z-index:30;
-  }
-  body.oy-drawer-open .oy-drawer{ transform:translateX(0); }
-  .oy-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:25; }
+/* theme swatches */
+.oy-themes{margin-left:auto; display:flex; gap:8px}
+.oy-swatch{all:unset; width:26px;height:26px;border-radius:8px; background:var(--glass); border:1px solid var(--stroke); cursor:pointer; overflow:hidden}
+.oy-swatch i{display:block; width:100%; height:100%}
+
+/* layout */
+.oy-shell{display:grid; grid-template-columns:280px 1fr; min-height:calc(100vh - 56px)}
+@media (max-width:960px){ .oy-shell{grid-template-columns:1fr} .oy-drawer{position:fixed; inset:56px 0 0 0; max-width:420px; width:86%; transform:translateX(-100%); transition:.25s; z-index:20}
+  body.oy-drawer-open .oy-drawer{transform:none} .oy-overlay{position:fixed; inset:56px 0 0 0; background:#0008}
 }
-.oy-side{
-  height:100%;
-  background:var(--glass);
-  border:1px solid var(--line);
-  backdrop-filter:blur(10px) saturate(130%);
-  border-radius:16px;
-  padding:12px;
-  overflow:auto;
-}
-.oy-side-title{font-weight:700;opacity:.9;margin:6px 2px 10px}
+.oy-overlay[hidden]{display:none}
+
+/* sidebar */
+.oy-drawer{border-right:1px solid var(--stroke); background:linear-gradient(180deg,#0002,#0000)}
+.oy-side{padding:16px}
+.oy-side-title{opacity:.8; margin-bottom:12px}
 .oy-item{
-  width:100%; text-align:left; padding:10px 12px; margin:4px 0;
-  border-radius:10px; border:1px solid var(--line); background:transparent; color:#fff; cursor:pointer; display:block;
+  width:100%; text-align:left; padding:14px 16px; margin:10px 0; border-radius:16px;
+  background:var(--glass); border:1px solid var(--stroke); color:var(--text); cursor:pointer;
 }
-.oy-item:hover{background:var(--glass-strong)}
-.oy-pane{margin-top:8px; padding:10px; border:1px dashed var(--line); border-radius:12px}
-.oy-note{font-size:12px;opacity:.9}
-.oy-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.oy-list li{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--glass)}
-.oy-mini{font-size:12px;color:#fff;border:1px solid var(--line);padding:6px 10px;border-radius:999px;text-decoration:none;background:transparent}
-.oy-link-card{display:block;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--glass);color:#fff;text-decoration:none;margin:6px 0}
-.reg-row{display:flex;align-items:center;gap:8px}
+.oy-pane{margin:6px 0 14px 0; padding:12px; border-radius:16px; background:var(--glass); border:1px dashed var(--stroke)}
+.oy-list{margin:0; padding:0; list-style:none}
+.oy-list li{display:flex; justify-content:space-between; align-items:center; padding:10px 6px}
+.oy-mini{all:unset; padding:6px 10px; border-radius:10px; background:var(--chip); border:1px solid var(--stroke); cursor:pointer}
 
-/* CHAT */
-.oy-main{display:flex; flex-direction:column; min-height:0; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px) saturate(130%); border-radius:16px}
-.oy-stream{flex:1; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:6px}
-.oy-bubble{padding:8px 12px; border-radius:16px; max-width:76%; word-wrap:break-word; white-space:pre-wrap}
-.oy-user{ align-self:flex-end; background:var(--user-bg); color:#fff }
-.oy-bot{ align-self:flex-start; background:var(--bot-bg); color:#111 }
-.oy-meta{ align-self:center; opacity:.85; font-size:12px; margin:4px 0 }
+/* chat */
+.oy-main{display:flex; flex-direction:column; height:calc(100vh - 56px)}
+.oy-stream{flex:1; overflow:auto; padding:20px 18px 10px; display:flex; flex-direction:column; gap:14px}
+.oy-bubble{max-width:min(680px, 82%); padding:12px 14px; border-radius:16px; background:var(--glass); border:1px solid var(--stroke)}
+.oy-user{align-self:flex-end; background:linear-gradient(180deg,#ffffff18,#ffffff06); color:#eaf6ff}
+.oy-bot{align-self:flex-start}
+.oy-meta{opacity:.65; font-size:12px; text-align:center; margin:4px 0}
 
-/* COMPOSER */
-.oy-composer{display:flex; align-items:center; gap:8px; border-top:1px solid var(--line); padding:10px; background:linear-gradient(0deg,rgba(0,0,0,.15),transparent)}
-.oy-file{width:34px;height:34px;border-radius:10px;border:1px solid var(--line); background:var(--glass); display:grid; place-items:center; cursor:pointer; color:#fff}
-.oy-file svg{width:18px;height:18px}
-.oy-input-wrap{position:relative;flex:1}
-#oyInput{width:100%; min-height:40px; max-height:160px; resize:none; padding:10px 44px 10px 12px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.14); color:#fff; outline:none}
-.oy-typing{position:absolute; right:10px; top:50%; transform:translateY(-50%); display:flex; gap:3px}
-.oy-typing span{width:6px;height:6px;border-radius:50%;background:#fff;opacity:.7;animation:oyDot 1.2s infinite}
-.oy-typing span:nth-child(2){animation-delay:.2s}
-.oy-typing span:nth-child(3){animation-delay:.4s}
-@keyframes oyDot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}
-.oy-send{width:40px;height:40px;border:none;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer}
-
-.oy-imgwrap img{max-width:220px;border-radius:12px;display:block}
-
-/* Толгойн 2 товчийг (хуучны) хаалттай байлгах хамгаалалт */
-.oy-head-links{display:none!important}
-/* 0) "…"-ын анимаци бичээгүй үед битгий харагд */
-.oy-typing[hidden]{display:none!important}
-/* 0) "…"-ын анимаци бичээгүй үед битгий харагд */
-.oy-typing[hidden]{display:none!important}
-
-/@media (max-width:600px){
-  /* Гарчгийг төвд барьж, товчийг header-ээс салгаж байрлуулна (нуухгүй) */
-  @media (max-width:600px){
-  html, body { height:100%; margin:0; }
-  body { overflow:hidden; background:#0b1022; }
-
-  /* Бүх дэлгэц өндөрт тааруулна */
-  .app{
-    display:flex;
-    flex-direction:column;
-    width:100%;
-    min-height:100svh;            /* iOS-т найдвартай */
-  }
-
-  /* Зөвхөн мессежийн бүс скроллдоно */
-  #oyStream{
-    flex:1 1 auto;
-    overflow:auto;
-    -webkit-overflow-scrolling:touch;
-    padding:12px;
-  }
-
-  /* Доод бар тогтмол байрлалд */
-/* Доод composer барыг үргэлж харагдуулна */
-#inputBar{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 100;
-  background: rgba(0,0,0,0.25);
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  transform: translateZ(0); /* iOS repaint fix */
+/* composer */
+.oy-composer{display:flex; align-items:flex-end; gap:10px; padding:12px; border-top:1px solid var(--stroke); background:linear-gradient(180deg,#0000,#0003)}
+.oy-file{all:unset; width:42px;height:42px; display:grid; place-items:center; background:var(--glass); border:1px solid var(--stroke); border-radius:12px; cursor:pointer}
+.oy-input-wrap{flex:1; position:relative}
+#oyInput{
+  width:100%; min-height:42px; max-height:180px; resize:none; padding:12px 14px; border-radius:12px; color:var(--text);
+  background:var(--glass); border:1px solid var(--stroke); outline:none
 }
+.oy-send{all:unset; width:46px;height:42px; display:grid; place-items:center; border-radius:12px; background:var(--brand); color:white; cursor:pointer}
+.oy-typing{position:absolute; right:10px; bottom:8px; display:flex; gap:4px}
+.oy-typing span{width:6px;height:6px;border-radius:999px;background:#fff8; animation:blink 1s infinite}
+.oy-typing span:nth-child(2){animation-delay:.15s} .oy-typing span:nth-child(3){animation-delay:.3s}
+@keyframes blink {0%,100%{opacity:.3} 50%{opacity:1}}
 
-/* iOS keyboard үед түр зуур доод зай авч өгөх */
-.ios-fix-padding { padding-bottom: 300px; }  /* JS энэ утгыг динамикаар сольж болно */
+.oy-previews{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0}
+.oy-chip{position:relative; width:64px;height:64px; border-radius:10px; overflow:hidden; background:#0003; border:1px solid var(--stroke)}
+.oy-chip img{width:100%;height:100%; object-fit:cover}
+.oy-chip button{position:absolute; top:4px; right:4px; all:unset; width:18px;height:18px; border-radius:10px; background:#0008; color:#fff; font-size:12px; text-align:center; line-height:18px; cursor:pointer}
 
-/* Чат мессежийн урсгал */
-#oyStream{
-  flex: 1 1 auto;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 12px;
-}
-
-  /* Composer доторх layout */
-  .oy-composer{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    width:100%;
-    max-width:900px;
-    margin:0 auto;
-  }
-
-  .oy-input-wrap{ flex:1 1 auto; }
-
-  /* Инпут – ≥16px фонт (zoom-гүй) */
-  #oyInput{
-    width:100%;
-    font-size:17px;
-    line-height:1.35;
-    resize:none;
-  }
-
-  /* Send товчны тогтмол хэмжээ – багтдаг болгоно */
-  .oy-send{
-    flex:0 0 56px;
-    width:56px; height:56px;
-    border-radius:16px;
-  }
-}
-/* iOS zoom-оос сэргийлэхийн тулд textarea-гийн үсгийн хэмжээ ≥16px байх ёстой */
-#oyInput { font-size: 16px; }
-
-/* Доод мөр keyboard дээр “түлхэгдэх” үед өргөж харагдахаар суурь padding */
-.oy-stream { padding-bottom: 120px; }
-
-/* Keyboard гарч ирэхэд хэт сунжрахгүйн тулд */
-#inputBar { max-width: 900px; margin: 0 auto; }
-/* iOS viewport + keyboard-тэй зохицуулах */
-:root{
-  --kb: 0px;        /* JS-аас keyboard өндөр орж ирнэ */
-}
-
-html, body { height: 100%; margin:0; }
-.app{ min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
-
-#oyStream{
-  flex:1 1 auto;
-  overflow:auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 12px;
-  /* keyboard гарч ирэхэд доороо илүү padding авна */
-  padding-bottom: calc(120px + var(--kb,0px));
-}
-
-/* Доод composer тогтмол байрлах ба keyboard-тэй хамт дээшилнэ */
-#inputBar{
-  position: sticky; bottom: 0; left:0; right:0;
-  width: 100%;
-  z-index: 10;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.25);
-  transform: translateY(calc(-1 * var(--kb,0px))); /* ← шилжилт */
-  transform: translate3d(0, calc(-1 * var(--kb,0px)), 0);
-}
-
-/* iOS zoom бүү хийг */
-#oyInput{ font-size:16px; line-height:1.35; }
-#oy-menu { display:grid; gap:14px; }
-.oy-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
-  border-radius:14px; padding:14px; }
-.oy-card-title { font-weight:700; margin-bottom:10px; }
-.oy-buttons { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.oy-btn { padding:10px 12px; border-radius:10px; background:transparent; border:1px solid rgba(255,255,255,.3); cursor:pointer; }
-.oy-btn:hover { border-color: rgba(255,255,255,.6); }
-.oy-chat-box { margin-top:16px; height:240px; overflow:auto; border-radius:12px; padding:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); }
-.oy-msg { margin:6px 0; padding:8px 10px; border-radius:10px; }
-.oy-msg.user { background:rgba(255,255,255,.07); }
-.oy-msg.assistant { background:rgba(0,0,0,.25); }
-.oy-toast { position:fixed; bottom:12px; right:12px; background:rgba(0,0,0,.7); color:#fff; padding:10px 14px; border-radius:10px; opacity:0; transform:translateY(6px); transition:.2s; }
-.oy-toast.show { opacity:1; transform:translateY(0); }
-  /* ===== Mobile / iOS viewport fixes ===== */
-:root { --vh: 1vh; --composer-h: 64px; }
-
-html, body {
-  height: 100%;
-  overscroll-behavior: none;
-}
-
-.oy-shell {
-  height: calc(var(--vh, 1vh) * 100);
-  display: grid;
-  grid-template-rows: auto 1fr;
-}
-
-/* chat main should not be hidden by the composer */
-.oy-main {
-  position: relative;
-  padding-bottom: calc(var(--composer-h) + env(safe-area-inset-bottom, 0px));
-}
-
-/* fix the composer to bottom and respect safe area */
-.oy-composer {
-  position: sticky;
-  bottom: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  height: var(--composer-h);
-  min-height: var(--composer-h);
-  box-sizing: border-box;
-  z-index: 5;
-  background: rgba(0,0,0,0.12);
-  backdrop-filter: saturate(150%) blur(6px);
-}
-
-/* images shrink on small screens */
-.oy-imgwrap img { max-width: min(360px, 80vw); height: auto; display: block; }
-
-/* prevent huge bubbles from breaking line-height */
-.oy-bubble { max-width: 90%; word-wrap: break-word; }
+/* themes (5 загвар) */
+:root[data-t=0]{--brand:#4e7dd8; --bg1:#0d1726; --bg2:#1d2740}
+:root[data-t=1]{--brand:#1aa86e; --bg1:#081a16; --bg2:#12322b}
+:root[data-t=2]{--brand:#bc9b5d; --bg1:#1b140b; --bg2:#332515}
+:root[data-t=3]{--brand:#6b6f76; --bg1:#0f1114; --bg2:#191b22}
+:root[data-t=4]{--brand:#2e6f6c; --bg1:#0a2021; --bg2:#143638}
