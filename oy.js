@@ -92,10 +92,30 @@
   function hideTyping(){ el.typing && (el.typing.hidden=true); }
 
   function loadMsgs(){ try{ return JSON.parse(localStorage.getItem(MSGKEY)||'[]'); }catch(_){ return []; } }
-  function pushMsg(who, html, isHTML=false){
-    const arr=loadMsgs(); arr.push({t:Date.now(), who, html, isHTML});
-    localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
+  function pushMsg(who, html, isHTML = false){
+  // том dataURL зургийг хадгалахгүй
+  const MAX = 2000; // хадгалах дээд урт
+  let store = html;
+
+  if (isHTML && /<img\s/i.test(html)) {
+    // зургийн preview-г санах ойд хадгалахгүй
+    store = "[image]"; 
+  } else if (String(html).length > MAX) {
+    store = String(html).slice(0, MAX) + "…";
   }
+
+  try {
+    const arr = loadMsgs();
+    arr.push({ t: Date.now(), who, html: store, isHTML: false });
+    localStorage.setItem(MSGKEY, JSON.stringify(arr.slice(-50)));
+  } catch (e) {
+    // дүүрсэн бол хамгийн хуучны хэсгийг тайр
+    try {
+      const arr = loadMsgs().slice(-20);
+      localStorage.setItem(MSGKEY, JSON.stringify(arr));
+    } catch {}
+  }
+}
   (function redraw(){
     if(!el.stream) return;
     el.stream.innerHTML='';
