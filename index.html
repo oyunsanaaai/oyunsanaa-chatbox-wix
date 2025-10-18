@@ -1,79 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="mn">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Оюунсанаа — Чат</title>
-  <link rel="stylesheet" href="oy.css" />
+
+  <!-- ✅ API суурь URL-ээ энд заана (ардаа / байхгүй) -->
   <script>
-    /* ← ЭНД АПИ-гаа зааж өгнө */
     window.OY_API_BASE = "https://oyunsanaa-api.oyunsanaa-ai.workers.dev";
+    window.OY_LANG = "mn";
   </script>
+
+  <link rel="stylesheet" href="oy.css" />
 </head>
 <body>
-
   <!-- Header -->
   <header class="oy-header">
-    <button id="btnDrawer" class="oy-iconbtn" aria-label="Цэс нээх">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
-    </button>
     <div class="oy-head-title">
       <div class="oy-status"><span class="dot"></span></div>
       <div id="chatTitle" class="oy-title">Оюунсанаа — Чат</div>
     </div>
-    <div id="themePicker" class="oy-themes"></div>
+    <div id="themePicker" class="oy-themes" aria-label="Өнгө солих"></div>
   </header>
 
-  <!-- overlay for mobile drawer -->
-  <div id="oyOverlay" class="oy-overlay" hidden></div>
+  <!-- Main -->
+  <main class="oy-main">
+    <section id="oyStream" class="oy-stream" aria-live="polite"></section>
 
-  <!-- Shell -->
-  <div class="oy-shell">
-    <!-- Sidebar (ханацтай хийж үлдээв) -->
-    <aside id="oyDrawer" class="oy-drawer" aria-label="Хажуу цэс">
-      <div class="oy-side">
-        <div class="oy-side-title">Меню</div>
-        <button class="oy-item" data-menu="psychology">Сэтгэлзүй</button>
-        <button class="oy-item" data-menu="health">Эрүүл мэнд</button>
-        <button class="oy-item" data-menu="finance">Санхүү</button>
+    <!-- typing -->
+    <div id="typing" class="oy-typing" hidden>
+      <span></span><span></span><span></span>
+    </div>
 
-        <section class="oy-pane" data-pane="psychology" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span> <button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
-            <li><span>Дасгал</span> <button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
-          </ul>
-        </section>
+    <!-- composer -->
+    <div class="oy-composer">
+      <label for="oyFile" class="oy-file" title="Зураг сонгох" aria-label="Зураг сонгох">
+        <!-- paperclip icon -->
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M7 13.5 15.5 5a4 4 0 1 1 5.7 5.6l-9.2 9.2a6 6 0 1 1-8.5-8.5L12 4"/></svg>
+      </label>
+      <input id="oyFile" type="file" accept="image/*" multiple hidden />
+      <div class="oy-input-wrap">
+        <textarea id="oyInput" placeholder="Энд бичээд Enter дарна уу…"></textarea>
       </div>
-    </aside>
+      <button id="btnSend" class="oy-send" aria-label="Илгээх">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 11l16-8-4 8 4 8-16-8zm7 0h5l-5 3v-3z"/></svg>
+      </button>
+    </div>
 
-    <!-- Main chat -->
-    <main class="oy-main">
-      <div id="oyStream" class="oy-stream"></div>
-
-      <div class="oy-composer">
-        <!-- PREVIEWS (auto-filled) -->
-        <div id="oyPreviews" class="oy-previews" hidden></div>
-
-        <!-- File (label + hidden input) -->
-        <label for="oyFile" class="oy-file" title="Зураг нэмэх">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-            <path d="M16.5 6a3.5 3.5 0 0 1 0 7H9a2 2 0 1 1 0-4h7.5a1.5 1.5 0 1 0 0-3H9A5 5 0 1 0 9 17h7.5a5.5 5.5 0 1 0 0-11H9"/>
-          </svg>
-        </label>
-        <input id="oyFile" type="file" accept="image/*" hidden />
-
-        <div class="oy-input-wrap">
-          <textarea id="oyInput" placeholder="Энд бичээд Enter дарна уу…" rows="1"></textarea>
-          <div id="typing" class="oy-typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-        </div>
-
-        <button id="btnSend" class="oy-send" aria-label="Илгээх">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>
-        </button>
-      </div>
-    </main>
-  </div>
+    <!-- image previews -->
+    <div id="oyPreviews" class="oy-previews" hidden></div>
+  </main>
 
   <script src="oy.js"></script>
 </body>
-</html>
