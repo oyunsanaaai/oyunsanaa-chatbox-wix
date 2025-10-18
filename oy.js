@@ -49,7 +49,7 @@
   });
 
   /* ---------- Utils ---------- */
-  const OY_API = window.OY_API_BASE || "";
+ window.OY_API_BASE = "https://oyunsanaa-api.oyunsanaa-ai.workers.dev";
   const MSGKEY = 'oy_msgs_cache';
   const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
   const scrollBottom = () => { el.stream?.scrollTo({ top: el.stream.scrollHeight + 999, behavior:'smooth' }); };
