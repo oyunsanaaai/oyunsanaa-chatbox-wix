@@ -222,3 +222,29 @@ input[type="file"]{display:none;}
   .oy-composer{ padding:10px }
   #oyInput{ padding:9px 12px; }
 }
+/* Composer layout */
+.oy-composer{ display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; }
+
+/* Previews үргэлж МӨРӨӨРӨӨ, input-оос ДЭЭШ гарна */
+.oy-previews{
+  order:-1;          /* эхний мөрөнд гарга */
+  width:100%;
+  display:flex; gap:8px; flex-wrap:wrap;
+  margin:6px 0 -2px 0;
+  position:relative; z-index:0;   /* input-оос доод давхарга */
+}
+
+/* Бичих талбар preview-н ДЭЭД давхарга */
+.oy-input-wrap{ flex:1; position:relative; z-index:1; }
+
+/* thumbnail хэмжээ (хэрвээ байхгүй бол) */
+.oy-chip{ position:relative; width:64px; height:64px;
+          border-radius:10px; overflow:hidden; background:#0003; border:1px solid var(--stroke); }
+.oy-chip img{ width:100%; height:100%; object-fit:cover; }
+.oy-chip button{ position:absolute; top:4px; right:4px; all:unset; width:18px; height:18px; 
+                 border-radius:10px; background:#0008; color:#fff; font-size:12px; text-align:center; line-height:18px; cursor:pointer; }
+
+/* typing гурван цэгийн өндрийг тааруулах жижиг тохиргоо */
+:root{ --typing-bottom:10px; --composer-min:42px; }
+.oy-typing{ bottom:var(--typing-bottom); }
+#oyInput{ min-height:var(--composer-min); }
