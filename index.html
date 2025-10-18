@@ -142,24 +142,25 @@
     <!-- === Chat area === -->
     <main class="oy-main">
       <div id="oyStream" class="oy-stream" aria-live="polite"></div>
+<div class="oy-composer">
+  <!-- PREVIEWS: ХАМГИЙН ЭХЭНД -->
+  <div id="oyPreviews" class="oy-previews" hidden></div>
 
-      <div class="oy-composer">
-      <label for="oyFile" class="oy-file" title="Зураг/файл нэмэх">
-  <!-- өөрийн икон -->
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
-    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</label>
-<input id="oyFile" type="file" accept="image/*" multiple />
-        <div class="oy-input-wrap">
-          <div id="oyPreviews" class="oy-previews" hidden></div>
-          <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
+  <label for="oyFile" class="oy-file" title="Зураг нэмэх">
+    <!-- жижиг цаасны хавчаар икон -->
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5l7-7a5 5 0 017 7l-8 8a3.5 3.5 0 01-5-5l7-7a2 2 0 113 3l-7 7"></path></svg>
+  </label>
 
-          <!-- typing dots зөв байрлалтай -->
-          <div id="typing" class="oy-typing" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
+  <div class="oy-input-wrap">
+    <textarea id="oyInput" placeholder="Энд бичээд Enter дарна уу…"></textarea>
+    <div id="typing" class="oy-typing"><span></span><span></span><span></span></div>
+  </div>
 
+  <button id="btnSend" class="oy-send" aria-label="Илгээх">➤</button>
+
+  <!-- Жинхэнэ input-аа нууж үлдээнэ -->
+  <input id="oyFile" type="file" accept="image/*" multiple hidden>
+</div>
         <button id="btnSend" class="oy-send" aria-label="Илгээх">
           <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
         </button>
