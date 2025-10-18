@@ -177,3 +177,48 @@ input[type="file"]{display:none;}
 .oy-item{display:block;}
 .oy-list{list-style:none; margin:0; padding:0;}
 .oy-list li{margin:6px 0;}
+/* ==== Composer sizing fix ==== */
+:root{
+  --ctl: 44px;            /* товч + input ижил өндөр */
+  --ctl-radius: 12px;
+}
+
+.oy-composer{
+  display:flex;
+  align-items:center;     /* босоо төвшилт */
+  gap:10px;
+  padding:12px;
+}
+
+.oy-file,
+.oy-send{
+  width:var(--ctl);
+  height:var(--ctl);
+  border-radius:var(--ctl-radius);
+  display:grid; place-items:center;
+}
+
+.oy-input-wrap{
+  flex:1;
+  display:flex;           /* textarea-гаа босоо төвлөрүүлэх */
+  align-items:center;
+}
+
+#oyInput{
+  width:100%;
+  min-height:var(--ctl);          /* товчтой ижил өндөр */
+  max-height:140px;               /* олон мөр болоход дээд хязгаар */
+  padding:10px 14px;
+  line-height:1.35;
+  border-radius:var(--ctl-radius);
+}
+
+/* typing dots-ыг textarea-ын дотор шүргэхгүй болгоно */
+.oy-typing{ right:12px; bottom:8px }
+
+/* Mobile-д жаахан намсгана */
+@media (max-width: 480px){
+  :root{ --ctl: 40px; --ctl-radius: 10px; }
+  .oy-composer{ padding:10px }
+  #oyInput{ padding:9px 12px; }
+}
