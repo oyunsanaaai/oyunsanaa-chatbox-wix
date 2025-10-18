@@ -2,24 +2,20 @@
 <html lang="mn">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Оюунсанаа — Чат</title>
   <link rel="stylesheet" href="oy.css" />
-
-  <!-- 1) ЭНЭ МӨР ЗААВАЛ oy.js-ЭЭС ӨМНӨ БАЙХ ЁСТОЙ -->
   <script>
+    /* ← ЭНД АПИ-гаа зааж өгнө */
     window.OY_API_BASE = "https://oyunsanaa-api.oyunsanaa-ai.workers.dev";
   </script>
-
-  <!-- 2) Үүний дараа oy.js -->
-  <script defer src="oy.js"></script>
 </head>
 <body>
 
-  <!-- ======= Header ======= -->
+  <!-- Header -->
   <header class="oy-header">
     <button id="btnDrawer" class="oy-iconbtn" aria-label="Цэс нээх">
-      <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
     </button>
     <div class="oy-head-title">
       <div class="oy-status"><span class="dot"></span></div>
@@ -28,150 +24,56 @@
     <div id="themePicker" class="oy-themes"></div>
   </header>
 
-  <!-- Харанхуй давхрага (drawer overlay) -->
+  <!-- overlay for mobile drawer -->
   <div id="oyOverlay" class="oy-overlay" hidden></div>
 
-  <!-- ======= Main Shell (sidebar + chat) ======= -->
+  <!-- Shell -->
   <div class="oy-shell">
-    <!-- === Sidebar / Drawer === -->
+    <!-- Sidebar (ханацтай хийж үлдээв) -->
     <aside id="oyDrawer" class="oy-drawer" aria-label="Хажуу цэс">
       <div class="oy-side">
         <div class="oy-side-title">Меню</div>
- <!-- Wix линкүүд -->
-        <a class="oy-item" href="https://YOUR-WIX-SITE.com/register" target="_blank" rel="noopener">Бүртгэл</a>
-        <a class="oy-item" href="https://YOUR-WIX-SITE.com/my-program" target="_blank" rel="noopener">Миний хөтөлбөр</a>
-        <a class="oy-item" href="https://YOUR-WIX-SITE.com/guides" target="_blank" rel="noopener">Сэтгэлийн хөтөч</a>
-        <!-- 8 КАТЕГОРИ — товч → доорх pane нээгдэнэ -->
-        <!-- 1) Сэтгэлзүй -->
         <button class="oy-item" data-menu="psychology">Сэтгэлзүй</button>
+        <button class="oy-item" data-menu="health">Эрүүл мэнд</button>
+        <button class="oy-item" data-menu="finance">Санхүү</button>
+
         <section class="oy-pane" data-pane="psychology" hidden>
           <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('psychology','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('psychology','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('psychology','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 2) Эрүүл мэнд -->
-        <button class="oy-item" data-menu="health">Эрүүл мэнд</button>
-        <section class="oy-pane" data-pane="health" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('health','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('health','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('health','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('health','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('health','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 3) Санхүү -->
-        <button class="oy-item" data-menu="finance">Санхүү</button>
-        <section class="oy-pane" data-pane="finance" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('finance','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('finance','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('finance','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('finance','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('finance','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 4) Зорилго -->
-        <button class="oy-item" data-menu="goals">Зорилго</button>
-        <section class="oy-pane" data-pane="goals" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('goals','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('goals','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('goals','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('goals','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('goals','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 5) Харилцаа -->
-        <button class="oy-item" data-menu="relations">Харилцаа</button>
-        <section class="oy-pane" data-pane="relations" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('relations','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('relations','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('relations','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('relations','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('relations','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 6) Орчин -->
-        <button class="oy-item" data-menu="environment">Орчин</button>
-        <section class="oy-pane" data-pane="environment" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('environment','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('environment','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('environment','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('environment','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('environment','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 7) Сануулга -->
-        <button class="oy-item" data-menu="reminders">Сануулга</button>
-        <section class="oy-pane" data-pane="reminders" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('reminders','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('reminders','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('reminders','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('reminders','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('reminders','report')">Орох</button></li>
-          </ul>
-        </section>
-
-        <!-- 8) Тэмдэглэл -->
-        <button class="oy-item" data-menu="journal">Тэмдэглэл</button>
-        <section class="oy-pane" data-pane="journal" hidden>
-          <ul class="oy-list">
-            <li><span>Танилцуулга</span>  <button class="oy-mini" onclick="oySend('journal','intro')">Орох</button></li>
-            <li><span>Сургалт</span>      <button class="oy-mini" onclick="oySend('journal','course')">Орох</button></li>
-            <li><span>Дасгал</span>       <button class="oy-mini" onclick="oySend('journal','exercise')">Орох</button></li>
-            <li><span>Шалгалт</span>      <button class="oy-mini" onclick="oySend('journal','quiz')">Орох</button></li>
-            <li><span>Тайлан</span>       <button class="oy-mini" onclick="oySend('journal','report')">Орох</button></li>
+            <li><span>Танилцуулга</span> <button class="oy-mini" onclick="oySend('psychology','intro')">Орох</button></li>
+            <li><span>Дасгал</span> <button class="oy-mini" onclick="oySend('psychology','exercise')">Орох</button></li>
           </ul>
         </section>
       </div>
     </aside>
-    <!-- === Chat area === -->
+
+    <!-- Main chat -->
     <main class="oy-main">
-      <div id="oyStream" class="oy-stream" aria-live="polite"></div>
-<div class="oy-composer">
-  <!-- PREVIEWS: ХАМГИЙН ЭХЭНД -->
-  <div id="oyPreviews" class="oy-previews" hidden></div>
+      <div id="oyStream" class="oy-stream"></div>
 
-  <label for="oyFile" class="oy-file" title="Зураг нэмэх">
-    <!-- жижиг цаасны хавчаар икон -->
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5l7-7a5 5 0 017 7l-8 8a3.5 3.5 0 01-5-5l7-7a2 2 0 113 3l-7 7"></path></svg>
-  </label>
+      <div class="oy-composer">
+        <!-- PREVIEWS (auto-filled) -->
+        <div id="oyPreviews" class="oy-previews" hidden></div>
 
-  <div class="oy-input-wrap">
-    <textarea id="oyInput" placeholder="Энд бичээд Enter дарна уу…"></textarea>
-    <div id="typing" class="oy-typing"><span></span><span></span><span></span></div>
-  </div>
+        <!-- File (label + hidden input) -->
+        <label for="oyFile" class="oy-file" title="Зураг нэмэх">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <path d="M16.5 6a3.5 3.5 0 0 1 0 7H9a2 2 0 1 1 0-4h7.5a1.5 1.5 0 1 0 0-3H9A5 5 0 1 0 9 17h7.5a5.5 5.5 0 1 0 0-11H9"/>
+          </svg>
+        </label>
+        <input id="oyFile" type="file" accept="image/*" hidden />
 
-  <button id="btnSend" class="oy-send" aria-label="Илгээх">➤</button>
+        <div class="oy-input-wrap">
+          <textarea id="oyInput" placeholder="Энд бичээд Enter дарна уу…" rows="1"></textarea>
+          <div id="typing" class="oy-typing" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
 
-  <!-- Жинхэнэ input-аа нууж үлдээнэ -->
-  <input id="oyFile" type="file" accept="image/*" multiple hidden>
-</div>
         <button id="btnSend" class="oy-send" aria-label="Илгээх">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>
         </button>
       </div>
     </main>
   </div>
 
-  <!-- API үндэс (өөрийн домэйнээ тавина) -->
-  <script>
-    window.OY_API_BASE = "https://oyunsanaa-api.oyunsanaa-ai.workers.dev";
-  </script>
   <script src="oy.js"></script>
 </body>
 </html>
