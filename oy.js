@@ -240,7 +240,20 @@ async function callChat({ text = "", images = [] }) {
     SENDING = false;
   }
 }
-
+// --- auto scroll: bubble бүрийн дараа доош гүйлгэх ---
+function oyScrollBottom(){
+  const s = document.querySelector('#oyStream');
+  if (s) s.scrollTop = s.scrollHeight + 999;
+}
+// эхний bubble() аль хэдийн дээр талд чинь тодорхойлогдсон.
+// Одоо wrapper-ээр сольж, бүрт нь доош гүйлгэнэ.
+const __origBubble = bubble;
+bubble = function(html, who, isHTML){
+  const d = __origBubble(html, who, isHTML);
+  oyScrollBottom();
+  return d;
+};
+// --- auto scroll END ---
 
   async function sendCurrent(){
     const t = (el.input?.value || "").trim();
