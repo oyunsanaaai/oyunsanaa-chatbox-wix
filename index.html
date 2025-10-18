@@ -144,11 +144,12 @@
       <div id="oyStream" class="oy-stream" aria-live="polite"></div>
 
       <div class="oy-composer">
-        <label for="oyFile" class="oy-file" title="Зураг хавсаргах">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M16.5 6.5v9a4.5 4.5 0 1 1-9 0V7a3 3 0 0 1 6 0v8a1.5 1.5 0 1 1-3 0V7h-1.5v8a3 3 0 1 0 6 0V7a4.5 4.5 0 0 0-9 0v8a6 6 0 1 0 12 0v-8h-1.5z"/></svg>
-        </label>
-        <input id="oyFile" type="file" accept="image/*" hidden />
-
+      <label for="oyFile" class="oy-file" title="Зураг/файл нэмэх">
+  <!-- өөрийн икон -->
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8.5l-8.485 8.485a5 5 0 11-7.071-7.071L14.5 1.858a3.5 3.5 0 114.95 4.95L9.88 16.379a2 2 0 11-2.828-2.828L16 4.603"
+    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</label>
+<input id="oyFile" type="file" accept="image/*" multiple />
         <div class="oy-input-wrap">
           <div id="oyPreviews" class="oy-previews" hidden></div>
           <textarea id="oyInput" rows="1" placeholder="Энд бичээд Enter дарна уу…"></textarea>
