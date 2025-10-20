@@ -1,44 +1,42 @@
+/* ============ Base ============ */
 :root{
-  --bg1:#0e1524; --bg2:#16263b; --text:#e9eef7;
-  --glass:#ffffff14; --chip:#ffffff0f; --stroke:#ffffff24;
-  --brand:#5a83ff;
+  --text:#e9eef8;
+  --muted:#b9c2d3;
+  --glass:rgba(255,255,255,.06);
+  --chip:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.12);
+  --brand:#4e7dd8; /* theme-аас солигдоно */
 }
-
-/* илүү ялгаралттай 5 theme */
-:root[data-t="0"]{--brand:#5a83ff; --bg1:#0e1524; --bg2:#16263b}
-:root[data-t="1"]{--brand:#00b37e; --bg1:#061b15; --bg2:#0e2a22}
-:root[data-t="2"]{--brand:#d6a34a; --bg1:#1b140b; --bg2:#2f2416}
-:root[data-t="3"]{--brand:#9aa4b2; --bg1:#0f1114; --bg2:#191d24}
-:root[data-t="4"]{--brand:#28a0a8; --bg1:#082026; --bg2:#10323b}
-
-*,:before,:after{box-sizing:border-box}
 html,body{height:100%}
+*{box-sizing:border-box}
 body{
-  margin:0; color:var(--text);
-  background:radial-gradient(80vw 80vh at 30% 20%, var(--bg2), var(--bg1));
-  font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  margin:0; color:var(--text); font:16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(1200px 800px at 10% 20%, var(--bg1), transparent) ,
+              radial-gradient(1200px 800px at 90% 80%, var(--bg2), #0b1220);
 }
 
 /* header */
 .oy-header{
-  position:sticky; top:0; z-index:20;
-  display:flex; align-items:center; gap:12px;
+  position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px;
   padding:10px 14px; backdrop-filter:saturate(140%) blur(12px);
-  background:linear-gradient(180deg, #0000, #0005);
-  border-bottom:1px solid var(--stroke);
+  background:linear-gradient(90deg, #0000, #0003); border-bottom:1px solid var(--stroke)
 }
 .oy-iconbtn{all:unset; cursor:pointer; padding:8px; border-radius:10px; background:var(--glass)}
+.oy-iconbtn svg{width:22px;height:22px;fill:currentColor}
+.oy-head-title{display:flex; align-items:center; gap:10px}
+.oy-status .dot{display:inline-block;width:8px;height:8px;border-radius:999px;background:#2ecc71;box-shadow:0 0 6px #2ecc71aa}
 .oy-title{font-weight:700}
-.oy-status .dot{display:inline-block;width:8px;height:8px;border-radius:10px;background:#2ecc71;box-shadow:0 0 6px #2ecc71aa}
+
+/* theme swatches */
 .oy-themes{margin-left:auto; display:flex; gap:8px}
-.oy-themes .oy-swatch{all:unset; width:24px;height:24px;border-radius:7px; background:var(--glass); border:1px solid var(--stroke); cursor:pointer; overflow:hidden}
-.oy-themes .oy-swatch i{display:block;width:100%;height:100%}
+.oy-swatch{all:unset; width:26px;height:26px;border-radius:8px; background:var(--glass); border:1px solid var(--stroke); cursor:pointer; overflow:hidden}
+.oy-swatch i{display:block; width:100%; height:100%}
 
 /* layout */
-.oy-shell{display:grid; grid-template-columns:300px 1fr; min-height:calc(100vh - 56px)}
-@media (max-width:980px){
+.oy-shell{display:grid; grid-template-columns:280px 1fr; min-height:calc(100vh - 56px)}
+@media (max-width:960px){
   .oy-shell{grid-template-columns:1fr}
-  .oy-drawer{position:fixed; inset:56px 0 0 0; max-width:420px; width:86%; transform:translateX(-100%); transition:.25s; z-index:25}
+  .oy-drawer{position:fixed; inset:56px 0 0 0; max-width:420px; width:86%; transform:translateX(-100%); transition:.25s; z-index:40}
   body.oy-drawer-open .oy-drawer{transform:none}
   .oy-overlay{position:fixed; inset:56px 0 0 0; background:#0008}
 }
@@ -47,59 +45,70 @@ body{
 /* sidebar */
 .oy-drawer{border-right:1px solid var(--stroke); background:linear-gradient(180deg,#0002,#0000)}
 .oy-side{padding:16px}
-.oy-side-title{opacity:.85; margin:8px 0 12px}
+.oy-side-title{opacity:.8; margin-bottom:12px}
+/* sidebar items – давхарлахыг зогсооно */
 .oy-item{
-  width:100%; text-align:left; padding:14px 16px; margin:10px 0; border-radius:16px;
-  background:var(--glass); border:1px solid var(--stroke); color:var(--text); cursor:pointer;
+  display:block;              /* ⬅️ заавал */
+  width:100%;
+  text-align:left;
+  padding:14px 16px;
+  margin:10px 0;
+  border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--stroke);
+  color:var(--text);
+  cursor:pointer;
+  text-decoration:none;       /* доогуур зураас арилна */
+  line-height:1.3;
+  white-space:nowrap;         /* урт бол нэг мөрт байлгана */
+  overflow:hidden;
+  text-overflow:ellipsis;     /* урт бол … хийнэ */
 }
-.oy-links a{display:block; text-decoration:none; color:var(--text); opacity:.95}
-.oy-links a + a{margin-top:8px}
-.oy-group{margin:12px 0 18px}
-.oy-group h4{margin:6px 0 8px; font-size:15px; opacity:.9}
-.oy-pane{margin:6px 0 10px; padding:10px; border-radius:14px; background:var(--glass); border:1px dashed var(--stroke)}
+}
+.oy-pane{margin:6px 0 14px 0; padding:12px; border-radius:16px; background:var(--glass); border:1px dashed var(--stroke)}
 .oy-list{margin:0; padding:0; list-style:none}
-.oy-list li{display:flex; justify-content:space-between; align-items:center; padding:8px 4px}
+.oy-list li{display:flex; justify-content:space-between; align-items:center; padding:10px 6px}
 .oy-mini{all:unset; padding:6px 10px; border-radius:10px; background:var(--chip); border:1px solid var(--stroke); cursor:pointer}
 
 /* chat */
-.oy-main{display:flex; flex-direction:column; min-height:calc(100vh - 56px)}
-.oy-stream{flex:1; overflow:auto; padding:18px 16px 8px; display:flex; flex-direction:column; gap:14px}
-.oy-bubble{max-width:min(700px, 84%); padding:12px 14px; border-radius:16px; background:var(--glass); border:1px solid var(--stroke)}
-.oy-user{align-self:flex-end; background:linear-gradient(180deg,#ffffff18,#ffffff08)}
+.oy-main{display:flex; flex-direction:column; height:calc(100vh - 56px)}
+.oy-stream{flex:1; overflow:auto; padding:20px 18px 10px; display:flex; flex-direction:column; gap:14px}
+.oy-bubble{max-width:min(680px, 82%); padding:12px 14px; border-radius:16px; background:var(--glass); border:1px solid var(--stroke)}
+.oy-user{align-self:flex-end; background:linear-gradient(180deg,#ffffff18,#ffffff06); color:#eaf6ff}
 .oy-bot{align-self:flex-start}
-.oy-bubble img{display:block; max-width:100%; border-radius:12px}
+.oy-meta{opacity:.65; font-size:12px; text-align:center; margin:4px 0}
 
 /* composer */
 .oy-composer{
-  position:sticky; bottom:0; z-index:15;
-  display:flex; align-items:flex-end; gap:10px;
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-  border-top:1px solid var(--stroke);
-  background:linear-gradient(180deg,#0000,#0005);
+  position:sticky; bottom:20px; z-index:100;
+  display:flex; align-items:flex-end; gap:10px; padding:12px;
+  border-top:1px solid var(--stroke); background:linear-gradient(180deg,#0000,#0003)
 }
-.oy-file{all:unset; width:44px;height:44px; display:grid; place-items:center; background:var(--glass); border:1px solid var(--stroke); border-radius:12px; cursor:pointer}
+.oy-file{all:unset; width:42px;height:42px; display:grid; place-items:center; background:var(--glass); border:1px solid var(--stroke); border-radius:12px; cursor:pointer}
 .oy-input-wrap{flex:1; position:relative}
 #oyInput{
-  width:100%; min-height:44px; max-height:160px; resize:none; padding:12px 44px 12px 14px; border-radius:12px;
-  color:var(--text); background:var(--glass); border:1px solid var(--stroke); outline:none
+  width:100%; min-height:42px; max-height:180px; resize:none; padding:12px 14px; border-radius:12px; color:var(--text);
+  background:var(--glass); border:1px solid var(--stroke); outline:none
 }
-.oy-send{all:unset; width:48px;height:44px; display:grid; place-items:center; border-radius:12px; background:var(--brand); color:#fff; cursor:pointer}
-.oy-typing{position:absolute; right:10px; bottom:8px; display:flex; gap:5px}
-.oy-typing span{width:6px;height:6px;border-radius:999px;background:#fff9; animation:blink 1s infinite}
-.oy-typing span:nth-child(2){animation-delay:.15s} .oy-typing span:nth-child(3){animation-delay:.3s}
-@keyframes blink {0%,100%{opacity:.25} 50%{opacity:1}}
+.oy-send{all:unset; width:46px;height:42px; display:grid; place-items:center; border-radius:12px; background:var(--brand); color:white; cursor:pointer}
 
-.oy-previews{display:flex; gap:8px; margin:0 0 8px; overflow-x:auto}
-.oy-chip{position:relative; width:60px;height:60px; border-radius:10px; overflow:hidden; background:#0003; border:1px solid var(--stroke); flex:0 0 auto}
+/* typing */
+.oy-typing{position:absolute; right:10px; bottom:8px; display:flex; gap:4px}
+.oy-typing span{width:6px;height:6px;border-radius:999px;background:#fff8; animation:oyblink 1s infinite}
+.oy-typing span:nth-child(2){animation-delay:.15s} .oy-typing span:nth-child(3){animation-delay:.3s}
+@keyframes oyblink {0%,100%{opacity:.3} 50%{opacity:1}}
+
+/* previews */
+.oy-previews{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0}
+.oy-chip{position:relative; width:62px;height:62px; border-radius:10px; overflow:hidden; background:#0003; border:1px solid var(--stroke)}
 .oy-chip img{width:100%;height:100%; object-fit:cover}
 .oy-chip button{position:absolute; top:4px; right:4px; all:unset; width:18px;height:18px; border-radius:10px; background:#0008; color:#fff; font-size:12px; text-align:center; line-height:18px; cursor:pointer}
 
-/* зурагтай мессеж bubble-ын доторх зураг хэт томрохоос сэргийлнэ */
-.oy-bubble .oy-img{max-width:min(480px, 72vw); border-radius:12px; display:block}
-
-/* mobile сайжруулалт */
-@media (max-width:600px){
-  .oy-bubble{max-width:86%}
-  .oy-previews{gap:6px}
-  .oy-chip{width:56px;height:56px}
-}
+/* themes (5 загвар) */
+:root[data-t="0"]{--brand:#4e7dd8; --bg1:#0d1726; --bg2:#1d2740}
+:root[data-t="1"]{--brand:#1aa86e; --bg1:#081a16; --bg2:#12322b}
+:root[data-t="2"]{--brand:#bc9b5d; --bg1:#1b140b; --bg2:#332515}
+:root[data-t="3"]{--brand:#8b8f96; --bg1:#0f1114; --bg2:#191b22}
+:root[data-t="4"]{--brand:#2e6f6c; --bg1:#0a2021; --bg2:#143638}
+/* === БҮХДЭЭ box-sizing === */
+*, *::before, *::after { box-sizing: border-box; }
